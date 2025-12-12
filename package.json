@@ -1,0 +1,36 @@
+{
+  "name": "tavoloai-next-ts",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@studio-freight/lenis": "^1.0.42",
+    "@supabase/supabase-js": "^2.45.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "10.12.16",
+    "lucide-react": "^0.542.0",
+    "next": "14.2.5",
+    "pg": "^8.12.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-qr-code": "^2.0.18",
+    "sharp": "^0.34.5",
+    "styled-components": "^6.1.19",
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.2.1",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "autoprefixer": "10.4.14",
+    "postcss": "8.4.21",
+    "tailwindcss": "3.4.7",
+    "typescript": "5.6.3"
+  }
+}

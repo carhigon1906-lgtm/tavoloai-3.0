@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="6" y="6" width="148" height="148" rx="32" stroke="white" stroke-width="12" opacity="0.28"/>
+  <path
+    d="M49 50H111C117.627 50 123 55.3726 123 62C123 68.6274 117.627 74 111 74H93V104C93 110.627 87.6274 116 81 116H79C72.3726 116 67 110.627 67 104V74H49C42.3726 74 37 68.6274 37 62C37 55.3726 42.3726 50 49 50Z"
+    fill="white"
+  />
+  <path
+    d="M81 104V74H93L69 108C71.0944 110.814 74.3297 112.6 78.0184 112.6H81C87.6274 112.6 93 107.227 93 100.6V104H81Z"
+    fill="white"
+    opacity="0.4"
+  />
+</svg>

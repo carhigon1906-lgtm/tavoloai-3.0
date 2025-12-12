@@ -1,0 +1,301 @@
+﻿/* globals.css - corregido para Tailwind */
+
+/* --- Directivas obligatorias de Tailwind: deben ir ANTES de cualquier @layer --- */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Si usas una librerÃ­a de utilidades CSS (ej. tw-animate-css) puedes importarla despuÃ©s */
+@import "tw-animate-css";
+
+/* ========= TavoloAI Design Tokens ========= */
+:root {
+  /* Nueva paleta de colores TavoloAI */
+  /* Colores principales */
+  --primary: 73 31 83; /* #491f53 - PÃºrpura oscuro */
+  --secondary: 49 39 131; /* #312783 - Azul pÃºrpura */
+  --accent-1: 62 163 220; /* #3ea3dc - Azul cielo */
+  --accent-2: 106 219 255; /* #6adbff - Azul claro */
+  --accent-3: 0 106 233; /* #006ae9 - Azul */
+  --accent-4: 126 0 191; /* #7e00bf - PÃºrpura vibrante */
+
+  /* Colores base claros (modo claro) */
+  --bg: 254 254 254; /* casi blanco */
+  --surface: 248 248 248; /* gris muy claro */
+  --fg: 17 17 17; /* casi negro */
+
+  /* Bordes y lÃ­neas */
+  --border: 0 0 0 / 0.08;
+
+  /* Sombras sutiles */
+  --shadow: 0 10px 30px rgba(73, 31, 83, 0.12), 0 2px 8px rgba(73, 31, 83, 0.06);
+
+  /* Glassmorphism */
+  --blur: saturate(180%) blur(24px);
+  --panel: 255 255 255 / 0.7;
+
+  /* TipografÃ­as */
+  --font-heading: "Staatliches", "Inter", system-ui, sans-serif;
+  --font-body: "Roboto Condensed", "Inter", system-ui, sans-serif;
+  --font-alt: "Barlow Condensed", "Inter", system-ui, sans-serif;
+
+  /* shadcn/ui default styles */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --bg-dark: 10 10 12;
+  --surface-dark: 16 16 18;
+  --fg-dark: 240 240 245;
+  --border-dark: 255 255 255 / 0.08;
+  --shadow-dark: 0 10px 30px rgba(126, 0, 191, 0.3), 0 2px 8px rgba(126, 0, 191, 0.15);
+  --panel-dark: 0 0 0 / 0.5;
+}
+
+.dark {
+  --bg: var(--bg-dark);
+  --surface: var(--surface-dark);
+  --fg: var(--fg-dark);
+  --border: var(--border-dark);
+  --shadow: var(--shadow-dark);
+  --panel: var(--panel-dark);
+}
+
+@theme inline {
+  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* ========= Utilidades design system ========= */
+@layer utilities {
+  .bg-brand {
+    background-color: rgb(var(--bg));
+  }
+  .bg-surface {
+    background-color: rgb(var(--surface));
+  }
+  .text-fg {
+    color: rgb(var(--fg));
+  }
+  .border-brand {
+    border-color: color-mix(in oklab, rgb(var(--fg)) 8%, transparent);
+  }
+
+  /* Colores de marca */
+  .bg-primary {
+    background-color: rgb(var(--primary));
+  }
+  .bg-secondary {
+    background-color: rgb(var(--secondary));
+  }
+  .bg-accent-1 {
+    background-color: rgb(var(--accent-1));
+  }
+  .bg-accent-2 {
+    background-color: rgb(var(--accent-2));
+  }
+  .bg-accent-3 {
+    background-color: rgb(var(--accent-3));
+  }
+  .bg-accent-4 {
+    background-color: rgb(var(--accent-4));
+  }
+
+  .text-primary {
+    color: rgb(var(--primary));
+  }
+  .text-secondary {
+    color: rgb(var(--secondary));
+  }
+  .text-accent-1 {
+    color: rgb(var(--accent-1));
+  }
+  .text-accent-2 {
+    color: rgb(var(--accent-2));
+  }
+  .text-accent-3 {
+    color: rgb(var(--accent-3));
+  }
+  .text-accent-4 {
+    color: rgb(var(--accent-4));
+  }
+
+  /* Gradientes de marca */
+  .gradient-primary {
+    background: linear-gradient(135deg, rgb(var(--primary)), rgb(var(--secondary)));
+  }
+  .gradient-accent {
+    background: linear-gradient(135deg, rgb(var(--accent-1)), rgb(var(--accent-2)));
+  }
+  .gradient-vibrant {
+    background: linear-gradient(135deg, rgb(var(--accent-3)), rgb(var(--accent-4)));
+  }
+
+  .brand-blur {
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+  }
+  .brand-panel {
+    background-color: color-mix(in oklab, rgb(var(--fg)) 0%, transparent);
+    background: rgba(var(--panel));
+  }
+
+  .brand-shadow {
+    box-shadow: var(--shadow);
+  }
+  .brand-ring {
+    box-shadow: 0 0 0 1px color-mix(in oklab, rgb(var(--fg)) 10%, transparent), 0 6px 20px rgba(73, 31, 83, 0.12);
+  }
+
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ========= Base ========= */
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    overflow-x: hidden;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ========= Componentes base ========= */
+@layer components {
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  .lenis.lenis-smooth iframe {
+    pointer-events: none;
+  }
+  .ios-card {
+    @apply brand-panel brand-blur brand-shadow rounded-3xl border border-brand;
+  }
+
+  /* BotÃ³n actualizado con colores de marca */
+  .ios-button {
+    @apply rounded-full px-6 py-3 text-white gradient-primary hover:opacity-90 active:scale-[0.98] transition-all duration-200 tap-highlight-none;
+    box-shadow: 0 8px 24px rgba(73, 31, 83, 0.35);
+  }
+
+  /* Variante de botÃ³n con gradiente de acento */
+  .ios-button-accent {
+    @apply rounded-full px-6 py-3 text-white gradient-accent hover:opacity-90 active:scale-[0.98] transition-all duration-200 tap-highlight-none;
+    box-shadow: 0 8px 24px rgba(62, 163, 220, 0.35);
+  }
+
+  .ios-pill {
+    @apply rounded-full brand-panel brand-blur border border-brand brand-shadow;
+  }
+}
+
+/* ========= Accesibilidad ========= */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(62, 163, 220, 0.35);
+  border-radius: 14px;
+}
+/* ========= Lenis integration ========= */
+/* Recomendado por Lenis: evitar conflictos con scroll nativo/trackpad */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+/* Si usas contenedores con scroll interno, puedes prevenir que Lenis los capture */
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
