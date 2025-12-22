@@ -32,7 +32,11 @@ const itemVariants = {
 
 function SectionBeforeAfter() {
   const [sliderValue, setSliderValue] = useState(50)
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
+
+  const beforeButtonLabel =
+    language === "es" ? "Antes" : language === "it" ? "Prima" : t("beforeAfter.beforeLabel")
+  const afterButtonLabel = language === "es" ? "Despues" : language === "it" ? "Dopo" : "After"
 
   return (
     <section id="before-after" className="relative overflow-hidden bg-black py-20 text-slate-100">
@@ -134,19 +138,29 @@ function SectionBeforeAfter() {
                   [&::-moz-range-thumb]:rounded-full transition-transform duration-200 hover:scale-[1.02]"
               />
 
-              <motion.div
-                className="absolute top-4 left-4 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-medium text-white shadow-[0_12px_30px_rgba(0,0,0,0.35)] backdrop-blur-md"
-                whileHover={{ scale: 1.05 }}
-              >
-                {t("beforeAfter.beforeLabel")}
-              </motion.div>
+              <div className="absolute inset-x-4 top-4 flex items-center justify-between gap-3">
+                <motion.button
+                  type="button"
+                  className="inline-flex h-9 min-w-[110px] items-center justify-center gap-2 rounded-2xl border border-white/20 bg-black/60 px-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white shadow-[0_18px_38px_rgba(0,0,0,0.55)] backdrop-blur"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setSliderValue(0)}
+                >
+                  <span className="inline-flex h-1.5 w-1.5 rounded-full bg-white/70" aria-hidden />
+                  {beforeButtonLabel}
+                </motion.button>
 
-              <motion.div
-                className="absolute top-4 right-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-3 py-2 text-xs font-medium text-white shadow-[0_18px_40px_rgba(59,130,246,0.45)]"
-                whileHover={{ scale: 1.05 }}
-              >
-                {t("beforeAfter.afterLabel")}
-              </motion.div>
+                <motion.button
+                  type="button"
+                  className="inline-flex h-9 min-w-[110px] items-center justify-center gap-2 rounded-2xl border border-white/20 bg-gradient-to-r from-blue-500 to-purple-500 px-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-white shadow-[0_22px_42px_rgba(59,130,246,0.45)]"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setSliderValue(100)}
+                >
+                  {afterButtonLabel}
+                  <span className="inline-flex h-1.5 w-1.5 rounded-full bg-white/85" aria-hidden />
+                </motion.button>
+              </div>
             </div>
           </NeonGradientCard>
         </motion.div>
