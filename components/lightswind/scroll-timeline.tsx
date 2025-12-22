@@ -242,10 +242,9 @@ export function ScrollTimeline({
                 }}
               />
               <motion.div
-                className="absolute z-20 left-6 sm:left-8 lg:left-1/2 transform lg:-translate-x-1/2"
+                className="absolute z-20 left-6 sm:left-8 lg:left-1/2 transform -translate-x-1/2 -translate-y-1/2"
                 style={{
                   top: progressHeight,
-                  translateY: "-50%",
                 }}
               >
                 <motion.div
@@ -300,8 +299,8 @@ export function ScrollTimeline({
                 >
                   <div
                     className={cn(
-                      "absolute top-1/2 transform -translate-y-1/2 z-30",
-                      "left-6 sm:left-8 lg:left-1/2 lg:-translate-x-1/2",
+                      "absolute top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30",
+                      "left-6 sm:left-8 lg:left-1/2",
                     )}
                   >
                     <motion.div
