@@ -3,7 +3,39 @@
 
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
+import { motion } from "framer-motion"
 import { useTranslation } from "@/context/TranslationContext"
+
+const HERO_TITLE_VARIANTS = {
+  hidden: { opacity: 0, y: 32, filter: "blur(8px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: {
+      duration: 0.9,
+      ease: [0.16, 1, 0.3, 1],
+      opacity: { duration: 0.7, ease: "easeOut" },
+      filter: { duration: 0.9, ease: "easeOut" },
+    },
+  },
+}
+
+const HERO_SUBTITLE_VARIANTS = {
+  hidden: { opacity: 0, y: 22, filter: "blur(6px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: {
+      duration: 0.8,
+      delay: 0.12,
+      ease: [0.25, 1, 0.4, 1],
+      opacity: { duration: 0.6 },
+      filter: { duration: 0.85 },
+    },
+  },
+}
 
 export default function SectionHero() {
   const { dictionary } = useTranslation()
@@ -133,26 +165,22 @@ export default function SectionHero() {
               }}
             />
           </div>
-          <h1
+          <motion.h1
             className="text-4xl font-black leading-tight text-white sm:text-5xl lg:text-[72px]"
-            style={{
-              opacity: showIntro ? 0 : 1,
-              transform: `translateY(${showIntro ? "18px" : "0"})`,
-              transition: "opacity 0.22s ease-out, transform 0.22s ease-out",
-            }}
+            variants={HERO_TITLE_VARIANTS}
+            initial="hidden"
+            animate={showIntro ? "hidden" : "visible"}
           >
             {hero.title}
-          </h1>
-          <p
+          </motion.h1>
+          <motion.p
             className="relative z-10 max-w-3xl text-base text-slate-200 sm:text-lg"
-            style={{
-              opacity: showIntro ? 0 : 1,
-              transform: `translateY(${showIntro ? "14px" : "0"})`,
-              transition: "opacity 0.22s ease-out 0.03s, transform 0.22s ease-out 0.03s",
-            }}
+            variants={HERO_SUBTITLE_VARIANTS}
+            initial="hidden"
+            animate={showIntro ? "hidden" : "visible"}
           >
             {hero.description}
-          </p>
+          </motion.p>
         </div>
       </section>
 
