@@ -40,7 +40,6 @@ export default function Header() {
 
   const navItems = [
     { id: "features", label: dictionary.header.nav.features },
-    { id: "demo", label: dictionary.header.nav.demo },
     { id: "how-it-works", label: dictionary.header.nav.howItWorks },
     { id: "pricing", label: dictionary.header.nav.pricing },
     { id: "cases", label: dictionary.header.nav.cases },
@@ -137,7 +136,7 @@ export default function Header() {
             >
               <Link
                 href={registerHref}
-                className="inline-flex items-center justify-center rounded-full bg-white px-4 py-2 text-[12px] font-semibold text-black shadow-[0_8px_18px_rgba(0,0,0,0.55)] transition-colors hover:bg-white/90"
+                className="inline-flex items-center justify-center rounded-full bg-white px-4 py-2 text-[12px] font-semibold text-black shadow-[0_8px_18px_rgba(0,0,0,0.55)] transform transition-all duration-300 ease-out hover:bg-[#0ea5e9] hover:text-white hover:shadow-[0_12px_28px_rgba(14,165,233,0.35)] hover:-translate-y-0.5"
               >
                 {t("header.signup")}
               </Link>
