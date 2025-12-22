@@ -171,7 +171,12 @@ export function ScrollTimeline({
   }
 
   const getConnectorClasses = () => {
-    const baseClasses = cn("absolute left-1/2 transform -translate-x-1/2", lineColor)
+    const baseClasses = cn(
+      "absolute top-0 transform",
+      "left-6 sm:left-8 lg:left-1/2",
+      "lg:-translate-x-1/2",
+      lineColor,
+    )
     const widthStyle = `w-[${progressLineWidth}px]`
     switch (connectorStyle) {
       case "dots":
@@ -217,19 +222,17 @@ export function ScrollTimeline({
         {subtitle && <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{subtitle}</p>}
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-4 pb-24">
-        <div className="relative mx-auto">
-          <div className={cn(getConnectorClasses(), "h-full absolute top-0 z-10")} />
+        <div className="relative max-w-6xl mx-auto px-4 pb-24">
+          <div className="relative mx-auto">
+            <div className={cn(getConnectorClasses(), "h-full absolute top-0 z-10")} />
 
           {progressIndicator && (
             <>
               <motion.div
-                className="absolute top-0 z-10"
+                className="absolute top-0 z-10 left-6 sm:left-8 lg:left-1/2 transform lg:-translate-x-1/2"
                 style={{
                   height: progressHeight,
                   width: progressLineWidth,
-                  left: "50%",
-                  transform: "translateX(-50%)",
                   borderRadius: progressLineCap === "round" ? "9999px" : "0px",
                   background: "linear-gradient(to bottom, #22d3ee, #6366f1, #a855f7)",
                   boxShadow: `
@@ -239,11 +242,9 @@ export function ScrollTimeline({
                 }}
               />
               <motion.div
-                className="absolute z-20"
+                className="absolute z-20 left-6 sm:left-8 lg:left-1/2 transform lg:-translate-x-1/2"
                 style={{
                   top: progressHeight,
-                  left: "50%",
-                  translateX: "-50%",
                   translateY: "-50%",
                 }}
               >
@@ -286,7 +287,7 @@ export function ScrollTimeline({
                     timelineRefs.current[index] = el
                   }}
                   className={cn(
-                    "relative flex items-center mb-20 py-4",
+                    "relative flex w-full items-start mb-16 sm:mb-20 py-4 pl-10 pr-4 sm:pl-14",
                     "flex-col lg:flex-row",
                     cardAlignment === "alternating"
                       ? index % 2 === 0
@@ -300,7 +301,7 @@ export function ScrollTimeline({
                   <div
                     className={cn(
                       "absolute top-1/2 transform -translate-y-1/2 z-30",
-                      "left-1/2 -translate-x-1/2",
+                      "left-6 sm:left-8 lg:left-1/2 lg:-translate-x-1/2",
                     )}
                   >
                     <motion.div
@@ -344,7 +345,7 @@ export function ScrollTimeline({
                   >
                     <div className="relative w-full rounded-3xl p-[1px]" style={{ background: GRADIENT }}>
                       <article
-                        className="group relative flex h-full flex-col overflow-hidden rounded-3xl bg-neutral-900/80 p-8 text-center backdrop-blur-md"
+                        className="group relative flex h-full flex-col overflow-hidden rounded-3xl bg-neutral-900/80 p-8 text-left lg:text-center backdrop-blur-md"
                         aria-label={`${event.year}: ${event.title}`}
                         style={{
                           boxShadow: "0 35px 70px rgba(0,0,0,0.45)",
@@ -375,6 +376,33 @@ export function ScrollTimeline({
                       </article>
                     </div>
                   </motion.div>
+
+                  {index === 0 && sideNote && (
+                    <div className="mt-6 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-sm text-slate-300 shadow-[0_20px_45px_rgba(0,0,0,0.35)] lg:hidden">
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">
+                        {sideNoteTitle}
+                      </p>
+                      <p className="leading-relaxed">{sideNote}</p>
+                    </div>
+                  )}
+
+                  {index === 1 && sideNote2 && (
+                    <div className="mt-6 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-sm text-slate-300 shadow-[0_20px_45px_rgba(0,0,0,0.35)] lg:hidden">
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">
+                        {sideNote2Title}
+                      </p>
+                      <p className="leading-relaxed">{sideNote2}</p>
+                    </div>
+                  )}
+
+                  {index === 2 && sideNote3 && (
+                    <div className="mt-6 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left text-sm text-slate-300 shadow-[0_20px_45px_rgba(0,0,0,0.35)] lg:hidden">
+                      <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">
+                        {sideNote3Title}
+                      </p>
+                      <p className="leading-relaxed">{sideNote3}</p>
+                    </div>
+                  )}
 
                   {index === 0 && sideNote && (
                     <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[42%] px-8 lg:flex items-center">
