@@ -175,10 +175,10 @@ export default function SectionFeatures() {
               animate="center"
               exit="exit"
               transition={SLIDE_SPRING}
-              className="w-full max-w-5xl min-h-[520px] px-4 md:px-0"
+              className="w-full max-w-5xl px-4 md:px-0"
             >
               <motion.div
-                className="relative mx-auto h-[520px] w-full max-w-5xl overflow-visible rounded-[30px] p-[1px]"
+                className="relative mx-auto w-full max-w-5xl overflow-visible rounded-[30px] p-[1px] min-h-[520px] md:h-[520px]"
                 style={{ background: GRADIENT, boxShadow: "0 45px 120px rgba(0,0,0,0.85)" }}
                 initial={false}
                 whileHover={{ y: -6, boxShadow: "0 55px 140px rgba(0,0,0,0.95)" }}
@@ -214,14 +214,7 @@ export default function SectionFeatures() {
                 <div className="relative h-full overflow-hidden rounded-[26px] border border-white/10 bg-[#060607]/95 backdrop-blur-lg">
                   <div className="pointer-events-none absolute inset-0 rounded-[26px] bg-gradient-to-br from-white/8 via-white/2 to-transparent" />
 
-                  <div className="absolute inset-y-0 right-0 w-full md:w-[52%]">
-                    <div className="relative h-full w-full">
-                      <FeatureImage src={currentSlide?.image} alt={currentSlide?.title} priority />
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-                    </div>
-                  </div>
-
-                  <div className="relative z-10 flex h-full flex-col justify-between space-y-8 p-8 md:max-w-[50%] md:p-10">
+                  <div className="relative z-10 flex flex-col justify-between space-y-8 p-8 md:h-full md:max-w-[50%] md:p-10 md:pr-12">
                     <div className="space-y-6">
                       <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-slate-300">
                         {currentSlide?.badge}
@@ -240,6 +233,13 @@ export default function SectionFeatures() {
                         {t("sectionActions.primaryCta")}
                         <span aria-hidden>{"\u2192"}</span>
                       </button>
+                    </div>
+                  </div>
+
+                  <div className="relative w-full h-64 overflow-hidden md:absolute md:inset-y-0 md:right-0 md:h-full md:w-[52%]">
+                    <div className="relative h-full w-full">
+                      <FeatureImage src={currentSlide?.image} alt={currentSlide?.title} priority />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                     </div>
                   </div>
                 </div>
