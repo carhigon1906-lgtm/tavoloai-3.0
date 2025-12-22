@@ -107,7 +107,7 @@ export default function SectionPricing() {
           <div className="mx-auto mb-10 mt-4 h-px w-32 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
 
           <div
-            className={`mx-auto grid grid-cols-1 items-stretch gap-8 ${freePlan ? "md:grid-cols-3" : "md:grid-cols-2"}`}
+            className={`mx-auto grid grid-cols-1 items-stretch gap-8 ${freePlan ? "md:grid-cols-2" : "md:grid-cols-1"}`}
           >
             {freePlan && (
               <TiltCard gradient={GRADIENT}>
@@ -211,47 +211,6 @@ export default function SectionPricing() {
               </motion.div>
             </TiltCard>
 
-            <TiltCard gradient={GRADIENT}>
-              <motion.div
-                variants={secondaryCardVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.4, margin: "-10% 0px" }}
-                whileHover="hover"
-                className="relative h-full w-full max-w-[460px] mx-auto rounded-3xl p-[2px]"
-                style={{ background: GRADIENT }}
-              >
-                <div
-                  className="relative flex h-full min-h-[420px] flex-col justify-between overflow-hidden rounded-3xl bg-neutral-900/80 p-8 text-slate-200 backdrop-blur-md"
-                  role="region"
-                  aria-label={pricing.compareTitle}
-                >
-                  <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 via-white/5 to-transparent" />
-                  <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-
-                  <div className="relative z-10 flex flex-col gap-6">
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-emerald-200/70">
-                        Comparativa
-                      </p>
-                      <h3 className="mt-3 text-2xl font-semibold text-white">{pricing.compareTitle}</h3>
-                      <div className="mt-6 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-                    </div>
-
-                    <motion.ul variants={briskListStagger} className="space-y-4 text-sm text-slate-200">
-                      {pricing.comparePoints.map((point) => (
-                        <motion.li key={point} variants={listItemVariants} className="flex items-start gap-3">
-                          <span className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-500 text-xs font-bold text-black shadow-[0_12px_28px_rgba(16,185,129,0.35)]">
-                            {"\u2713"}
-                          </span>
-                          <span className="leading-relaxed text-slate-300">{point}</span>
-                        </motion.li>
-                      ))}
-                    </motion.ul>
-                  </div>
-                </div>
-              </motion.div>
-            </TiltCard>
           </div>
         </div>
       </div>
