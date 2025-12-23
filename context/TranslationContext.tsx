@@ -144,8 +144,8 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
     },
     hero: {
       tagline: "Demo en vivo",
-      title: "Tu menu, mas inteligente que nunca.",
-      description: "Edita en segundos, mejora fotos y comparte promociones con IA.",
+      title: "La herramienta inteligente para gestionar y presentar tu carta",
+      description: "Más que un menú QR: gestión visual, IA y una presentación moderna para tu restaurante.",
       primaryCta: "Empezar gratis",
       secondaryCta: "Ver como funciona",
       trial: "7 dias gratis, sin tarjeta, cancela cuando quieras.",
@@ -155,10 +155,9 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       title: "Lo que solo TavoloAI puede hacer",
       items: [
         {
-          title: "Fotos con IA",
+          title: "Fotos mejoradas con IA",
           badge: "Mas ventas",
-          description:
-            "Sube fotos desde tu celular y haz que luzcan profesionales usando IA en un solo clic.",
+          description: "Sube tus fotos y deja que la IA las haga lucir profesionales en un solo clic.",
         },
         {
           title: "Edicion instantanea",
@@ -168,7 +167,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
         {
           title: "Promocion en redes",
           badge: "Listo en 5 s",
-          description: "Crea publicidad para tu restaurante y compartela en redes sociales con IA.",
+          description: "Crea contenido listo para Instagram y WhatsApp con las fotos y textos de tu carta.",
         },
         {
           title: "Ocultar platos al instante",
@@ -748,3 +747,4 @@ export const SUPPORTED_LANGUAGES: Array<{ code: LanguageCode; label: string }> =
   { code: "en", label: "English" },
   { code: "it", label: "Italiano" },
 ]
+
