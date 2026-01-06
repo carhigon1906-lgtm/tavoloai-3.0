@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 "use client"
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react"
@@ -366,10 +366,7 @@ export default function Page() {
                     </h3>
                     <div className="flex flex-col gap-4 sm:flex-row">
                       <button className="rounded-full bg-white px-6 py-2 text-sm font-semibold text-black shadow-lg shadow-white/20 transition hover:-translate-y-0.5 hover:bg-white/90">
-                        Start for free
-                      </button>
-                      <button className="rounded-full bg-neutral-900 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-black/50 ring-1 ring-white/10 transition hover:-translate-y-0.5 hover:bg-neutral-800">
-                        Start with AI
+                        empezar ya
                       </button>
                     </div>
                   </div>
