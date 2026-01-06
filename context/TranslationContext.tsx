@@ -247,7 +247,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       subtitle: "Con un plato extra vendido al dia, el plan se paga solo.",
       billingMonthlyLabel: "Plan mensual",
       billingYearlyLabel: "Plan anual",
-      priceLabel: "49 €",
+      priceLabel: "29 €",
       priceSuffix: "/mes",
       features: [
         "Menus ilimitados",
@@ -439,7 +439,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       subtitle: "Sell just one extra dish per day and the plan pays for itself.",
       billingMonthlyLabel: "Monthly plan",
       billingYearlyLabel: "Annual plan",
-      priceLabel: "49 €",
+      priceLabel: "29 €",
       priceSuffix: "/month",
       features: [
         "Unlimited menus",
@@ -600,7 +600,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       subtitle: "Basta un piatto extra venduto al giorno e il piano si ripaga.",
       billingMonthlyLabel: "Piano mensile",
       billingYearlyLabel: "Piano annuale",
-      priceLabel: "49 €",
+      priceLabel: "29 €",
       priceSuffix: "/mese",
       features: [
         "Menu illimitati",
