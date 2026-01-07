@@ -155,6 +155,11 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       title: "Lo que solo TavoloAI puede hacer",
       items: [
         {
+          title: "Crea tu menu QR en minutos",
+          badge: "Listo ya",
+          description: "Digitaliza tu carta desde fotos o PDF y publica un QR listo para usar.",
+        },
+        {
           title: "Fotos mejoradas con IA",
           badge: "Mas ventas",
           description: "Sube tus fotos y deja que la IA las haga lucir profesionales en un solo clic.",
@@ -354,6 +359,11 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       title: "What only TavoloAI can do",
       items: [
         {
+          title: "Create your QR menu in minutes",
+          badge: "Launch fast",
+          description: "Import your menu from photos or PDF and publish a ready-to-scan QR instantly.",
+        },
+        {
           title: "AI-powered photos",
           badge: "More sales",
           description:
@@ -541,6 +551,11 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
     features: {
       title: "Cosa puo fare solo TavoloAI",
       items: [
+        {
+          title: "Crea il tuo menu QR in pochi minuti",
+          badge: "Subito live",
+          description: "Digitalizza il menu da foto o PDF e ottieni subito un QR pronto da scansionare.",
+        },
         {
           title: "Foto con IA",
           badge: "Piu vendite",
