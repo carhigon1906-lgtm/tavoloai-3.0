@@ -5,6 +5,7 @@ import Image, { type StaticImageData } from "next/image"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import menuQrImage from "@/public/menuqr.webp"
 import fotosIaImage from "@/public/fotos-con-ia.webp"
 import edicionImage from "@/public/edicion.webp"
 import promocionImage from "@/public/promocion.png"
@@ -21,6 +22,7 @@ type FeatureSlide = {
 }
 
 const featureImages: StaticImageData[] = [
+  menuQrImage,
   fotosIaImage,
   edicionImage,
   promocionImage,
@@ -87,38 +89,81 @@ export default function SectionFeatures() {
         image: featureImages[index],
       })),
     [translatedItems],
-  );
+  )
 
-  const [currentIndex, setCurrentIndex] = useState(1)
+  const [currentIndex, setCurrentIndex] = useState(0)
   const [direction, setDirection] = useState<Direction>(1)
   const [magicActive, setMagicActive] = useState(false)
   const magicBoundsRef = useRef<DOMRect | null>(null)
   const magicLayerRef = useRef<HTMLDivElement | null>(null)
+  const autoplayRef = useRef<NodeJS.Timeout | null>(null)
   const n = featureItems.length
-
-  const currentSlide = featureItems[currentIndex]
+  const hasSlides = n > 0
+  const hasMultipleSlides = n > 1
+  const activeIndex = hasSlides ? modIndex(currentIndex, n) : 0
+  const currentSlide = hasSlides ? featureItems[activeIndex] : null
 
   const handlePrev = useCallback(() => {
+    if (n <= 1) return
     setDirection(-1)
     setCurrentIndex((p) => modIndex(p - 1, n))
   }, [n])
 
   const handleNext = useCallback(() => {
+    if (n <= 1) return
     setDirection(1)
     setCurrentIndex((p) => modIndex(p + 1, n))
   }, [n])
 
   const [isPaused, setIsPaused] = useState(false)
 
+  const clearAutoplay = useCallback(() => {
+    if (autoplayRef.current) {
+      clearInterval(autoplayRef.current)
+      autoplayRef.current = null
+    }
+  }, [])
+
+  const handlePointerPause = useCallback(
+    (pause: boolean) => {
+      if (pause) {
+        clearAutoplay()
+      }
+      setIsPaused(pause)
+    },
+    [clearAutoplay],
+  )
+
   useEffect(() => {
-    if (isPaused) return undefined
+    if (!hasMultipleSlides) {
+      clearAutoplay()
+      return undefined
+    }
 
-    const interval = setInterval(() => {
+    if (isPaused) {
+      clearAutoplay()
+      return undefined
+    }
+
+    autoplayRef.current = setInterval(() => {
       handleNext()
-    }, 4000)
+    }, 2000)
 
-    return () => clearInterval(interval)
-  }, [isPaused, handleNext])
+    return () => {
+      clearAutoplay()
+    }
+  }, [isPaused, handleNext, hasMultipleSlides, clearAutoplay])
+
+  useEffect(() => {
+    if (n === 0) {
+      setCurrentIndex(0)
+      return
+    }
+    setCurrentIndex((prev) => {
+      const safeIndex = modIndex(prev, n)
+      return safeIndex === prev ? prev : safeIndex
+    })
+  }, [n])
 
   const handleMagicEnter = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     magicBoundsRef.current = event.currentTarget.getBoundingClientRect()
@@ -161,97 +206,98 @@ export default function SectionFeatures() {
 
         <div
           className="relative flex flex-col items-center px-4"
-          onPointerEnter={() => setIsPaused(true)}
-          onPointerLeave={() => setIsPaused(false)}
-          onPointerDown={() => setIsPaused(true)}
-          onPointerUp={() => setIsPaused(false)}
+          onPointerEnter={() => handlePointerPause(true)}
+          onPointerLeave={() => handlePointerPause(false)}
         >
-          <AnimatePresence mode="wait" initial={false} custom={direction}>
-            <motion.div
-              key={`feature-card-${currentIndex}`}
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={SLIDE_SPRING}
-              className="w-full max-w-5xl px-4 md:px-0"
-            >
+          {currentSlide && (
+            <AnimatePresence mode="wait" initial={false} custom={direction}>
               <motion.div
-                className="relative mx-auto w-full max-w-5xl overflow-visible rounded-[30px] p-[1px] min-h-[520px] md:h-[520px]"
-                style={{ background: GRADIENT, boxShadow: "0 45px 120px rgba(0,0,0,0.85)" }}
-                initial={false}
-                whileHover={{ y: -6, boxShadow: "0 55px 140px rgba(0,0,0,0.95)" }}
-                transition={WRAPPER_SPRING}
-                onPointerMove={handleMagicMove}
-                onPointerEnter={handleMagicEnter}
-                onPointerLeave={handleMagicLeave}
+                key={`feature-card-${activeIndex}`}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={SLIDE_SPRING}
+                className="w-full max-w-5xl px-4 md:px-0"
               >
-                {currentSlide?.image && (
-                  <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[30px]">
-                    <Image
-                      src={currentSlide.image}
-                      alt=""
-                      fill
-                      sizes="(max-width: 1200px) 100vw, 1200px"
-                      className="object-cover opacity-[0.18]"
-                      priority
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/90 via-[#050505]/80 to-[#050505]/85" />
-                  </div>
-                )}
+                <motion.div
+                  className="relative mx-auto w-full max-w-5xl overflow-visible rounded-[30px] p-[1px] min-h-[520px] md:h-[520px]"
+                  style={{ background: GRADIENT, boxShadow: "0 45px 120px rgba(0,0,0,0.85)" }}
+                  initial={false}
+                  whileHover={{ y: -6, boxShadow: "0 55px 140px rgba(0,0,0,0.95)" }}
+                  transition={WRAPPER_SPRING}
+                  onPointerMove={handleMagicMove}
+                  onPointerEnter={handleMagicEnter}
+                  onPointerLeave={handleMagicLeave}
+                >
+                  {currentSlide?.image && (
+                    <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[30px]">
+                      <Image
+                        src={currentSlide.image}
+                        alt=""
+                        fill
+                        sizes="(max-width: 1200px) 100vw, 1200px"
+                        className="object-cover opacity-[0.18]"
+                        priority
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#050505]/90 via-[#050505]/80 to-[#050505]/85" />
+                    </div>
+                  )}
 
-                <div
-                  ref={magicLayerRef}
-                  className="pointer-events-none absolute inset-0 rounded-[30px] transition-opacity duration-500 ease-out"
-                  style={{
-                    opacity: magicActive ? 1 : 0,
-                    background:
-                      "radial-gradient(520px at var(--magic-x, 50%) var(--magic-y, 50%), rgba(255,255,255,0.14), transparent 70%)",
-                  }}
-                />
+                  <div
+                    ref={magicLayerRef}
+                    className="pointer-events-none absolute inset-0 rounded-[30px] transition-opacity duration-500 ease-out"
+                    style={{
+                      opacity: magicActive ? 1 : 0,
+                      background:
+                        "radial-gradient(520px at var(--magic-x, 50%) var(--magic-y, 50%), rgba(255,255,255,0.14), transparent 70%)",
+                    }}
+                  />
 
-                <div className="relative h-full overflow-hidden rounded-[26px] border border-white/10 bg-[#060607]/95 backdrop-blur-lg">
-                  <div className="pointer-events-none absolute inset-0 rounded-[26px] bg-gradient-to-br from-white/8 via-white/2 to-transparent" />
+                  <div className="relative h-full overflow-hidden rounded-[26px] border border-white/10 bg-[#060607]/95 backdrop-blur-lg">
+                    <div className="pointer-events-none absolute inset-0 rounded-[26px] bg-gradient-to-br from-white/8 via-white/2 to-transparent" />
 
-                  <div className="relative z-10 flex flex-col justify-between space-y-8 p-8 md:h-full md:max-w-[50%] md:p-10 md:pr-12">
-                    <div className="space-y-6">
-                      <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-slate-300">
-                        {currentSlide?.badge}
-                      </span>
-                      <h3 className="text-[32px] font-semibold text-white md:text-[36px]">
-                        {currentSlide?.title}
-                      </h3>
-                      <p className="text-base leading-relaxed text-slate-300 md:text-lg">
-                        {currentSlide?.description}
-                      </p>
+                    <div className="relative z-10 flex flex-col justify-between space-y-8 p-8 md:h-full md:max-w-[50%] md:p-10 md:pr-12">
+                      <div className="space-y-6">
+                        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-slate-300">
+                          {currentSlide?.badge}
+                        </span>
+                        <h3 className="text-[32px] font-semibold text-white md:text-[36px]">
+                          {currentSlide?.title}
+                        </h3>
+                        <p className="text-base leading-relaxed text-slate-300 md:text-lg">
+                          {currentSlide?.description}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm text-slate-400">
+                        <span>{t("sectionActions.infoLabel")}</span>
+                        <button className="inline-flex items-center gap-2 text-white transition-colors hover:text-white/80">
+                          {t("sectionActions.primaryCta")}
+                          <span aria-hidden>{"\u2192"}</span>
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-sm text-slate-400">
-                      <span>{t("sectionActions.infoLabel")}</span>
-                      <button className="inline-flex items-center gap-2 text-white transition-colors hover:text-white/80">
-                        {t("sectionActions.primaryCta")}
-                        <span aria-hidden>{"\u2192"}</span>
-                      </button>
+                    <div className="relative w-full h-64 overflow-hidden md:absolute md:inset-y-0 md:right-0 md:h-full md:w-[52%]">
+                      <div className="relative h-full w-full">
+                        <FeatureImage src={currentSlide?.image} alt={currentSlide?.title} priority />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                      </div>
                     </div>
                   </div>
-
-                  <div className="relative w-full h-64 overflow-hidden md:absolute md:inset-y-0 md:right-0 md:h-full md:w-[52%]">
-                    <div className="relative h-full w-full">
-                      <FeatureImage src={currentSlide?.image} alt={currentSlide?.title} priority />
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                    </div>
-                  </div>
-                </div>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          </AnimatePresence>
+            </AnimatePresence>
+          )}
 
           <div className="mt-10 flex w-full max-w-5xl items-center justify-between">
             <button
               onClick={handlePrev}
               className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-100 transition-all hover:bg-white/10"
               aria-label={t("features.prevLabel")}
+              disabled={!hasMultipleSlides}
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -260,11 +306,16 @@ export default function SectionFeatures() {
               {featureItems.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => setCurrentIndex(i)}
+                  onClick={() => {
+                    if (i === activeIndex) return
+                    setDirection(i > activeIndex ? 1 : -1)
+                    setCurrentIndex(i)
+                  }}
                   className={`rounded-full transition-all ${
-                    i === currentIndex ? "h-2.5 w-6 bg-white" : "h-2 w-2 bg-white/25 hover:bg-white/40"
+                    i === activeIndex ? "h-2.5 w-6 bg-white" : "h-2 w-2 bg-white/25 hover:bg-white/40"
                   }`}
                   aria-label={t("features.dotAria", { index: i + 1 })}
+                  disabled={!hasMultipleSlides}
                 />
               ))}
             </div>
@@ -273,6 +324,7 @@ export default function SectionFeatures() {
               onClick={handleNext}
               className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-100 transition-all hover:bg-white/10"
               aria-label={t("features.nextLabel")}
+              disabled={!hasMultipleSlides}
             >
               <ChevronRight className="h-5 w-5" />
             </button>
