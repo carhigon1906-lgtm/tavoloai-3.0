@@ -144,8 +144,8 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
     },
     hero: {
       tagline: "Demo en vivo",
-      title: "La herramienta inteligente para gestionar y presentar tu carta",
-      description: "Más que un menú QR: gestión visual, IA y una presentación moderna para tu restaurante.",
+      title: "Gestion inteligente para tu carta digital",
+      description: "Mas que un menu qr inteligencia artificial y presentación moderna para tu restaurante",
       primaryCta: "Empezar gratis",
       secondaryCta: "Ver como funciona",
       trial: "7 dias gratis, sin tarjeta, cancela cuando quieras.",
