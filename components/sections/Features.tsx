@@ -3,7 +3,7 @@
 
 import Image, { type StaticImageData } from "next/image"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useInView } from "framer-motion"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import menuQrImage from "@/public/menuqr.webp"
 import fotosIaImage from "@/public/fotos-con-ia.webp"
@@ -81,6 +81,8 @@ function FeatureImage({ src, alt, priority = false }: { src?: StaticImageData; a
 
 export default function SectionFeatures() {
   const { dictionary, t } = useTranslation()
+  const sectionRef = useRef<HTMLElement | null>(null)
+  const isInView = useInView(sectionRef, { amount: 0.35, once: false })
   const translatedItems = dictionary.features.items
   const featureItems: FeatureSlide[] = useMemo(
     () =>
@@ -140,7 +142,7 @@ export default function SectionFeatures() {
       return undefined
     }
 
-    if (isPaused) {
+    if (isPaused || !isInView) {
       clearAutoplay()
       return undefined
     }
@@ -152,7 +154,7 @@ export default function SectionFeatures() {
     return () => {
       clearAutoplay()
     }
-  }, [isPaused, handleNext, hasMultipleSlides, clearAutoplay])
+  }, [isPaused, isInView, handleNext, hasMultipleSlides, clearAutoplay])
 
   useEffect(() => {
     if (n === 0) {
@@ -188,7 +190,7 @@ export default function SectionFeatures() {
   }, [])
 
   return (
-    <section id="features" className="relative overflow-hidden bg-black py-20 text-slate-100">
+    <section id="features" ref={sectionRef} className="relative overflow-hidden bg-black py-20 text-slate-100">
       <motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
