@@ -40,6 +40,11 @@ const HERO_SUBTITLE_VARIANTS = {
 export default function SectionHero() {
   const { dictionary } = useTranslation()
   const hero = dictionary.hero
+  const emphasisPhrase = "presentar tu carta"
+  const heroTitleParts = hero.title.split(emphasisPhrase)
+  const hasHeroEmphasis = heroTitleParts.length > 1
+  const heroTitlePrefix = hasHeroEmphasis ? heroTitleParts[0] : hero.title
+  const heroTitleSuffix = hasHeroEmphasis ? heroTitleParts.slice(1).join(emphasisPhrase) : ""
   const [showIntro, setShowIntro] = useState(true)
   const originalOverflowRef = useRef<string | null>(null)
   const introFallbackRef = useRef<number | null>(null)
@@ -150,14 +155,14 @@ export default function SectionHero() {
         <div className="pointer-events-none absolute inset-y-0 left-1/2 z-0 h-full w-screen -translate-x-1/2">
           <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/90" />
         </div>
-        <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center gap-6 text-center">
-          <div className="pointer-events-none absolute -top-14 flex w-full justify-center">
+        <div className="relative z-10 mx-auto flex w-full max-w-[1680px] flex-col items-center gap-6 text-center">
+          <div className="pointer-events-none absolute -top-20 flex w-full justify-center">
             <Image
               src="/logoblanco.png"
               alt="TavoloAI"
-              width={80}
-              height={80}
-              className="h-12 w-12 object-contain"
+              width={96}
+              height={96}
+              className="h-16 w-16 object-contain"
               style={{
                 opacity: showIntro ? 0 : 1,
                 transform: `translateY(${showIntro ? "16px" : "0"})`,
@@ -171,10 +176,18 @@ export default function SectionHero() {
             initial="hidden"
             animate={showIntro ? "hidden" : "visible"}
           >
-            {hero.title}
+            {hasHeroEmphasis ? (
+              <>
+                {heroTitlePrefix}
+                <span className="whitespace-nowrap">{emphasisPhrase}</span>
+                {heroTitleSuffix}
+              </>
+            ) : (
+              hero.title
+            )}
           </motion.h1>
           <motion.p
-            className="relative z-10 max-w-3xl text-base text-slate-200 sm:text-lg"
+            className="relative z-10 max-w-[1200px] text-lg text-slate-200 sm:text-xl"
             variants={HERO_SUBTITLE_VARIANTS}
             initial="hidden"
             animate={showIntro ? "hidden" : "visible"}
@@ -242,3 +255,5 @@ export default function SectionHero() {
     </>
   )
 }
+
+

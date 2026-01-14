@@ -145,7 +145,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
     hero: {
       tagline: "Demo en vivo",
       title: "Gestion inteligente para tu carta digital",
-      description: "Mas que un menu qr inteligencia artificial y presentación moderna para tu restaurante",
+      description: "Mas que un MENU QR, inteligencia artificial y presentación moderna para tu restaurante",
       primaryCta: "Empezar gratis",
       secondaryCta: "Ver como funciona",
       trial: "7 dias gratis, sin tarjeta, cancela cuando quieras.",
@@ -263,7 +263,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
         "Filtros y PDF imprimible",
         "1 mes gratis",
       ],
-      cta: "Empezar gratis",
+      cta: "Obtener premium",
       compareTitle: "TavoloAI vs alternativas",
         comparePoints: [
           "Mas ventas frente a carta en papel o PDF estatico",

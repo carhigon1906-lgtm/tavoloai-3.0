@@ -23,6 +23,15 @@ export default function AuthModal({ open, onClose }: Props) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [infoMessage, setInfoMessage] = useState<string | null>(null)
 
+  const getRedirectTarget = () => {
+    if (typeof window === "undefined") return null
+    const target = window.sessionStorage.getItem("authRedirectTo")
+    if (target) {
+      window.sessionStorage.removeItem("authRedirectTo")
+    }
+    return target
+  }
+
   useEffect(() => {
     const onEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose()
@@ -47,7 +56,8 @@ export default function AuthModal({ open, onClose }: Props) {
         setInfoMessage("Sesión iniciada.")
         setTimeout(() => {
           onClose()
-          router.push("/dashboard")
+          const redirectTarget = getRedirectTarget()
+          router.push(redirectTarget ?? "/dashboard")
         }, 400)
       } else {
         const { error } = await supabase.auth.signUp({ email, password })

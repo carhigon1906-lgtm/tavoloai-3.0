@@ -245,7 +245,7 @@ export default function SectionPricing() {
                         </div>
                         <div className="mt-auto">
                           <button
-                            onClick={() => openAuthModal()}
+                            onClick={() => openAuthModal({ redirectTo: "/pago" })}
                             className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 py-3 text-base font-semibold text-white shadow-[0_20px_40px_rgba(37,99,235,0.35)] transition duration-300 hover:scale-[1.01]"
                             aria-label={pricing.cta}
                           >
