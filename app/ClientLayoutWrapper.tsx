@@ -44,6 +44,7 @@ export default function ClientLayoutWrapper({ children }: { children: ReactNode 
     }, [])
 
     const isDashboard = pathname?.startsWith("/dashboard")
+    const isPago = pathname === "/pago"
     const isHome = pathname === "/"
 
     return (
@@ -57,7 +58,7 @@ export default function ClientLayoutWrapper({ children }: { children: ReactNode 
                 {/* Header solo en la home; CTA fuera del dashboard */}
                 {isHome && <Header />}
                 <main className="relative z-10 flex-1">{children}</main>
-                {!isDashboard && <FloatingCTA sectionSelector="section" />}
+                {!isDashboard && !isPago && <FloatingCTA sectionSelector="section" />}
             </div>
         </TranslationProvider>
     )
