@@ -6,9 +6,17 @@
  * - Lanza un CustomEvent "auth:open"
  * - Opcional: registra evento en Google Analytics si está disponible
  */
-export function openAuthModal() {
+type OpenAuthModalOptions = {
+  redirectTo?: string
+}
+
+export function openAuthModal(options?: OpenAuthModalOptions) {
   if (typeof window !== "undefined") {
     try {
+      if (options?.redirectTo) {
+        window.sessionStorage.setItem("authRedirectTo", options.redirectTo)
+      }
+
       // Disparar evento custom
       window.dispatchEvent(new CustomEvent("auth:open"))
 

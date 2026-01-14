@@ -54,11 +54,9 @@ export default function AuthModal({ open, onClose }: Props) {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         setInfoMessage("Sesión iniciada.")
-        setTimeout(() => {
-          onClose()
-          const redirectTarget = getRedirectTarget()
-          router.push(redirectTarget ?? "/dashboard")
-        }, 400)
+        const redirectTarget = getRedirectTarget()
+        onClose()
+        router.push(redirectTarget ?? "/dashboard")
       } else {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
