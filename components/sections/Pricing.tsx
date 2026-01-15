@@ -62,7 +62,7 @@ const listItemVariants = {
 }
 
 export default function SectionPricing() {
-  const { dictionary } = useTranslation()
+  const { dictionary, language } = useTranslation()
   const pricing = dictionary.pricing
   const freePlan = pricing.freePlan
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly")
@@ -72,6 +72,23 @@ export default function SectionPricing() {
   ]
 
   const freePlanPriceLabel = freePlan?.priceLabel ?? "0 €"
+  const yearlyPrice = 300
+  const monthlyEquivalent = 25
+  const monthlyPriceValue = Number(pricing.priceLabel.replace(/[^\d,.-]/g, "").replace(",", "."))
+  const computedDiscount = Number.isFinite(monthlyPriceValue)
+    ? Math.round((1 - yearlyPrice / (monthlyPriceValue * 12)) * 100)
+    : 14
+  const yearlySuffix =
+    pricing.priceSuffix.includes("mes") ? "/año" : pricing.priceSuffix.includes("month") ? "/year" : "/anno"
+  const premiumPriceLabel = billingCycle === "yearly" ? `${yearlyPrice} €` : pricing.priceLabel
+  const premiumPriceSuffix = billingCycle === "yearly" ? yearlySuffix : pricing.priceSuffix
+  const premiumBadgeLabel = billingCycle === "yearly" ? pricing.billingYearlyLabel : pricing.billingMonthlyLabel
+  const savingsCopyByLang: Record<string, string> = {
+    es: `Equivale a ${monthlyEquivalent} € / mes · Ahorra ${computedDiscount}%`,
+    en: `Equals €${monthlyEquivalent} / month · Save ${computedDiscount}%`,
+    it: `Equivale a ${monthlyEquivalent} € / mese · Risparmi ${computedDiscount}%`,
+  }
+  const savingsCopy = savingsCopyByLang[language] ?? savingsCopyByLang.en
   const freeHeaderRef = useRef<HTMLDivElement | null>(null)
   const premiumHeaderRef = useRef<HTMLDivElement | null>(null)
   const [headerHeight, setHeaderHeight] = useState(0)
@@ -230,7 +247,7 @@ export default function SectionPricing() {
                             Plan Premium
                           </p>
                           <span className="rounded-full border border-white/20 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.4em] text-white/80">
-                            {pricing.billingMonthlyLabel}
+                            {premiumBadgeLabel}
                           </span>
                         </div>
                         <h3 className="text-3xl font-semibold text-white">{pricing.title}</h3>
@@ -240,12 +257,17 @@ export default function SectionPricing() {
                           style={priceHeight ? { minHeight: priceHeight } : undefined}
                           className="flex items-baseline gap-3"
                         >
-                          <p className="text-5xl font-extrabold text-white">{pricing.priceLabel}</p>
-                          <p className="text-xs uppercase tracking-[0.3em] text-slate-300">{pricing.priceSuffix}</p>
+                          <p className="text-5xl font-extrabold text-white">{premiumPriceLabel}</p>
+                          <p className="text-xs uppercase tracking-[0.3em] text-slate-300">{premiumPriceSuffix}</p>
                         </div>
+                        {billingCycle === "yearly" && (
+                          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-200 shadow-[0_12px_28px_rgba(16,185,129,0.25)]">
+                            {savingsCopy}
+                          </div>
+                        )}
                         <div className="mt-auto">
                           <button
-                            onClick={() => openAuthModal({ redirectTo: "/pago" })}
+                            onClick={() => openAuthModal({ redirectTo: "/premium" })}
                             className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 py-3 text-base font-semibold text-white shadow-[0_20px_40px_rgba(37,99,235,0.35)] transition duration-300 hover:scale-[1.01]"
                             aria-label={pricing.cta}
                           >

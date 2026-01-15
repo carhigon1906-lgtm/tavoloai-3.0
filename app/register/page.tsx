@@ -67,21 +67,17 @@ export default function RegisterPage() {
     }
 
     return (
-        <main className="min-h-[90vh] flex items-center justify-center py-16 px-4 bg-slate-50">
+        <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#03040a] via-[#050b16] to-[#010204] text-white flex items-center justify-center py-16 px-4">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(59,130,246,0.18),transparent_55%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.16),transparent_55%)]" />
             <motion.section
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...iosSpring, duration: 0.5 }}
-                className="w-full max-w-lg p-6 rounded-3xl relative"
+                className="relative w-full max-w-lg rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_35px_90px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
                 aria-label="Crear cuenta"
-                style={{
-                    background: "linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.80))",
-                    boxShadow: "0 18px 40px rgba(2,6,23,0.06)",
-                    border: "1px solid rgba(255,255,255,0.6)",
-                    backdropFilter: "blur(8px)",
-                }}
             >
-                {/* Marco degradado exterior sutil */}
+                {/* Outer gradient frame (thin) */}
                 <div
                     aria-hidden
                     className="absolute -inset-[1px] rounded-3xl pointer-events-none"
@@ -89,7 +85,7 @@ export default function RegisterPage() {
                         background: GRADIENT,
                         zIndex: -1,
                         filter: "blur(10px)",
-                        opacity: 0.12,
+                        opacity: 0.18,
                         margin: "-1px",
                     }}
                 />
@@ -97,62 +93,62 @@ export default function RegisterPage() {
                 <div className="relative z-10">
                     {!created ? (
                         <>
-                            <h1 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                            <h1 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                                 Crear cuenta
                             </h1>
-                            <p className="text-sm text-slate-600 mb-6">
+                            <p className="text-sm text-slate-300 mb-6">
                                 Regístrate para comenzar con tu restaurante en TavoloAI.
                             </p>
 
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <label className="block">
-                                    <span className="text-sm font-medium text-slate-700 mb-2 block">Nombre completo</span>
+                                    <span className="text-sm font-medium text-slate-200 mb-2 block">Nombre completo</span>
                                     <input
                                         name="name"
                                         type="text"
                                         value={form.name}
                                         onChange={handleChange}
                                         placeholder="Tu nombre"
-                                        className="w-full rounded-2xl border border-slate-200/40 bg-white/70 px-4 py-3 text-slate-900 placeholder-slate-500 outline-none transition-shadow duration-200 focus:shadow-[0_8px_30px_rgba(59,130,246,0.08)] focus:border-blue-300"
+                                        className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-slate-400 outline-none transition focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/20"
                                         required
                                     />
                                 </label>
 
                                 <label className="block">
-                                    <span className="text-sm font-medium text-slate-700 mb-2 block">Correo electrónico</span>
+                                    <span className="text-sm font-medium text-slate-200 mb-2 block">Correo electrónico</span>
                                     <input
                                         name="email"
                                         type="email"
                                         value={form.email}
                                         onChange={handleChange}
                                         placeholder="tu@correo.com"
-                                        className="w-full rounded-2xl border border-slate-200/40 bg-white/70 px-4 py-3 text-slate-900 placeholder-slate-500 outline-none transition-shadow duration-200 focus:shadow-[0_8px_30px_rgba(59,130,246,0.08)] focus:border-blue-300"
+                                        className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-slate-400 outline-none transition focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/20"
                                         required
                                     />
                                 </label>
 
                                 <label className="block">
-                                    <span className="text-sm font-medium text-slate-700 mb-2 block">Contraseña</span>
+                                    <span className="text-sm font-medium text-slate-200 mb-2 block">Contraseña</span>
                                     <input
                                         name="password"
                                         type="password"
                                         value={form.password}
                                         onChange={handleChange}
-                                        placeholder="••••••••"
-                                        className="w-full rounded-2xl border border-slate-200/40 bg-white/70 px-4 py-3 text-slate-900 placeholder-slate-500 outline-none transition-shadow duration-200 focus:shadow-[0_8px_30px_rgba(59,130,246,0.08)] focus:border-blue-300"
+                                        placeholder="********"
+                                        className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-slate-400 outline-none transition focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/20"
                                         required
                                     />
                                 </label>
 
                                 <label className="block">
-                                    <span className="text-sm font-medium text-slate-700 mb-2 block">Nombre del negocio</span>
+                                    <span className="text-sm font-medium text-slate-200 mb-2 block">Nombre del negocio</span>
                                     <input
                                         name="business"
                                         type="text"
                                         value={form.business}
                                         onChange={handleChange}
                                         placeholder="Ej: Restaurante Tavolo"
-                                        className="w-full rounded-2xl border border-slate-200/40 bg-white/70 px-4 py-3 text-slate-900 placeholder-slate-500 outline-none transition-shadow duration-200 focus:shadow-[0_8px_30px_rgba(59,130,246,0.08)] focus:border-blue-300"
+                                        className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-slate-400 outline-none transition focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/20"
                                         required
                                     />
                                 </label>
@@ -168,17 +164,17 @@ export default function RegisterPage() {
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         transition={iosSpring}
-                                        className="px-4 py-2 rounded-2xl border border-slate-200 bg-white/60 backdrop-blur-sm text-sm"
+                                        className="px-4 py-2 rounded-2xl border border-white/15 bg-white/5 text-sm text-slate-200 backdrop-blur-sm transition hover:border-white/30 hover:bg-white/10"
                                     >
                                         Volver
                                     </motion.button>
                                 </div>
 
-                                {errorMessage && <p className="text-sm text-rose-500">{errorMessage}</p>}
+                                {errorMessage && <p className="text-sm text-rose-400">{errorMessage}</p>}
 
-                                <div className="text-sm text-slate-500 mt-1">
+                                <div className="text-sm text-slate-300 mt-1">
                                     ¿Ya tienes una cuenta?{" "}
-                                    <Link href="/" className="text-blue-600 hover:text-blue-700 font-medium underline">
+                                    <Link href="/" className="text-blue-400 hover:text-blue-300 font-medium underline">
                                         Inicia sesión
                                     </Link>
                                 </div>
@@ -190,10 +186,10 @@ export default function RegisterPage() {
                                 initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ ...iosSpring, duration: 0.5 }}
-                                className="rounded-2xl bg-white/80 p-4 border border-white/30"
+                                className="rounded-2xl border border-white/10 bg-white/5 p-4"
                             >
-                                <h2 className="text-lg font-semibold text-slate-900">¡Bienvenido a TavoloAI!</h2>
-                                <p className="text-sm text-slate-600 mt-1">
+                                <h2 className="text-lg font-semibold text-white">¡Bienvenido a TavoloAI!</h2>
+                                <p className="text-sm text-slate-300 mt-1">
                                     Tu cuenta ha sido creada con éxito. Estos son tus próximos pasos para configurar tu restaurante:
                                 </p>
 
@@ -208,9 +204,9 @@ export default function RegisterPage() {
                                             initial={{ opacity: 0, x: -8 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: 0.3 + i * 0.1 }}
-                                            className="flex items-center gap-2 text-sm text-slate-700"
+                                            className="flex items-center gap-2 text-sm text-slate-200"
                                         >
-                                            <Icon className="w-4 h-4 text-blue-500" />
+                                            <Icon className="w-4 h-4 text-blue-400" />
                                             {text}
                                         </motion.li>
                                     ))}
@@ -226,7 +222,7 @@ export default function RegisterPage() {
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                     transition={iosSpring}
-                                    className="px-4 py-3 rounded-2xl border border-slate-200 bg-white/60 backdrop-blur-sm text-sm"
+                                    className="px-4 py-3 rounded-2xl border border-white/15 bg-white/5 text-sm text-slate-200 backdrop-blur-sm transition hover:border-white/30 hover:bg-white/10"
                                 >
                                     Crear otro
                                 </motion.button>
