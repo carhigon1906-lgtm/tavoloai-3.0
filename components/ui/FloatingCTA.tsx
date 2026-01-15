@@ -280,7 +280,10 @@ function FloatingCTA({
         paddingRight: 14,
       }}
     >
-      <span className="text-white font-semibold leading-none" style={{ letterSpacing: "0.1px", fontSize: 14 }}>
+      <span
+        className="text-white font-semibold leading-none"
+        style={{ letterSpacing: "0.1px", fontSize: 14, transform: "translateX(14px)" }}
+      >
         {resolvedLabel}
       </span>
 

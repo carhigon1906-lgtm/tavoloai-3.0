@@ -140,7 +140,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       },
     },
     floatingCta: {
-      label: "Empezar Ya",
+      label: "Empieza Ya",
     },
     hero: {
       tagline: "Demo en vivo",
