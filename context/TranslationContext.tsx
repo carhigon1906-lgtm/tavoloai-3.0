@@ -140,7 +140,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       },
     },
     floatingCta: {
-      label: "Prueba gratis",
+      label: "Empezar Ya",
     },
     hero: {
       tagline: "Demo en vivo",
@@ -152,7 +152,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       liveBadge: "Demo en vivo",
     },
     features: {
-      title: "Lo que solo TavoloAI puede hacer",
+      title: "Solo TavoloAI puede hacer",
       items: [
         {
           title: "Crea tu menu QR en minutos",
