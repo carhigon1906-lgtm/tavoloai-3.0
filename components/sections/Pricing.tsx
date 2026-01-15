@@ -142,11 +142,11 @@ export default function SectionPricing() {
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.4, margin: "-10% 0px" }}
                     whileHover="hover"
-                    className="relative h-full w-full max-w-[460px] mx-auto rounded-3xl p-[2px]"
+                    className="relative h-full w-full max-w-[420px] mx-auto rounded-3xl p-[2px]"
                     style={{ background: GRADIENT }}
                   >
                     <div
-                      className="relative flex h-full min-h-[360px] flex-col justify-between overflow-hidden rounded-3xl bg-neutral-900/80 p-8 text-slate-100 backdrop-blur-md"
+                      className="relative flex h-full min-h-[320px] flex-col justify-between overflow-hidden rounded-3xl bg-neutral-900/80 p-6 text-slate-100 backdrop-blur-md"
                       role="region"
                       aria-label={freePlan.title}
                     >
@@ -208,11 +208,11 @@ export default function SectionPricing() {
                   whileInView="visible"
                   viewport={{ once: true, amount: 0.4, margin: "-10% 0px" }}
                   whileHover="hover"
-                  className="relative h-full w-full max-w-[460px] mx-auto rounded-3xl p-[2px]"
+                  className="relative h-full w-full max-w-[420px] mx-auto rounded-3xl p-[2px]"
                   style={{ background: GRADIENT }}
                 >
                   <div
-                    className="relative flex h-full min-h-[360px] flex-col justify-between overflow-hidden rounded-3xl bg-neutral-900/85 p-8 text-slate-100 backdrop-blur-md"
+                    className="relative flex h-full min-h-[320px] flex-col justify-between overflow-hidden rounded-3xl bg-neutral-900/85 p-6 text-slate-100 backdrop-blur-md"
                     role="region"
                     aria-label={pricing.title}
                   >

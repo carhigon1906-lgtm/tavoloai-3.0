@@ -129,7 +129,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
         features: "Funciones",
         demo: "Demo",
         howItWorks: "Pasos",
-        pricing: "Plan",
+        pricing: "Planes",
         cases: "Casos",
         faq: "Ayuda",
       },
@@ -314,9 +314,9 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
     },
     finalCta: {
       title: "Empieza gratis hoy",
-      description: "30 dias gratis. Sube tu menu en 2 minutos y pruebalo sin tarjeta.",
-      cta: "Probar gratis",
-      badge: "Promocion disponible solo este mes",
+      description: "Pasate a Premium cuando quieras",
+      cta: "Empieza Ya",
+      badge: "Cancela cuando quieras sin contratos",
     },
     sectionActions: {
       infoLabel: "Mas info",
