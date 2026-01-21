@@ -73,24 +73,31 @@ function FloatingCTA({
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        // buscamos la entrada más visible (puede mejorarse si hay multiplex)
-        const entry = entries.find((e) => e.isIntersecting)
-        if (!entry) return
+        const visibleEntries = entries.filter((e) => e.isIntersecting)
+        if (!visibleEntries.length) {
+          if (hideTimerRef.current) globalThis.clearTimeout(hideTimerRef.current)
+          hideTimerRef.current = globalThis.setTimeout(() => {
+            setActiveSection(null)
+            setVisible(false)
+            hideTimerRef.current = null
+          }, hideDelayMs) as unknown as number
+          return
+        }
 
-        const index = Array.from(sections).indexOf(entry.target)
+        const mostVisible = visibleEntries.reduce((best, current) =>
+          current.intersectionRatio > best.intersectionRatio ? current : best,
+        )
+        const index = Array.from(sections).indexOf(mostVisible.target)
         const shouldShow = index % 4 === 0
 
         if (shouldShow) {
-          // si hay timer para ocultar, cancelarlo
           if (hideTimerRef.current) {
             globalThis.clearTimeout(hideTimerRef.current)
             hideTimerRef.current = null
           }
-          // fijar la sección activa y hacer visible (queda anclado mientras la sección siga intersectando)
-          setActiveSection(entry.target)
+          setActiveSection(mostVisible.target)
           setVisible(true)
         } else {
-          // Si no es sección válida, oculta con un pequeño delay (evitar parpadeos)
           if (hideTimerRef.current) globalThis.clearTimeout(hideTimerRef.current)
           hideTimerRef.current = globalThis.setTimeout(() => {
             setActiveSection(null)
@@ -99,9 +106,8 @@ function FloatingCTA({
           }, hideDelayMs) as unknown as number
         }
       },
-      { root: null, threshold: 0.28 },
+      { root: null, threshold: [0, 0.28, 0.5, 0.75, 1] },
     )
-
     sections.forEach((s) => observerRef.current?.observe(s))
     return () => {
       sections.forEach((s) => observerRef.current?.unobserve(s))
