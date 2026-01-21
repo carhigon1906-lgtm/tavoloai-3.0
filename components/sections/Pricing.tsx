@@ -176,9 +176,11 @@ export default function SectionPricing() {
                           style={headerHeight ? { minHeight: headerHeight } : undefined}
                           className="flex flex-col gap-4"
                         >
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-white/50">
-                            {freePlan.title.toUpperCase()}
-                          </p>
+                          <div className="flex items-center gap-3">
+                            <span className="rounded-full border border-white/20 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.4em] text-white/80">
+                              {premiumBadgeLabel}
+                            </span>
+                          </div>
                           <h3 className="text-3xl font-semibold text-white">{freePlan.title}</h3>
                           <p className="text-base text-slate-200">{freePlan.subtitle}</p>
                           <div
