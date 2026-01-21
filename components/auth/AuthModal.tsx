@@ -10,15 +10,17 @@ import { supabase } from "@/lib/supabaseClient"
 type Props = {
   open: boolean
   onClose: () => void
+  mode: "signin" | "signup"
 }
 
-export default function AuthModal({ open, onClose }: Props) {
+export default function AuthModal({ open, onClose, mode }: Props) {
   const router = useRouter()
   const [hovered, setHovered] = useState(false)
   const controls = useAnimation()
-  const [mode, setMode] = useState<"signin" | "signup">("signin")
+  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [business, setBusiness] = useState("")
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [infoMessage, setInfoMessage] = useState<string | null>(null)
@@ -45,6 +47,11 @@ export default function AuthModal({ open, onClose }: Props) {
     requestAnimationFrame(() => router.push(href))
   }
 
+  const handleOpenSignin = () => {
+    if (typeof window === "undefined") return
+    window.dispatchEvent(new CustomEvent("auth:open"))
+  }
+
   const handleEmailAuth = async () => {
     setLoading(true)
     setErrorMessage(null)
@@ -58,9 +65,28 @@ export default function AuthModal({ open, onClose }: Props) {
         onClose()
         router.push(redirectTarget ?? "/dashboard")
       } else {
-        const { error } = await supabase.auth.signUp({ email, password })
-        if (error) throw error
-        setInfoMessage("Revisa tu correo para confirmar tu cuenta.")
+        const response = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            name,
+            business,
+          }),
+        })
+
+        const payload = await response.json()
+        if (!response.ok) {
+          throw new Error(payload.error || "No se pudo crear la cuenta. Intenta de nuevo.")
+        }
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+        if (signInError) throw signInError
+        setInfoMessage("Cuenta creada correctamente.")
+        const redirectTarget = getRedirectTarget()
+        onClose()
+        router.push(redirectTarget ?? "/dashboard")
       }
     } catch (err) {
       const message = err?.message ?? "No se pudo procesar la solicitud."
@@ -109,7 +135,9 @@ export default function AuthModal({ open, onClose }: Props) {
               stiffness: 200,
               mass: 0.8,
             }}
-            className="relative w-full max-w-md rounded-[32px] bg-neutral-950/85 backdrop-blur-2xl border border-white/10 p-8 shadow-[0_40px_140px_rgba(0,0,0,0.85)] overflow-hidden"
+            className={`relative w-full ${
+              mode === "signup" ? "max-w-md p-6" : "max-w-md p-8"
+            } rounded-[32px] bg-neutral-950/85 backdrop-blur-2xl border border-white/10 shadow-[0_40px_140px_rgba(0,0,0,0.85)] overflow-hidden`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-blue-900/25 pointer-events-none" />
@@ -128,26 +156,28 @@ export default function AuthModal({ open, onClose }: Props) {
             {/* Contenido */}
             <div className="relative z-10">
               <motion.h2
-                className="text-3xl font-semibold mb-2 text-white"
+                className={`font-semibold text-white ${mode === "signup" ? "text-2xl mb-1" : "text-3xl mb-2"}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                Inicia tu prueba gratis
+                {mode === "signin" ? "Inicia tu prueba gratis" : "Crea tu cuenta"}
               </motion.h2>
 
               <motion.p
-                className="text-slate-400 mb-8 leading-relaxed"
+                className={`text-slate-400 leading-relaxed ${mode === "signup" ? "mb-5 text-sm" : "mb-8"}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
               >
-                Crea tu cuenta o entra para continuar.
+                {mode === "signin"
+                  ? "Crea tu cuenta o entra para continuar."
+                  : "Completa los datos para registrarte en TavoloAI."}
               </motion.p>
 
               {/* Formulario */}
               <motion.form
-                className="space-y-5"
+                className={mode === "signup" ? "space-y-4" : "space-y-5"}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
@@ -156,62 +186,107 @@ export default function AuthModal({ open, onClose }: Props) {
                   void handleEmailAuth()
                 }}
               >
+                {mode === "signup" && (
+                  <label className="block">
+                    <span className="text-sm font-medium text-slate-300 mb-1.5 block">Nombre completo</span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Tu nombre"
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      className={`w-full rounded-2xl border border-white/10 bg-white/5 px-4 ${
+                        mode === "signup" ? "py-2.5" : "py-3"
+                      } text-white placeholder-slate-500 outline-none focus:border-blue-400/60 focus:bg-white/10 focus:ring-4 focus:ring-blue-400/10 transition-all`}
+                    />
+                  </label>
+                )}
+
                 <label className="block">
-                  <span className="text-sm font-medium text-slate-300 mb-2 block">Correo electrónico</span>
+                  <span className="text-sm font-medium text-slate-300 mb-1.5 block">Correo electrónico</span>
                   <input
                     type="email"
                     required
                     placeholder="tu@correo.com"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-blue-400/60 focus:bg-white/10 focus:ring-4 focus:ring-blue-400/10 transition-all"
+                    className={`w-full rounded-2xl border border-white/10 bg-white/5 px-4 ${
+                      mode === "signup" ? "py-2.5" : "py-3"
+                    } text-white placeholder-slate-500 outline-none focus:border-blue-400/60 focus:bg-white/10 focus:ring-4 focus:ring-blue-400/10 transition-all`}
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm font-medium text-slate-300 mb-2 block">Contraseña</span>
+                  <span className="text-sm font-medium text-slate-300 mb-1.5 block">Contraseña</span>
                   <input
                     type="password"
                     required
                     placeholder="••••••••"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-slate-500 outline-none focus:border-blue-400/60 focus:bg-white/10 focus:ring-4 focus:ring-blue-400/10 transition-all"
+                    className={`w-full rounded-2xl border border-white/10 bg-white/5 px-4 ${
+                      mode === "signup" ? "py-2.5" : "py-3"
+                    } text-white placeholder-slate-500 outline-none focus:border-blue-400/60 focus:bg-white/10 focus:ring-4 focus:ring-blue-400/10 transition-all`}
                   />
                 </label>
+
+                {mode === "signup" && (
+                  <label className="block">
+                    <span className="text-sm font-medium text-slate-300 mb-1.5 block">Nombre del negocio</span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej: Restaurante Tavolo"
+                      value={business}
+                      onChange={(event) => setBusiness(event.target.value)}
+                      className={`w-full rounded-2xl border border-white/10 bg-white/5 px-4 ${
+                        mode === "signup" ? "py-2.5" : "py-3"
+                      } text-white placeholder-slate-500 outline-none focus:border-blue-400/60 focus:bg-white/10 focus:ring-4 focus:ring-blue-400/10 transition-all`}
+                    />
+                  </label>
+                )}
 
                 {errorMessage && <p className="text-sm text-rose-400">{errorMessage}</p>}
                 {infoMessage && <p className="text-sm text-emerald-300">{infoMessage}</p>}
 
                 <motion.div whileHover={{ scale: loading ? 1 : 1.02 }} whileTap={{ scale: loading ? 1 : 0.98 }}>
-                  <Button type="submit" className="w-full py-3 text-base font-semibold" disabled={loading}>
+                  <Button
+                    type="submit"
+                    className={`w-full text-base font-semibold ${mode === "signup" ? "py-2.5" : "py-3"}`}
+                    disabled={loading}
+                  >
                     {loading ? "Procesando..." : mode === "signin" ? "Entrar" : "Crear cuenta"}
                   </Button>
                 </motion.div>
               </motion.form>
 
               {/* Enlaces */}
-              <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
-                <button
-                  type="button"
-                  onClick={() => navigateAndClose("/forgot-password")}
-                  className="text-slate-300 hover:text-white underline decoration-dotted transition-colors bg-transparent"
-                >
-                  ¿Olvidaste tu contraseña?
-                </button>
-                <div className="text-slate-400">
-                  {mode === "signin" ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}
+              {mode === "signin" && (
+                <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
                   <button
                     type="button"
-                    onClick={() => setMode((prev) => (prev === "signin" ? "signup" : "signin"))}
-                    className="text-blue-300 hover:text-blue-200 font-medium underline ml-1 bg-transparent"
+                    onClick={() => navigateAndClose("/forgot-password")}
+                    className="text-slate-300 hover:text-white underline decoration-dotted transition-colors bg-transparent"
                   >
-                    {mode === "signin" ? "Regístrate" : "Inicia sesión"}
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                  <span />
+                </div>
+              )}
+              {mode === "signup" && (
+                <div className="mt-4 text-center text-sm text-slate-400">
+                  ¿Ya tienes cuenta?
+                  <button
+                    type="button"
+                    onClick={handleOpenSignin}
+                    className="ml-1 text-blue-300 hover:text-blue-200 font-medium underline bg-transparent"
+                  >
+                    Inicia sesión
                   </button>
                 </div>
-              </div>
+              )}
 
-              <div className="my-8 flex items-center gap-4">
+              <div className={mode === "signup" ? "my-5 flex items-center gap-4" : "my-8 flex items-center gap-4"}>
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
                 <span className="text-sm text-slate-400 font-medium">o</span>
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />

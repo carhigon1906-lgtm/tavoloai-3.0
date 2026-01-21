@@ -230,9 +230,13 @@ function FloatingCTA({
     const handleOpen = () => setAuthModalOpen(true)
     const handleClose = () => setAuthModalOpen(false)
     window.addEventListener("auth:open", handleOpen)
+    window.addEventListener("auth:open:signup", handleOpen)
     window.addEventListener("auth:close", handleClose)
+    const initialAuthOpen = Boolean((window as typeof window & { __authModalOpen?: boolean }).__authModalOpen)
+    setAuthModalOpen(initialAuthOpen)
     return () => {
       window.removeEventListener("auth:open", handleOpen)
+      window.removeEventListener("auth:open:signup", handleOpen)
       window.removeEventListener("auth:close", handleClose)
     }
   }, [])
@@ -240,8 +244,16 @@ function FloatingCTA({
   const handleClick = useCallback(
     (e?: React.MouseEvent) => {
       e?.stopPropagation()
-      if (onClick) onClick()
-      else openAuthModal()
+      if (onClick) {
+        onClick()
+        return
+      }
+      const target = document.getElementById("pricing")
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" })
+        return
+      }
+      openAuthModal()
     },
     [onClick],
   )

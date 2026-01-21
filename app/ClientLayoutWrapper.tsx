@@ -48,6 +48,7 @@ export default function ClientLayoutWrapper({ children }: { children: ReactNode 
     const isHome = pathname === "/"
     const isRegister = pathname === "/register"
     const isForgotPassword = pathname === "/forgot-password"
+    const isPremium = pathname === "/premium"
 
     return (
         <TranslationProvider initialLanguage={initialLanguage}>
@@ -60,7 +61,9 @@ export default function ClientLayoutWrapper({ children }: { children: ReactNode 
                 {/* Header solo en la home; CTA fuera del dashboard */}
                 {isHome && <Header />}
                 <main className="relative z-10 flex-1">{children}</main>
-                {!isDashboard && !isPago && !isRegister && !isForgotPassword && <FloatingCTA sectionSelector="section" />}
+                {!isDashboard && !isPago && !isRegister && !isForgotPassword && !isPremium && (
+                    <FloatingCTA sectionSelector="section" />
+                )}
             </div>
         </TranslationProvider>
     )

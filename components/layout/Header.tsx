@@ -8,7 +8,7 @@ import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useTranslation } from "@/context/TranslationContext"
-import { openAuthModal, closeAuthModal } from "@/lib/authModal"
+import { openAuthModal, openSignupModal, closeAuthModal } from "@/lib/authModal"
 
 const AuthModal = dynamic(() => import("@/components/auth/AuthModal"), { ssr: false })
 
@@ -18,16 +18,29 @@ export default function Header() {
   const searchParams = useSearchParams()
   const { t, dictionary } = useTranslation()
 
-  const [open, setOpen] = useState(false)
+  const [openSignin, setOpenSignin] = useState(false)
+  const [openSignup, setOpenSignup] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const onOpen = () => setOpen(true)
-    const onClose = () => setOpen(false)
-    window.addEventListener("auth:open", onOpen)
+    const onOpenSignin = () => {
+      setOpenSignup(false)
+      setOpenSignin(true)
+    }
+    const onOpenSignup = () => {
+      setOpenSignin(false)
+      setOpenSignup(true)
+    }
+    const onClose = () => {
+      setOpenSignin(false)
+      setOpenSignup(false)
+    }
+    window.addEventListener("auth:open", onOpenSignin)
+    window.addEventListener("auth:open:signup", onOpenSignup)
     window.addEventListener("auth:close", onClose)
     return () => {
-      window.removeEventListener("auth:open", onOpen)
+      window.removeEventListener("auth:open", onOpenSignin)
+      window.removeEventListener("auth:open:signup", onOpenSignup)
       window.removeEventListener("auth:close", onClose)
     }
   }, [])
@@ -47,7 +60,6 @@ export default function Header() {
   ]
 
   const searchString = searchParams?.toString() ?? ""
-  const registerHref = searchString ? `/register?${searchString}` : "/register"
 
   const handleNavClick = (sectionId: string) => {
     const target = sectionId.replace(/^#/, "")
@@ -69,7 +81,8 @@ export default function Header() {
   }
 
   const handleClose = () => {
-    setOpen(false)
+    setOpenSignin(false)
+    setOpenSignup(false)
     closeAuthModal()
   }
 
@@ -134,18 +147,20 @@ export default function Header() {
               whileTap={{ scale: 0.97 }}
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
             >
-              <Link
-                href={registerHref}
+              <button
+                type="button"
+                onClick={() => openSignupModal()}
                 className="inline-flex items-center justify-center rounded-full bg-[#0ea5e9] px-4 py-2 text-[12px] font-semibold text-white shadow-[0_8px_18px_rgba(14,165,233,0.35)] transform transition-all duration-300 ease-out hover:bg-white hover:text-black hover:shadow-[0_12px_28px_rgba(0,0,0,0.35)] hover:-translate-y-0.5"
               >
                 {t("header.signup")}
-              </Link>
+              </button>
             </motion.div>
           </div>
         </div>
       </motion.header>
 
-      <AuthModal open={open} onClose={handleClose} />
+      <AuthModal open={openSignin} onClose={handleClose} mode="signin" />
+      <AuthModal open={openSignup} onClose={handleClose} mode="signup" />
     </>
   )
 }

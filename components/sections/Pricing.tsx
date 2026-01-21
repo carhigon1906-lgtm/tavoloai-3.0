@@ -3,7 +3,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
-import { openAuthModal } from "@/lib/authModal"
+import { openSignupModal } from "@/lib/authModal"
 import { useTranslation } from "@/context/TranslationContext"
 
 const GRADIENT =
@@ -191,7 +191,7 @@ export default function SectionPricing() {
                           </div>
                           <div className="mt-auto">
                             <button
-                              onClick={() => openAuthModal()}
+                              onClick={() => openSignupModal()}
                               className="w-full rounded-2xl border border-emerald-400/60 bg-transparent py-3 text-base font-semibold text-emerald-300 shadow-[0_14px_34px_rgba(16,185,129,0.35)] transition duration-300 hover:scale-[1.01] hover:bg-emerald-500/10"
                               aria-label={freePlan.cta}
                             >
@@ -231,7 +231,7 @@ export default function SectionPricing() {
                   <div
                     className="relative flex h-full min-h-[320px] flex-col justify-between overflow-hidden rounded-3xl bg-neutral-900/85 p-6 text-slate-100 backdrop-blur-md"
                     role="region"
-                    aria-label={pricing.title}
+                    aria-label="Plan premium"
                   >
                   <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 via-white/5 to-transparent" />
                   <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
@@ -243,14 +243,11 @@ export default function SectionPricing() {
                         className="flex flex-col gap-4"
                       >
                         <div className="flex items-center gap-3">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-blue-200/70">
-                            Plan Premium
-                          </p>
                           <span className="rounded-full border border-white/20 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.4em] text-white/80">
                             {premiumBadgeLabel}
                           </span>
                         </div>
-                        <h3 className="text-3xl font-semibold text-white">{pricing.title}</h3>
+                        <h3 className="text-3xl font-semibold text-white">Plan premium</h3>
                         <p className="text-base text-slate-200">{pricing.subtitle}</p>
                         <div
                           ref={priceRefPremium}
@@ -267,7 +264,7 @@ export default function SectionPricing() {
                         )}
                         <div className="mt-auto">
                           <button
-                            onClick={() => openAuthModal({ redirectTo: "/premium" })}
+                            onClick={() => openSignupModal({ redirectTo: "/premium" })}
                             className="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 py-3 text-base font-semibold text-white shadow-[0_20px_40px_rgba(37,99,235,0.35)] transition duration-300 hover:scale-[1.01]"
                             aria-label={pricing.cta}
                           >

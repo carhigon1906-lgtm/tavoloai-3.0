@@ -312,7 +312,7 @@ export default function Page() {
                       filter: "brightness(1.18) saturate(1.24)",
                       maskImage:
                         "radial-gradient(circle at center, rgba(0,0,0,1) 25%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0) 90%), linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,1) 82%, rgba(0,0,0,0) 100%)",
-                      WebkitMaskImage:
+                      WebkitMaskImage:  
                         "radial-gradient(circle at center, rgba(0,0,0,1) 25%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0) 90%), linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,1) 82%, rgba(0,0,0,0) 100%)",
                       maskComposite: "intersect",
                       WebkitMaskComposite: "source-in",

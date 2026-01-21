@@ -13,6 +13,7 @@ type OpenAuthModalOptions = {
 export function openAuthModal(options?: OpenAuthModalOptions) {
   if (typeof window !== "undefined") {
     try {
+      ;(window as typeof window & { __authModalOpen?: boolean }).__authModalOpen = true
       if (options?.redirectTo) {
         window.sessionStorage.setItem("authRedirectTo", options.redirectTo)
       }
@@ -33,6 +34,28 @@ export function openAuthModal(options?: OpenAuthModalOptions) {
   }
 }
 
+export function openSignupModal(options?: OpenAuthModalOptions) {
+  if (typeof window !== "undefined") {
+    try {
+      ;(window as typeof window & { __authModalOpen?: boolean }).__authModalOpen = true
+      if (options?.redirectTo) {
+        window.sessionStorage.setItem("authRedirectTo", options.redirectTo)
+      }
+
+      window.dispatchEvent(new CustomEvent("auth:open:signup"))
+
+      if (typeof (window as any).gtag === "function") {
+        ;(window as any).gtag("event", "auth_modal_opened", {
+          event_category: "engagement",
+          event_label: "cta_click_signup",
+        })
+      }
+    } catch (error) {
+      console.warn("Failed to open signup modal:", error)
+    }
+  }
+}
+
 /**
  * Cierra el modal de autenticación
  * - Lanza un CustomEvent "auth:close"
@@ -40,6 +63,7 @@ export function openAuthModal(options?: OpenAuthModalOptions) {
 export function closeAuthModal() {
   if (typeof window !== "undefined") {
     try {
+      ;(window as typeof window & { __authModalOpen?: boolean }).__authModalOpen = false
       window.dispatchEvent(new CustomEvent("auth:close"))
     } catch (error) {
       console.warn("Failed to close auth modal:", error)

@@ -248,7 +248,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       ],
     },
     pricing: {
-      title: "Un solo plan, todo incluido.",
+      title: "Planes",
       subtitle: "Sin contratos. Cancela cuando quieras.",
       billingMonthlyLabel: "Plan mensual",
       billingYearlyLabel: "Plan anual",
