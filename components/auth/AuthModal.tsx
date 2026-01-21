@@ -34,6 +34,11 @@ export default function AuthModal({ open, onClose, mode }: Props) {
     return target
   }
 
+  const peekRedirectTarget = () => {
+    if (typeof window === "undefined") return null
+    return window.sessionStorage.getItem("authRedirectTo")
+  }
+
   useEffect(() => {
     const onEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose()
@@ -41,6 +46,14 @@ export default function AuthModal({ open, onClose, mode }: Props) {
     document.addEventListener("keydown", onEsc)
     return () => document.removeEventListener("keydown", onEsc)
   }, [onClose])
+
+  useEffect(() => {
+    if (!open) return
+    const target = peekRedirectTarget()
+    if (target) {
+      router.prefetch(target)
+    }
+  }, [open, router])
 
   const navigateAndClose = (href: string) => {
     onClose()

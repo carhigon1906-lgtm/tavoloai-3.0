@@ -144,7 +144,12 @@ export default function SectionFinalCTA() {
         <motion.div variants={subtleFadeInUp} className="mt-10 flex justify-center">
           <motion.button
             ref={glowContainerRef}
-            onClick={() => openAuthModal()}
+            onClick={() => {
+              const target = document.getElementById("pricing")
+              if (target) {
+                target.scrollIntoView({ behavior: "smooth", block: "start" })
+              }
+            }}
             onMouseMove={handleGlowMove}
             onMouseEnter={() => setGlowActive(true)}
             onMouseLeave={() => setGlowActive(false)}
