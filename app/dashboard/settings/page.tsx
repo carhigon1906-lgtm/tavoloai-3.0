@@ -1,19 +1,57 @@
 // @ts-nocheck
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type React from "react"
 
 import { motion } from "framer-motion"
 import { Settings, MapPin, Phone, Store, Save } from "lucide-react"
+import { supabase } from "@/lib/supabaseClient"
 
 export default function SettingsPage() {
-    const [nombre, setNombre] = useState("Mi Restaurante")
-    const [direccion, setDireccion] = useState("Calle 123, Ciudad")
-    const [telefono, setTelefono] = useState("+57 300 000 0000")
+    const [nombre, setNombre] = useState("")
+    const [direccion, setDireccion] = useState("")
+    const [telefono, setTelefono] = useState("")
+    const [isSaving, setIsSaving] = useState(false)
+    const [saveError, setSaveError] = useState<string | null>(null)
+    const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
 
-    const onSave = (e: React.FormEvent) => {
+    useEffect(() => {
+        let mounted = true
+
+        supabase.auth.getSession().then(({ data }) => {
+            if (!mounted) return
+            const metadata = data.session?.user?.user_metadata ?? {}
+            setNombre(metadata.business ?? "")
+            setDireccion(metadata.business_address ?? "")
+            setTelefono(metadata.business_phone ?? "")
+        })
+
+        return () => {
+            mounted = false
+        }
+    }, [])
+
+    const onSave = async (e: React.FormEvent) => {
         e.preventDefault()
-        alert("Guardado (demo)")
+        setIsSaving(true)
+        setSaveError(null)
+        setSaveSuccess(null)
+
+        const { error } = await supabase.auth.updateUser({
+            data: {
+                business: nombre,
+                business_address: direccion,
+                business_phone: telefono,
+            },
+        })
+
+        if (error) {
+            setSaveError(error.message)
+        } else {
+            setSaveSuccess("Configuración guardada.")
+        }
+
+        setIsSaving(false)
     }
 
     const containerVariants = {
@@ -45,7 +83,7 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-indigo-100/40 p-4 md:p-6">
+        <div className="min-h-screen bg-gradient-to-br from-[#03040a] via-[#050b16] to-[#010204] p-4 md:p-6 text-white">
             <motion.div
                 initial="hidden"
                 animate="visible"
@@ -53,26 +91,26 @@ export default function SettingsPage() {
                 className="max-w-4xl mx-auto space-y-8"
             >
                 <motion.div variants={cardVariants} className="text-center space-y-3">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-indigo-600/20 rounded-3xl flex items-center justify-center mx-auto shadow-lg backdrop-blur-sm">
-                        <Settings className="w-8 h-8 text-slate-600" />
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-indigo-600/20 rounded-3xl flex items-center justify-center mx-auto shadow-lg backdrop-blur-sm border border-white/10">
+                        <Settings className="w-8 h-8 text-slate-200" />
                     </div>
-                    <h1 className="text-4xl font-bold text-slate-800 tracking-tight">Configuración</h1>
-                    <p className="text-slate-600 text-lg font-medium">Administra la información de tu restaurante</p>
+                    <h1 className="text-4xl font-bold text-white tracking-tight">Configuración</h1>
+                    <p className="text-slate-300 text-lg font-medium">Administra la información de tu restaurante</p>
                 </motion.div>
 
                 <motion.form
                     onSubmit={onSave}
                     variants={cardVariants}
-                    className="bg-white/40 backdrop-blur-md rounded-3xl shadow-xl border border-white/20 p-8 space-y-8 will-change-transform"
+                    className="rounded-3xl border border-white/10 bg-white/5 p-8 space-y-8 shadow-[0_35px_90px_rgba(0,0,0,0.55)] backdrop-blur-2xl will-change-transform"
                 >
                     <div className="space-y-6">
                         <div className="space-y-3">
-                            <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                                <Store className="w-4 h-4 text-slate-500" />
+                            <label className="flex items-center gap-3 text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                                <Store className="w-4 h-4 text-slate-400" />
                                 Nombre del restaurante
                             </label>
                             <input
-                                className="w-full bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-2xl px-5 py-4 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all shadow-sm hover:bg-white/70"
+                                className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent transition-all shadow-sm hover:bg-white/10"
                                 value={nombre}
                                 onChange={(e) => setNombre(e.target.value)}
                                 placeholder="Ingresa el nombre de tu restaurante"
@@ -80,12 +118,12 @@ export default function SettingsPage() {
                         </div>
 
                         <div className="space-y-3">
-                            <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                                <MapPin className="w-4 h-4 text-slate-500" />
+                            <label className="flex items-center gap-3 text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                                <MapPin className="w-4 h-4 text-slate-400" />
                                 Dirección
                             </label>
                             <input
-                                className="w-full bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-2xl px-5 py-4 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all shadow-sm hover:bg-white/70"
+                                className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent transition-all shadow-sm hover:bg-white/10"
                                 value={direccion}
                                 onChange={(e) => setDireccion(e.target.value)}
                                 placeholder="Dirección completa del restaurante"
@@ -93,12 +131,12 @@ export default function SettingsPage() {
                         </div>
 
                         <div className="space-y-3">
-                            <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                                <Phone className="w-4 h-4 text-slate-500" />
+                            <label className="flex items-center gap-3 text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                                <Phone className="w-4 h-4 text-slate-400" />
                                 Teléfono
                             </label>
                             <input
-                                className="w-full bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-2xl px-5 py-4 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-transparent transition-all shadow-sm hover:bg-white/70"
+                                className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent transition-all shadow-sm hover:bg-white/10"
                                 value={telefono}
                                 onChange={(e) => setTelefono(e.target.value)}
                                 placeholder="Número de contacto"
@@ -111,25 +149,28 @@ export default function SettingsPage() {
                             type="submit"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="w-full bg-gradient-to-r from-blue-500/80 to-indigo-600/80 hover:from-blue-600/90 hover:to-indigo-700/90 text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg backdrop-blur-sm border border-white/10 flex items-center justify-center gap-3 text-lg"
+                            disabled={isSaving}
+                            className="w-full bg-gradient-to-r from-blue-500/80 to-indigo-600/80 hover:from-blue-600/90 hover:to-indigo-700/90 disabled:opacity-70 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg backdrop-blur-sm border border-white/10 flex items-center justify-center gap-3 text-lg"
                         >
                             <Save className="w-5 h-5" />
-                            Guardar Configuración
+                            {isSaving ? "Guardando..." : "Guardar Configuración"}
                         </motion.button>
+                        {saveError && <p className="mt-3 text-sm font-medium text-rose-400">{saveError}</p>}
+                        {saveSuccess && <p className="mt-3 text-sm font-medium text-emerald-300">{saveSuccess}</p>}
                     </div>
                 </motion.form>
 
                 <motion.div
                     variants={cardVariants}
-                    className="bg-white/30 backdrop-blur-md rounded-3xl shadow-lg border border-white/20 p-6"
+                    className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_25px_70px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
                 >
                     <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-amber-400/20 to-orange-500/20 rounded-2xl flex items-center justify-center flex-shrink-0">
-                            <Settings className="w-6 h-6 text-amber-600" />
+                        <div className="w-12 h-12 bg-gradient-to-br from-amber-400/20 to-orange-500/20 rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/10">
+                            <Settings className="w-6 h-6 text-amber-300" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-slate-800 mb-2">Información importante</h3>
-                            <p className="text-slate-600 text-sm leading-relaxed">
+                            <h3 className="font-semibold text-white mb-2">Información importante</h3>
+                            <p className="text-slate-300 text-sm leading-relaxed">
                                 Esta información se mostrará en tus códigos QR y será visible para tus clientes. Asegúrate de mantenerla
                                 actualizada para brindar la mejor experiencia.
                             </p>

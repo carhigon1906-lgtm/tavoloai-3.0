@@ -5,7 +5,7 @@ import { memo } from "react"
 
 interface StatsCardProps {
   title: string
-  value: number
+  value: number | string
   trend: string
 }
 
@@ -17,7 +17,7 @@ function StatsCard({ title, value, trend }: StatsCardProps) {
     <motion.div
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
-      className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_25px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl group"
+      className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_25px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl group"
     >
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -30,8 +30,10 @@ function StatsCard({ title, value, trend }: StatsCardProps) {
         </div>
 
         <div className="space-y-2">
-          <p className="text-3xl font-bold text-white">
-            {value.toLocaleString()}
+          <p
+            className={`font-bold text-white ${typeof value === "number" ? "text-3xl" : "text-2xl sm:text-3xl"}`}
+          >
+            {typeof value === "number" ? value.toLocaleString() : value}
           </p>
           <p
             className={`text-sm font-medium ${

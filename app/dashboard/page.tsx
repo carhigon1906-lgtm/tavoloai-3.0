@@ -4,7 +4,7 @@
 import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { FilePlus, QrCode, Bolt, Image, BarChart2, Settings } from "lucide-react"
+import { FilePlus, QrCode, Bolt, Image, BarChart2, Settings, AlertTriangle, FileDown } from "lucide-react"
 
 const StatsCard = dynamic(() => import("./StatsCard"))
 const MotionLink = motion(Link)
@@ -26,7 +26,7 @@ const dashboardLinks = [
     title: "Crear menu nuevo",
     desc: "Disena tu carta digital facilmente.",
     icon: FilePlus,
-    href: "/dashboard/menus",
+    href: "/dashboard/menus/new",
     color: "from-blue-500 to-indigo-500",
   },
   {
@@ -50,7 +50,7 @@ const dashboardLinks = [
   {
     key: "media",
     name: "Media",
-    title: "Subir fotos / logos",
+    title: "Laboratorio de fotos IA",
     desc: "Administra imagenes y branding.",
     icon: Image,
     href: "/dashboard/media",
@@ -65,6 +65,24 @@ const dashboardLinks = [
     href: "/dashboard/analytics",
     color: "from-sky-500 to-cyan-500",
   },
+  {
+    key: "panic",
+    name: "Boton de panico",
+    title: "Boton de panico",
+    desc: "Oculta platos y edita tu menu",
+    icon: AlertTriangle,
+    href: "/dashboard/panic",
+    color: "from-red-500 to-rose-600",
+  },
+  {
+    key: "menu-pdf",
+    name: "Menu PDF",
+    title: "Descargar menu PDF",
+    desc: "Exporta tu menu en PDF listo para imprimir.",
+    icon: FileDown,
+    href: "/dashboard/menu-pdf",
+    color: "from-violet-500 to-fuchsia-600",
+  },
 ]
 
 const quickLinks = [
@@ -74,9 +92,8 @@ const quickLinks = [
 
 const stats = [
   { title: "Scans QR", value: 124, trend: "+12% esta semana" },
-  { title: "Visitas", value: 89, trend: "+8%" },
   { title: "Menus activos", value: 12, trend: "=" },
-  { title: "Pedidos hoy", value: 37, trend: "+5" },
+  { title: "Plato mas visto", value: "Tacos al pastor", trend: "Top hoy" },
 ]
 
 const qrScanValues = [10, 14, 9, 18, 22, 17, 25]
@@ -96,6 +113,8 @@ export default function DashboardPage() {
       >
         <motion.section
           variants={item}
+          whileHover={{ y: -4, scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
           className="rounded-3xl border border-white/10 bg-white/5 px-6 py-10 text-center shadow-[0_35px_90px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
         >
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-600/30 to-indigo-700/40 shadow-lg border border-white/10">
@@ -105,7 +124,7 @@ export default function DashboardPage() {
           <p className="mt-2 text-lg font-medium text-slate-300">Centro de control de tu restaurante</p>
         </motion.section>
 
-        <motion.section variants={item} className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <motion.section variants={item} className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 justify-items-center">
           {stats.map(({ title, value, trend }) => (
             <StatsCard key={title} title={title} value={value} trend={trend} />
           ))}
@@ -113,6 +132,8 @@ export default function DashboardPage() {
 
         <motion.section
           variants={item}
+          whileHover={{ y: -4, scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
           className="rounded-3xl border border-white/10 bg-[#060b19]/70 p-8 shadow-[0_35px_90px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
         >
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -127,8 +148,12 @@ export default function DashboardPage() {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: `${value * 6}px`, opacity: 1 }}
                 transition={{ delay: index * 0.08, duration: 0.5, ease: "easeOut" }}
-                className="flex-1 rounded-t-lg border border-blue-400/30 bg-gradient-to-t from-blue-500/40 to-teal-400/20 shadow-lg"
-              />
+                className="relative flex-1 rounded-t-lg border border-blue-400/30 bg-gradient-to-t from-blue-500/40 to-teal-400/20 shadow-lg"
+              >
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] font-semibold text-slate-400">
+                  {value}
+                </span>
+              </motion.div>
             ))}
           </div>
 
@@ -142,45 +167,29 @@ export default function DashboardPage() {
         </motion.section>
 
         <motion.section variants={item} className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {dashboardLinks.map(({ key, title, desc, icon: Icon, color, href }) => (
-            <MotionLink
-              key={key}
-              href={href}
-              whileHover={{ y: -6, scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="group rounded-3xl border border-white/10 bg-white/5 p-6 text-left shadow-[0_30px_70px_rgba(0,0,0,0.55)] transition-all hover:shadow-2xl backdrop-blur-2xl"
-            >
-              <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${color} text-white shadow-lg transition-transform group-hover:scale-105`}>
-                <Icon className="h-7 w-7" />
-              </div>
-              <h3 className="text-lg font-semibold text-white">{title}</h3>
-              <p className="mt-2 text-sm text-slate-300">{desc}</p>
-            </MotionLink>
-          ))}
-        </motion.section>
+          {dashboardLinks.map(({ key, title, desc, icon: Icon, color, href }) => {
+            const hoverProps = key === "panic" ? { y: -8, scale: 1.03 } : { y: -6, scale: 1.02 }
 
-        <motion.section
-          variants={item}
-          className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_25px_70px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
-        >
-          <h2 className="mb-6 text-center text-2xl font-semibold text-white">Accesos rápidos</h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
-            {quickLinks.map(({ key, name, href, icon: Icon }) => (
+            return (
               <MotionLink
                 key={key}
                 href={href}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.97 }}
-                className="flex flex-col items-center justify-center rounded-2xl border border-white/15 bg-white/5 p-4 text-white shadow-sm transition-all hover:shadow-lg"
+                whileHover={hoverProps}
+                whileTap={{ scale: 0.98 }}
+                className="group rounded-3xl border border-white/10 bg-white/5 p-6 text-left shadow-[0_30px_70px_rgba(0,0,0,0.55)] transition-all hover:shadow-2xl backdrop-blur-2xl"
               >
-                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <span className="text-center text-sm font-medium">{name}</span>
+              <div
+                className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${color} text-white shadow-[0_12px_30px_rgba(0,0,0,0.35)] ring-1 ring-white/10 transition-all group-hover:-translate-y-0.5 group-hover:shadow-[0_18px_40px_rgba(0,0,0,0.45)]`}
+              >
+                <Icon className="h-6 w-6 drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]" />
+              </div>
+                <h3 className="text-lg font-semibold text-white">{title}</h3>
+                <p className="mt-2 text-sm text-slate-300">{desc}</p>
               </MotionLink>
-            ))}
-          </div>
+            )
+          })}
         </motion.section>
+
       </motion.div>
     </div>
   )
