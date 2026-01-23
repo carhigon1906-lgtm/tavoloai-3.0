@@ -4,7 +4,7 @@
 import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { FilePlus, QrCode, Bolt, Image, BarChart2, Settings, AlertTriangle, FileDown } from "lucide-react"
+import { AlertTriangle, Image, LayoutTemplate, PenLine, Settings } from "lucide-react"
 
 const StatsCard = dynamic(() => import("./StatsCard"))
 const MotionLink = motion(Link)
@@ -21,79 +21,52 @@ const item = {
 
 const dashboardLinks = [
   {
-    key: "menus",
-    name: "Menus",
-    title: "Crear menu nuevo",
-    desc: "Disena tu carta digital facilmente.",
-    icon: FilePlus,
-    href: "/dashboard/menus/new",
-    color: "from-blue-500 to-indigo-500",
-  },
-  {
-    key: "qr",
-    name: "QR",
-    title: "Generar codigo QR",
-    desc: "Crea y descarga tu QR personalizado.",
-    icon: QrCode,
-    href: "/dashboard/qr",
-    color: "from-emerald-500 to-teal-500",
-  },
-  {
-    key: "boost",
-    name: "Promociones",
-    title: "Crear promocion (Tavolo Boost)",
-    desc: "Aumenta tus ventas con promociones.",
-    icon: Bolt,
-    href: "/dashboard/boost",
-    color: "from-amber-400 to-orange-500",
-  },
-  {
-    key: "media",
-    name: "Media",
-    title: "Laboratorio de fotos IA",
-    desc: "Administra imagenes y branding.",
-    icon: Image,
-    href: "/dashboard/media",
-    color: "from-pink-500 to-rose-500",
-  },
-  {
-    key: "analytics",
-    name: "Analiticas",
-    title: "Ver estadisticas",
-    desc: "Consulta el rendimiento y visitas.",
-    icon: BarChart2,
-    href: "/dashboard/analytics",
-    color: "from-sky-500 to-cyan-500",
-  },
-  {
     key: "panic",
-    name: "Boton de panico",
-    title: "Boton de panico",
-    desc: "Oculta platos y edita tu menu",
+    name: "Botón de pánico",
+    title: "BOTÓN DE PÁNICO",
+    desc: "Oculta platos agotados en tiempo real.",
     icon: AlertTriangle,
     href: "/dashboard/panic",
-    color: "from-red-500 to-rose-600",
+    color: "from-amber-400 to-red-600",
   },
   {
-    key: "menu-pdf",
-    name: "Menu PDF",
-    title: "Descargar menu PDF",
-    desc: "Exporta tu menu en PDF listo para imprimir.",
-    icon: FileDown,
-    href: "/dashboard/menu-pdf",
+    key: "studio",
+    name: "Estudio fotográfico IA",
+    title: "ESTUDIO FOTOGRÁFICO IA",
+    desc: "Fotos pro con ajuste automático.",
+    icon: Image,
+    href: "/dashboard/media",
     color: "from-violet-500 to-fuchsia-600",
+  },
+  {
+    key: "posters",
+    name: "Diseñador de afiches IA",
+    title: "DISEÑADOR DE AFICHES IA",
+    desc: "Afiches listos para redes y menú.",
+    icon: LayoutTemplate,
+    href: "/dashboard/posters",
+    color: "from-cyan-500 to-blue-600",
+  },
+  {
+    key: "writer",
+    name: "Redactor & traductor IA",
+    title: "REDACTOR & TRADUCTOR IA",
+    desc: "Textos gourmet y traducciones globales.",
+    icon: PenLine,
+    href: "/dashboard/writer",
+    color: "from-amber-400 to-fuchsia-600",
   },
 ]
 
 const quickLinks = [
   ...dashboardLinks.map(({ key, name, href, icon }) => ({ key, name, href, icon })),
-  { key: "settings", name: "Configuracion", href: "/dashboard/settings", icon: Settings },
+  { key: "settings", name: "Configuración", href: "/dashboard/settings", icon: Settings },
 ]
 
 const stats = [
   { title: "Scans QR", value: 124, trend: "+12% esta semana" },
-  { title: "Menus activos", value: 12, trend: "=" },
-  { title: "Plato mas visto", value: "Tacos al pastor", trend: "Top hoy" },
+  { title: "Menús activos", value: 12, trend: "=" },
+  { title: "Plato más visto", value: "Spaghetti carbonara", trend: "Top hoy" },
 ]
 
 const qrScanValues = [10, 14, 9, 18, 22, 17, 25]
@@ -168,7 +141,7 @@ export default function DashboardPage() {
 
         <motion.section variants={item} className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {dashboardLinks.map(({ key, title, desc, icon: Icon, color, href }) => {
-            const hoverProps = key === "panic" ? { y: -8, scale: 1.03 } : { y: -6, scale: 1.02 }
+            const hoverProps = key === "panic" ? { y: -10, scale: 1.07 } : { y: -8, scale: 1.06 }
 
             return (
               <MotionLink
@@ -176,8 +149,32 @@ export default function DashboardPage() {
                 href={href}
                 whileHover={hoverProps}
                 whileTap={{ scale: 0.98 }}
-                className="group rounded-3xl border border-white/10 bg-white/5 p-6 text-left shadow-[0_30px_70px_rgba(0,0,0,0.55)] transition-all hover:shadow-2xl backdrop-blur-2xl"
+                className="group rounded-3xl border border-white/10 bg-white/5 p-6 text-left shadow-[0_30px_70px_rgba(0,0,0,0.55)] transition-all hover:shadow-2xl backdrop-blur-2xl relative overflow-hidden"
               >
+              <div
+                className="pointer-events-none absolute inset-0 rounded-3xl border opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                style={{
+                  borderColor: key === "panic"
+                    ? "rgba(251,191,36,0.8)"
+                    : key === "studio"
+                      ? "rgba(139,92,246,0.8)"
+                      : key === "posters"
+                        ? "rgba(34,211,238,0.8)"
+                        : "rgba(251,191,36,0.7)",
+                }}
+              />
+              <div
+                className="pointer-events-none absolute -inset-1 opacity-15 blur-2xl transition-opacity duration-300 group-hover:opacity-100"
+                style={{
+                  background: key === "panic"
+                    ? "radial-gradient(circle at 20% 20%, rgba(251,191,36,0.85), transparent 55%)"
+                    : key === "studio"
+                      ? "radial-gradient(circle at 20% 20%, rgba(139,92,246,0.85), transparent 55%)"
+                      : key === "posters"
+                        ? "radial-gradient(circle at 20% 20%, rgba(34,211,238,0.85), transparent 55%)"
+                        : "radial-gradient(circle at 20% 20%, rgba(251,191,36,0.75), transparent 55%)",
+                }}
+              />
               <div
                 className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${color} text-white shadow-[0_12px_30px_rgba(0,0,0,0.35)] ring-1 ring-white/10 transition-all group-hover:-translate-y-0.5 group-hover:shadow-[0_18px_40px_rgba(0,0,0,0.45)]`}
               >
@@ -190,6 +187,25 @@ export default function DashboardPage() {
           })}
         </motion.section>
 
+        <motion.footer
+          variants={item}
+          className="rounded-3xl border border-white/10 bg-white/5 px-6 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl"
+        >
+          <div className="flex flex-wrap items-center justify-center gap-3 text-sm font-medium">
+            <button
+              type="button"
+              className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-slate-200 transition hover:bg-white/10 hover:text-white"
+            >
+              Descargar QR (Alta Res)
+            </button>
+            <button
+              type="button"
+              className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-slate-200 transition hover:bg-white/10 hover:text-white"
+            >
+              Generar PDF para Imprimir
+            </button>
+          </div>
+        </motion.footer>
       </motion.div>
     </div>
   )
