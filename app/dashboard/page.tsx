@@ -4,7 +4,7 @@
 import { motion } from "framer-motion"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { AlertTriangle, Image, LayoutTemplate, PenLine, Settings } from "lucide-react"
+import { AlertTriangle, BookOpen, Image, LayoutTemplate, PenLine, Settings } from "lucide-react"
 
 const StatsCard = dynamic(() => import("./StatsCard"))
 const MotionLink = motion(Link)
@@ -20,6 +20,15 @@ const item = {
 }
 
 const dashboardLinks = [
+  {
+    key: "new-menu",
+    name: "Creacion de nuevo menu",
+    title: "CREACION DE NUEVO MENU",
+    desc: "Arma un menu completo con secciones y platos sugeridos.",
+    icon: BookOpen,
+    href: "/dashboard/menu/new",
+    color: "from-emerald-400 to-lime-600",
+  },
   {
     key: "panic",
     name: "Botón de pánico",
@@ -88,13 +97,13 @@ export default function DashboardPage() {
           variants={item}
           whileHover={{ y: -4, scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
-          className="rounded-3xl border border-white/10 bg-white/5 px-6 py-10 text-center shadow-[0_35px_90px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
+          className="rounded-3xl border border-white/10 bg-white/5 px-6 py-5 text-center shadow-[0_35px_90px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
         >
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-600/30 to-indigo-700/40 shadow-lg border border-white/10">
             <Settings className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Dashboard principal</h1>
-          <p className="mt-2 text-lg font-medium text-slate-300">Centro de control de tu restaurante</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Dashboard principal</h1>
+          <p className="mt-2 text-lg font-normal text-slate-300">Centro de control de tu restaurante</p>
         </motion.section>
 
         <motion.section variants={item} className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 justify-items-center">
@@ -154,25 +163,29 @@ export default function DashboardPage() {
               <div
                 className="pointer-events-none absolute inset-0 rounded-3xl border opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                 style={{
-                  borderColor: key === "panic"
-                    ? "rgba(251,191,36,0.8)"
-                    : key === "studio"
-                      ? "rgba(139,92,246,0.8)"
-                      : key === "posters"
-                        ? "rgba(34,211,238,0.8)"
-                        : "rgba(251,191,36,0.7)",
+                  borderColor: key === "new-menu"
+                    ? "rgba(52,211,153,0.85)"
+                    : key === "panic"
+                      ? "rgba(251,191,36,0.8)"
+                      : key === "studio"
+                        ? "rgba(139,92,246,0.8)"
+                        : key === "posters"
+                          ? "rgba(34,211,238,0.8)"
+                          : "rgba(251,191,36,0.7)",
                 }}
               />
               <div
                 className="pointer-events-none absolute -inset-1 opacity-15 blur-2xl transition-opacity duration-300 group-hover:opacity-100"
                 style={{
-                  background: key === "panic"
-                    ? "radial-gradient(circle at 20% 20%, rgba(251,191,36,0.85), transparent 55%)"
-                    : key === "studio"
-                      ? "radial-gradient(circle at 20% 20%, rgba(139,92,246,0.85), transparent 55%)"
-                      : key === "posters"
-                        ? "radial-gradient(circle at 20% 20%, rgba(34,211,238,0.85), transparent 55%)"
-                        : "radial-gradient(circle at 20% 20%, rgba(251,191,36,0.75), transparent 55%)",
+                  background: key === "new-menu"
+                    ? "radial-gradient(circle at 20% 20%, rgba(52,211,153,0.85), transparent 55%)"
+                    : key === "panic"
+                      ? "radial-gradient(circle at 20% 20%, rgba(251,191,36,0.85), transparent 55%)"
+                      : key === "studio"
+                        ? "radial-gradient(circle at 20% 20%, rgba(139,92,246,0.85), transparent 55%)"
+                        : key === "posters"
+                          ? "radial-gradient(circle at 20% 20%, rgba(34,211,238,0.85), transparent 55%)"
+                          : "radial-gradient(circle at 20% 20%, rgba(251,191,36,0.75), transparent 55%)",
                 }}
               />
               <div

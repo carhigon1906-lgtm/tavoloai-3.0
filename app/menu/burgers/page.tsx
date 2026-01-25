@@ -9,22 +9,22 @@ import { useMemo, useState } from "react"
 export const dynamic = "force-dynamic"
 
 
-import fourMeatPlantain from "@/public/4-meat-burger-with-plantain-bun.jpg"
-import fourMeatRegular from "@/public/4-meat-burger-with-regular-bun.jpg"
-import burgerOnionPlantain from "@/public/burger-with-onion-rings-plantain-bun.jpg"
-import burgerOnionRegular from "@/public/burger-with-onion-rings-regular-bun.jpg"
-import crispyBaconPlantain from "@/public/crispy-bacon-burger-plantain-bun.jpg"
-import crispyBaconRegular from "@/public/crispy-bacon-burger-regular-bun.jpg"
-import tripleBbqBeef from "@/public/triple-bbq-ribs-burger-with-beef.jpg"
-import tripleBbqPlantain from "@/public/triple-bbq-ribs-burger-with-plantain-bun.jpg"
+import fourMeatPlantain from "@/public/4-meat-burger-with-plantain-bun-removebg-preview.png"
+import fourMeatRegular from "@/public/4-meat-burger-with-regular-bun-removebg-preview.png"
+import burgerOnionPlantain from "@/public/crispy-bacon-burger-regular-bun-removebg-preview.png"
+import burgerOnionRegular from "@/public/crispy-bacon-burger-regular-bun-removebg-preview.png"
+import crispyBaconPlantain from "@/public/crispy-bacon-burger-regular-bun-removebg-preview.png"
+import crispyBaconRegular from "@/public/crispy-bacon-burger-regular-bun-removebg-preview.png"
+import tripleBbqBeef from "@/public/triple-bbq-ribs-burger-with-beef-removebg-preview.png"
+import tripleBbqPlantain from "@/public/triple-bbq-ribs-burger-with-plantain-bun-removebg-preview.png"
 
 const MotionImage = motion(Image)
 const MotionButton = motion.button
 
 const dietaryFilters = [
-    { id: "gluten-free", label: "Sin gluten", helper: "Bases sin harina o con patacon", icon: "🌾🚫" },
-    { id: "veg-friendly", label: "Veg-friendly", helper: "Ingredientes plant-based o veggies", icon: "🥬" },
-    { id: "protein-plus", label: "Proteína extra", helper: "Perfectos para subir macros", icon: "💪" },
+    { id: "gluten-free", label: "Sin gluten", helper: "Bases sin harina o con patacon", icon: "????" },
+    { id: "veg-friendly", label: "Veg-friendly", helper: "Ingredientes plant-based o veggies", icon: "??" },
+    { id: "protein-plus", label: "Proteína extra", helper: "Perfectos para subir macros", icon: "??" },
 ] as const
 type ProductVariant = {
     type: string
@@ -623,7 +623,7 @@ export default function BurgersPage() {
                                     <div style={styles.productTags}>
                                         {product.tags.map((tag) => (
                                             <span key={tag} style={styles.tagPill}>
-                                                <span>{dietaryFilterLookup[tag]?.icon ?? "⭐"}</span>
+                                                <span>{dietaryFilterLookup[tag]?.icon ?? "?"}</span>
                                                 <span>{dietaryFilterLookup[tag]?.label ?? tag}</span>
                                             </span>
                                         ))}
@@ -673,7 +673,7 @@ export default function BurgersPage() {
                     whileTap={{ scale: 0.95 }}
                     onClick={handleSearch}
                 >
-                    <div style={styles.buttonIcon}>🔍</div>
+                    <div style={styles.buttonIcon}>??</div>
                     <span style={styles.buttonText}>Buscar</span>
                 </motion.button>
 
@@ -687,7 +687,7 @@ export default function BurgersPage() {
                     whileTap={{ scale: 0.95 }}
                     onClick={handleFilter}
                 >
-                    <div style={styles.buttonIcon}>⚙️</div>
+                    <div style={styles.buttonIcon}>??</div>
                     <span style={styles.buttonText}>Filtrar</span>
                 </motion.button>
 
@@ -701,13 +701,14 @@ export default function BurgersPage() {
                     whileTap={{ scale: 0.95 }}
                     onClick={handleShare}
                 >
-                    <div style={styles.buttonIcon}>📤</div>
+                    <div style={styles.buttonIcon}>??</div>
                     <span style={styles.buttonText}>Compartir</span>
                 </motion.button>
             </motion.footer>
         </div>
     )
 }
+
 
 
 

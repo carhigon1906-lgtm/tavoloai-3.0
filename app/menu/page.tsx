@@ -9,14 +9,15 @@ import type { StaticImageData } from "next/image"
 import Image from "next/image"
 
 import tavoloLogo from "@/public/logo.png"
-import fourMeatPlantain from "@/public/4-meat-burger-with-plantain-bun.jpg"
-import fourMeatRegular from "@/public/4-meat-burger-with-regular-bun.jpg"
-import burgerOnionPlantain from "@/public/burger-with-onion-rings-plantain-bun.jpg"
-import burgerOnionRegular from "@/public/burger-with-onion-rings-regular-bun.jpg"
-import crispyBaconPlantain from "@/public/crispy-bacon-burger-plantain-bun.jpg"
-import crispyBaconRegular from "@/public/crispy-bacon-burger-regular-bun.jpg"
-import tripleBbqBeef from "@/public/triple-bbq-ribs-burger-with-beef.jpg"
-import tripleBbqPlantain from "@/public/triple-bbq-ribs-burger-with-plantain-bun.jpg"
+import logoBlanco from "@/public/logoblanco.png"
+import fourMeatPlantain from "@/public/4-meat-burger-with-plantain-bun-removebg-preview.png"
+import fourMeatRegular from "@/public/4-meat-burger-with-regular-bun-removebg-preview.png"
+import burgerOnionPlantain from "@/public/burger-with-onion-rings-plantain-bun-removebg-preview.png"
+import burgerOnionRegular from "@/public/burger-with-onion-rings-regular-bun-removebg-preview.png"
+import crispyBaconPlantain from "@/public/crispy-bacon-burger-plantain-bun-removebg-preview (1).png"
+import crispyBaconRegular from "@/public/crispy-bacon-burger-regular-bun-removebg-preview.png"
+import tripleBbqBeef from "@/public/triple-bbq-ribs-burger-with-beef-removebg-preview.png"
+import tripleBbqPlantain from "@/public/triple-bbq-ribs-burger-with-plantain-bun-removebg-preview.png"
 
 const carouselImages: { id: string; alt: string; image: StaticImageData; tags: string[] }[] = [
     {
@@ -236,7 +237,7 @@ export default function HomePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ type: 'spring', stiffness: 120 }}
                 >
-                    <span style={styles.brandName}>Taboloai</span>
+                    <Image src={logoBlanco} alt="Taboloai" style={styles.brandLogo} />
                     <span style={styles.brandTagline}>Menu inteligente para tu carta digital</span>
                     <MotionBox
                         style={styles.carouselWrapper}
@@ -267,7 +268,6 @@ export default function HomePage() {
                             }
                             transition={{ duration: 0.55, ease: "easeOut" }}
                         />
-                        <div style={styles.carouselOverlay} />
                     </MotionBox>
                     <div style={styles.carouselDots}>
                         {carouselImages.map((image, index) => (
@@ -533,7 +533,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         display: 'flex',
         flexDirection: 'column',
         color: '#fff',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif',
     },
     branding: {
         display: 'flex',
@@ -549,6 +549,12 @@ const styles: { [key: string]: React.CSSProperties } = {
         letterSpacing: '0.35rem',
         textTransform: 'uppercase',
     },
+    brandLogo: {
+        width: 'min(140px, 42vw)',
+        height: 'auto',
+        objectFit: 'contain',
+        filter: 'drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55))',
+    },
     brandTagline: {
         fontSize: 'clamp(0.9rem, 3vw, 1.2rem)',
         color: '#FFD700',
@@ -559,12 +565,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     carouselWrapper: {
         width: 'min(70vw, 360px)',
         height: 'min(70vw, 360px)',
-        borderRadius: '22px',
-        overflow: 'hidden',
-        border: '2px solid rgba(255, 255, 255, 0.22)',
-        boxShadow: '0 18px 36px rgba(0, 0, 0, 0.4)',
         position: 'relative',
-        background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.08), rgba(8, 8, 8, 0.95))',
         transformOrigin: 'center',
     },
     carouselImage: {
@@ -572,12 +573,6 @@ const styles: { [key: string]: React.CSSProperties } = {
         objectPosition: 'center',
         filter: 'brightness(0.92)',
         transformOrigin: 'center',
-    },
-    carouselOverlay: {
-        position: 'absolute',
-        inset: 0,
-        background: 'linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.35))',
-        pointerEvents: 'none',
     },
     carouselDots: {
         display: 'flex',
@@ -819,3 +814,4 @@ const styles: { [key: string]: React.CSSProperties } = {
         textAlign: 'right',
     },
 }
+
