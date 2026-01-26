@@ -4,6 +4,7 @@ import RequireAuth from "@/components/guards/RequireAuth"
 
 const Sidebar = dynamic(() => import("./Sidebar"))
 const DashboardNavbar = dynamic(() => import("./DashboardNavbar"))
+const MobileNav = dynamic(() => import("./MobileNav"))
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -14,9 +15,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0">
           <DashboardNavbar />
 
-          <main className="flex-1 overflow-auto p-6" data-lenis-prevent>
+          <main className="flex-1 overflow-auto p-6 pb-28 md:pb-6" data-lenis-prevent>
             <div className="max-w-7xl mx-auto">{children}</div>
           </main>
+
+          <MobileNav />
         </div>
       </div>
     </RequireAuth>

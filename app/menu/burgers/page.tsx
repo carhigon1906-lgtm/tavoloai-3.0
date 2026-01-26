@@ -673,7 +673,7 @@ export default function BurgersPage() {
                     whileTap={{ scale: 0.95 }}
                     onClick={handleSearch}
                 >
-                    <div style={styles.buttonIcon}>??</div>
+                    <div style={styles.buttonIcon}>🔍</div>
                     <span style={styles.buttonText}>Buscar</span>
                 </motion.button>
 
@@ -687,7 +687,7 @@ export default function BurgersPage() {
                     whileTap={{ scale: 0.95 }}
                     onClick={handleFilter}
                 >
-                    <div style={styles.buttonIcon}>??</div>
+                    <div style={styles.buttonIcon}>🎚️</div>
                     <span style={styles.buttonText}>Filtrar</span>
                 </motion.button>
 
@@ -701,7 +701,7 @@ export default function BurgersPage() {
                     whileTap={{ scale: 0.95 }}
                     onClick={handleShare}
                 >
-                    <div style={styles.buttonIcon}>??</div>
+                    <div style={styles.buttonIcon}>📤</div>
                     <span style={styles.buttonText}>Compartir</span>
                 </motion.button>
             </motion.footer>

@@ -35,7 +35,7 @@ export default function Sidebar() {
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
       className={`${
         isCollapsed ? "w-20" : "w-64"
-      } bg-black/70 backdrop-blur-2xl border-r border-white/10 flex flex-col transition-all duration-300 text-slate-100 shadow-[8px_0_40px_rgba(0,0,0,0.65)]`}
+      } hidden md:flex bg-black/70 backdrop-blur-2xl border-r border-white/10 flex-col transition-all duration-300 text-slate-100 shadow-[8px_0_40px_rgba(0,0,0,0.65)]`}
     >
       {/* Header */}
       <div className="p-6 border-b border-white/10">
