@@ -5,9 +5,9 @@ import Image, { type StaticImageData } from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
-import fourMeatRegular from "@/public/4-meat-burger-with-regular-bun.jpg"
-import burgerOnionRegular from "@/public/crispy-bacon-burger-regular-bun-removebg-preview.png"
-import crispyBaconRegular from "@/public/crispy-bacon-burger-regular-bun.jpg"
+import fourMeatRegular from "@/public/4-meat-burger-with-regular-bun-removebg-preview.png"
+import burgerOnionRegular from "@/public/burger-with-onion-rings-regular-bun-removebg-preview.png"
+import crispyBaconRegular from "@/public/crispy-bacon-burger-regular-bun-removebg-preview.png"
 import tripleBbqBeef from "@/public/triple-bbq-ribs-burger-with-beef-removebg-preview.png"
 
 const MotionImage = motion(Image)
