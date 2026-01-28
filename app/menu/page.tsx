@@ -3,10 +3,12 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { ShoppingBag } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { StaticImageData } from "next/image"
 import Image from "next/image"
+import { supabase } from "@/lib/supabaseClient"
+import RequireAuth from "@/components/guards/RequireAuth"
+import { useRouter } from "next/navigation"
 
 import tavoloLogo from "@/public/logo.png"
 import logoBlanco from "@/public/logoblanco.png"
@@ -39,14 +41,29 @@ const MotionImage = motion(Image)
 const MotionButton = motion.button
 const MotionBox = motion.div
 
-const categories = [
-    { id: "burgers", name: "BURGERS", icon: "🍔" },
-    { id: "special", name: "SPECIAL FOOD", icon: "🍽️" },
-    { id: "pizza", name: "PIZZA", icon: "🍕" },
-    { id: "artesanales", name: "ARTESANALES", icon: "🥖" },
-    { id: "smoothies", name: "SMOOTHIES", icon: "🍹" },
-    { id: "sodas", name: "SODAS", icon: "🥤" },
-]
+type Dish = {
+    id: number | string
+    nombre: string
+    ingredientes: string
+    precio: number
+}
+
+type Category = {
+    id: number | string
+    nombre: string
+    platos: Dish[]
+}
+
+const iconForCategory = (name: string) => {
+    const n = name.toLowerCase()
+    if (n.includes("burger")) return "🍔"
+    if (n.includes("pizza")) return "🍕"
+    if (n.includes("artesan")) return "🥖"
+    if (n.includes("smooth")) return "🍹"
+    if (n.includes("soda") || n.includes("bebida")) return "🥤"
+    if (n.includes("special") || n.includes("especial")) return "🍽️"
+    return "🍽️"
+}
 
 export default function HomePage() {
     const router = useRouter()
@@ -56,13 +73,16 @@ export default function HomePage() {
     const [isMobileViewport, setIsMobileViewport] = useState(false)
     const [showIntro, setShowIntro] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
+    const [menuData, setMenuData] = useState<{ logo_url?: string; categories: Category[] }>({
+        logo_url: "",
+        categories: [],
+    })
+    const [menuLoading, setMenuLoading] = useState(true)
+    const [menuError, setMenuError] = useState("")
 
     const handleCategoryClick = (categoryId: string) => {
         setSelectedCategory(categoryId)
-
-        if (categoryId === "burgers") {
-            router.push("/menu/burgers")
-        }
+        router.push(`/menu/burgers?category=${encodeURIComponent(categoryId)}`)
     }
 
     useEffect(() => {
@@ -86,6 +106,37 @@ export default function HomePage() {
             clearInterval(interval)
         }
     }, [prefersReducedMotion])
+
+    useEffect(() => {
+        const loadMenu = async () => {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session) {
+                setMenuLoading(false)
+                return
+            }
+
+            const { data, error } = await supabase
+                .from("menus")
+                .select("logo_url, categories")
+                .eq("user_id", session.user.id)
+                .maybeSingle()
+
+            if (error) {
+                setMenuError("No pudimos cargar tu menú.")
+                setMenuLoading(false)
+                return
+            }
+
+            if (data && Array.isArray(data.categories)) {
+                setMenuData({ logo_url: data.logo_url || "", categories: data.categories })
+            }
+            setMenuLoading(false)
+        }
+
+        loadMenu()
+    }, [])
 
     useEffect(() => {
         const updateViewportFlag = () => {
@@ -121,16 +172,21 @@ export default function HomePage() {
         },
     }
 
-    const burgersProducts = [
-        { id: "1", name: "Triple BBQ Ribs", price: "$40.000", image: tripleBbqBeef },
-        { id: "2", name: "4 Carnes", price: "$40.000", image: fourMeatRegular },
-        { id: "3", name: "Onion Rings", price: "$26.000", image: burgerOnionRegular },
-        { id: "4", name: "Crispy Bacon", price: "$28.000", image: crispyBaconRegular },
-    ] as const
+    const effectiveCategories = useMemo(() => {
+        if (menuData.categories.length === 0) return []
+        return menuData.categories.map((cat) => ({
+            id: String(cat.id),
+            name: cat.nombre.toUpperCase(),
+            icon: iconForCategory(cat.nombre),
+            platos: cat.platos,
+        }))
+    }, [menuData.categories])
 
-    const filteredBurgers = burgersProducts.filter((product) =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    const filteredCategories = effectiveCategories.filter((category) =>
+        category.name.toLowerCase().includes(searchQuery.toLowerCase()),
     )
+
+    const selectedCategoryData = effectiveCategories.find((category) => category.id === selectedCategory)
 
     useEffect(() => {
         if (prefersReducedMotion) {
@@ -140,7 +196,8 @@ export default function HomePage() {
     }, [prefersReducedMotion])
 
     return (
-        <>
+        <RequireAuth>
+            <>
             <AnimatePresence>
                 {showIntro && (
                     <motion.div
@@ -237,7 +294,11 @@ export default function HomePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ type: 'spring', stiffness: 120 }}
                 >
-                    <Image src={logoBlanco} alt="Taboloai" style={styles.brandLogo} />
+                    {menuData.logo_url ? (
+                        <img src={menuData.logo_url} alt="Logo del menú" style={styles.brandLogo} />
+                    ) : (
+                        <Image src={logoBlanco} alt="Taboloai" style={styles.brandLogo} />
+                    )}
                     <span style={styles.brandTagline}>Menu inteligente para tu carta digital</span>
                     <MotionBox
                         style={styles.carouselWrapper}
@@ -307,13 +368,19 @@ export default function HomePage() {
                         />
                     </motion.div>
 
+                    {menuLoading && <div style={styles.statusCard}>Cargando menú...</div>}
+                    {menuError && <div style={styles.statusError}>{menuError}</div>}
+                    {!menuLoading && !menuError && effectiveCategories.length === 0 && (
+                        <div style={styles.statusCard}>Aún no tienes un menú creado.</div>
+                    )}
+
                     <motion.div
                         style={styles.grid}
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
                     >
-                        {categories.map((category) => (
+                        {filteredCategories.map((category) => (
                             <MotionButton
                                 key={category.id}
                                 style={{
@@ -352,36 +419,33 @@ export default function HomePage() {
                         ))}
                     </motion.div>
 
-                    {searchQuery.trim().length > 0 && (
+                    {selectedCategoryData && (
                         <motion.div
                             style={styles.productsSection}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.8 }}
                         >
-                            <h3 style={styles.productsTitle}>BURGERS</h3>
+                            <h3 style={styles.productsTitle}>{selectedCategoryData.name}</h3>
                             <div style={styles.productsGrid}>
-                                {filteredBurgers.map((product) => (
-                                    <motion.div
-                                        key={product.id}
-                                        style={styles.productCard}
-                                        whileHover={{ scale: 1.03 }}
-                                        whileTap={{ scale: 0.97 }}
-                                    >
-                                        <div style={styles.productImageWrapper}>
-                                            <MotionImage
-                                                src={product.image}
-                                                alt={product.name}
-                                                style={styles.productImage}
-                                                whileHover={{ scale: 1.05 }}
-                                            />
-                                        </div>
-                                        <div style={styles.productInfo}>
-                                            <span style={styles.productName}>{product.name}</span>
-                                            <span style={styles.productPrice}>{product.price}</span>
-                                        </div>
-                                    </motion.div>
-                                ))}
+                                {selectedCategoryData.platos?.length ? (
+                                    selectedCategoryData.platos.map((product: Dish) => (
+                                        <motion.div
+                                            key={product.id}
+                                            style={styles.productCard}
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
+                                        >
+                                            <div style={styles.productInfo}>
+                                                <span style={styles.productName}>{product.nombre}</span>
+                                                <span style={styles.productPrice}>${product.precio.toFixed(2)}</span>
+                                                <span style={styles.productIngredients}>{product.ingredientes}</span>
+                                            </div>
+                                        </motion.div>
+                                    ))
+                                ) : (
+                                    <div style={styles.emptyProducts}>No hay platos en esta categoría.</div>
+                                )}
                             </div>
                         </motion.div>
                     )}
@@ -434,7 +498,8 @@ export default function HomePage() {
                     </div>
                 </motion.footer>
             </div>
-        </>
+            </>
+        </RequireAuth>
     )
 }
 
@@ -619,6 +684,28 @@ const styles: { [key: string]: React.CSSProperties } = {
         maxWidth: '820px',
         marginBottom: '1.5rem',
     },
+    statusCard: {
+        width: '100%',
+        maxWidth: '820px',
+        padding: '0.9rem 1.2rem',
+        borderRadius: '16px',
+        border: '1px dashed rgba(255, 255, 255, 0.25)',
+        backgroundColor: 'rgba(0, 0, 0, 0.55)',
+        color: 'rgba(255, 255, 255, 0.7)',
+        textAlign: 'center',
+        marginBottom: '1rem',
+    },
+    statusError: {
+        width: '100%',
+        maxWidth: '820px',
+        padding: '0.9rem 1.2rem',
+        borderRadius: '16px',
+        border: '1px solid rgba(248, 113, 113, 0.5)',
+        backgroundColor: 'rgba(248, 113, 113, 0.15)',
+        color: 'rgba(254, 202, 202, 0.9)',
+        textAlign: 'center',
+        marginBottom: '1rem',
+    },
     searchInput: {
         width: '100%',
         padding: '0.7rem 1rem',
@@ -735,6 +822,22 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontSize: '0.9rem',
         fontWeight: 700,
         color: '#FFD700',
+    },
+    productIngredients: {
+        fontSize: '0.75rem',
+        color: 'rgba(255, 255, 255, 0.7)',
+        textAlign: 'center',
+        lineHeight: 1.4,
+    },
+    emptyProducts: {
+        width: '100%',
+        padding: '1rem',
+        borderRadius: '16px',
+        textAlign: 'center',
+        background: 'rgba(0, 0, 0, 0.6)',
+        border: '1px dashed rgba(255, 255, 255, 0.2)',
+        color: 'rgba(255, 255, 255, 0.6)',
+        fontSize: '0.9rem',
     },
     motivationText: {
         fontSize: 'clamp(1.2rem, 4vw, 1.8rem)',

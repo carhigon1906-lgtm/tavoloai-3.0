@@ -1,0 +1,546 @@
+// @ts-nocheck
+"use client"
+
+import { useEffect, useMemo, useRef, useState } from "react"
+import Link from "next/link"
+import { motion, AnimatePresence } from "framer-motion"
+import { ArrowLeft, Plus, Trash2, Upload, Image as ImageIcon, UtensilsCrossed } from "lucide-react"
+import { supabase } from "@/lib/supabaseClient"
+
+type Dish = {
+  id: number
+  nombre: string
+  tagline?: string
+  ingredientes: string
+  precio: number
+  foto_url?: string
+}
+
+type Category = {
+  id: number
+  nombre: string
+  platos: Dish[]
+}
+
+const container = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { staggerChildren: 0.08 } },
+}
+
+const card = {
+  hidden: { opacity: 0, y: 18, scale: 0.98 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 280, damping: 26 } },
+}
+
+export default function NewMenuPage() {
+  const [menuId, setMenuId] = useState<string | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string>("")
+  const [logoUrl, setLogoUrl] = useState<string>("")
+  const [logoName, setLogoName] = useState<string>("")
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoError, setLogoError] = useState<string>("")
+  const [saveError, setSaveError] = useState<string>("")
+  const [saveSuccess, setSaveSuccess] = useState<string>("")
+  const [isSaving, setIsSaving] = useState<boolean>(false)
+  const [uploadingDish, setUploadingDish] = useState<Record<number, boolean>>({})
+  const [categories, setCategories] = useState<Category[]>([
+    {
+      id: 1,
+      nombre: "Entradas",
+      platos: [
+        { id: 11, nombre: "Bruschetta", ingredientes: "Tomate, ajo, albahaca, aceite de oliva", precio: 6.5 },
+      ],
+    },
+  ])
+  const [newCategoryName, setNewCategoryName] = useState<string>("")
+  const logoInputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    const loadMenu = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) return
+
+      const { data, error } = await supabase
+        .from("menus")
+        .select("id, logo_url, categories")
+        .eq("user_id", session.user.id)
+        .maybeSingle()
+
+      if (error) return
+      if (data) {
+        setMenuId(String(data.id))
+        if (data.logo_url) {
+          setLogoUrl(String(data.logo_url))
+          setLogoPreview(String(data.logo_url))
+        }
+        if (Array.isArray(data.categories)) {
+          setCategories(data.categories)
+        }
+      }
+    }
+
+    loadMenu()
+  }, [])
+
+  const totalDishes = useMemo(
+    () => categories.reduce((acc, category) => acc + category.platos.length, 0),
+    [categories],
+  )
+
+  const onLogoSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.type !== "image/png") {
+      setLogoPreview("")
+      setLogoUrl("")
+      setLogoName("")
+      setLogoFile(null)
+      setLogoError("El logo debe ser un archivo PNG.")
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      setLogoPreview(String(reader.result || ""))
+      setLogoName(file.name)
+      setLogoFile(file)
+      setLogoError("")
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const addCategory = () => {
+    if (!newCategoryName.trim()) return alert("Ingresa un nombre de categoría.")
+    setCategories((prev) => [
+      ...prev,
+      { id: Date.now(), nombre: newCategoryName.trim(), platos: [] },
+    ])
+    setNewCategoryName("")
+  }
+
+  const removeCategory = (id: number) => {
+    if (!confirm("¿Eliminar esta categoría y sus platos?")) return
+    setCategories((prev) => prev.filter((cat) => cat.id !== id))
+  }
+
+  const addDish = (categoryId: number) => {
+    setCategories((prev) =>
+      prev.map((cat) =>
+        cat.id === categoryId
+          ? {
+              ...cat,
+              platos: [
+                ...cat.platos,
+                { id: Date.now(), nombre: "", tagline: "", ingredientes: "", precio: 0, foto_url: "" },
+              ],
+            }
+          : cat,
+      ),
+    )
+  }
+
+  const removeDish = (categoryId: number, dishId: number) => {
+    setCategories((prev) =>
+      prev.map((cat) =>
+        cat.id === categoryId ? { ...cat, platos: cat.platos.filter((p) => p.id !== dishId) } : cat,
+      ),
+    )
+  }
+
+  const updateCategoryName = (id: number, value: string) => {
+    setCategories((prev) => prev.map((cat) => (cat.id === id ? { ...cat, nombre: value } : cat)))
+  }
+
+  const updateDish = (categoryId: number, dishId: number, field: keyof Dish, value: string | number) => {
+    setCategories((prev) =>
+      prev.map((cat) =>
+        cat.id === categoryId
+          ? {
+              ...cat,
+              platos: cat.platos.map((dish) => (dish.id === dishId ? { ...dish, [field]: value } : dish)),
+            }
+          : cat,
+      ),
+    )
+  }
+
+  const onDishPhotoSelected = (categoryId: number, dishId: number) => async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const allowedTypes: Record<string, string> = {
+      "image/png": "png",
+      "image/jpeg": "jpg",
+      "image/webp": "webp",
+    }
+    const extension = allowedTypes[file.type]
+    if (!extension) {
+      setSaveError("La foto del plato debe ser PNG, JPG o WEBP.")
+      return
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (!session) {
+      setSaveError("Debes iniciar sesión para subir imágenes.")
+      return
+    }
+
+    setUploadingDish((prev) => ({ ...prev, [dishId]: true }))
+    setSaveError("")
+
+    const previewReader = new FileReader()
+    previewReader.onload = () => {
+      updateDish(categoryId, dishId, "foto_url", String(previewReader.result || ""))
+    }
+    previewReader.readAsDataURL(file)
+
+    const filePath = `${session.user.id}/dish-${dishId}-${Date.now()}.${extension}`
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("path", filePath)
+    formData.append("bucket", "menu-assets")
+
+    const response = await fetch("/api/menu/upload-dish-photo", {
+      method: "POST",
+      body: formData,
+    })
+
+    if (!response.ok) {
+      setSaveError("No se pudo subir la foto del plato. Revisa el bucket en Supabase.")
+      setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
+      return
+    }
+
+    const result = await response.json()
+    if (!result?.publicUrl) {
+      setSaveError("No se pudo obtener la URL de la foto del plato.")
+      setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
+      return
+    }
+
+    updateDish(categoryId, dishId, "foto_url", result.publicUrl)
+    setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
+  }
+
+  const saveMenu = async () => {
+    setSaveError("")
+    setSaveSuccess("")
+    setIsSaving(true)
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) {
+        setSaveError("Debes iniciar sesión para guardar.")
+        return
+      }
+
+      let finalLogoUrl = logoUrl
+      if (logoFile) {
+        const filePath = `${session.user.id}/logo-${Date.now()}.png`
+        const { error: uploadError } = await supabase.storage
+          .from("menu-assets")
+          .upload(filePath, logoFile, { contentType: "image/png", upsert: true })
+        if (uploadError) {
+          setSaveError("No se pudo subir el logo. Revisa el bucket en Supabase.")
+          return
+        }
+
+        const { data } = supabase.storage.from("menu-assets").getPublicUrl(filePath)
+        finalLogoUrl = data.publicUrl
+        setLogoUrl(finalLogoUrl)
+        setLogoPreview(finalLogoUrl)
+        setLogoFile(null)
+      }
+
+      const payload = {
+        user_id: session.user.id,
+        logo_url: finalLogoUrl,
+        categories,
+        updated_at: new Date().toISOString(),
+      }
+
+      const { data, error } = await supabase
+        .from("menus")
+        .upsert(payload, { onConflict: "user_id" })
+        .select("id")
+        .single()
+
+      if (error) {
+        setSaveError("No se pudo guardar el menú. Intenta nuevamente.")
+        return
+      }
+
+      setMenuId(String(data.id))
+      setSaveSuccess("Menú guardado correctamente.")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#04060f] via-[#081326] to-[#05070c] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_12%,rgba(56,189,248,0.18),transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_90%_18%,rgba(34,197,94,0.12),transparent_60%)]" />
+
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={container}
+        className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-12 lg:px-8"
+      >
+        <motion.section variants={card} className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Link
+              href="/dashboard"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Creación de nuevo menú</h1>
+              <p className="mt-1 text-sm text-slate-300 sm:text-base">
+                Sube tu logo en PNG, crea categorías y agrega cada plato con nombre, ingredientes y precio.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+            <UtensilsCrossed className="h-4 w-4 text-emerald-300" />
+            {categories.length} categorías • {totalDishes} platos
+          </div>
+        </motion.section>
+
+        <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+          <motion.section
+            variants={card}
+            className="rounded-[28px] border border-white/10 bg-white/5 p-7 shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
+          >
+            <h2 className="text-xl font-semibold text-white">Logo del menú</h2>
+            <p className="mt-1 text-sm text-slate-400">Formato obligatorio: PNG transparente o fondo sólido.</p>
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-[1fr_auto]">
+              <button
+                type="button"
+                onClick={() => logoInputRef.current?.click()}
+                className="flex h-32 items-center justify-center gap-3 rounded-2xl border border-dashed border-white/30 bg-white/5 text-sm font-semibold text-slate-200 transition hover:border-emerald-300/60 hover:text-white"
+              >
+                <Upload className="h-4 w-4" />
+                {logoPreview ? "Cambiar logo" : "Subir logo PNG"}
+              </button>
+              <div className="flex h-32 flex-col items-center justify-center rounded-2xl border border-white/10 bg-[#0a1220] px-6 text-center text-xs text-slate-300">
+                <ImageIcon className="mb-2 h-5 w-5 text-emerald-300" />
+                {logoName ? (
+                  <span className="text-white">{logoName}</span>
+                ) : (
+                  <span>Vista previa</span>
+                )}
+              </div>
+            </div>
+
+            {logoError && <p className="mt-3 text-sm text-red-300">{logoError}</p>}
+            {logoPreview && (
+              <div className="mt-5">
+                <img
+                  src={logoPreview}
+                  alt="Logo del menú"
+                  className="h-40 w-auto rounded-2xl border border-white/10 bg-white/90 p-3"
+                />
+              </div>
+            )}
+
+            <input ref={logoInputRef} type="file" accept="image/png" className="hidden" onChange={onLogoSelected} />
+          </motion.section>
+
+          <motion.section
+            variants={card}
+            className="rounded-[28px] border border-white/10 bg-white/5 p-7 shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
+          >
+            <h2 className="text-xl font-semibold text-white">Agregar categorías</h2>
+            <p className="mt-1 text-sm text-slate-400">Ej. Entradas, Platos fuertes, Bebidas, Postres.</p>
+
+            <div className="mt-5 flex flex-col gap-3">
+              <input
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="Nombre de la categoría"
+                className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
+              />
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={addCategory}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30"
+              >
+                <Plus className="h-4 w-4" />
+                Añadir categoría
+              </motion.button>
+            </div>
+
+            <div className="mt-6 space-y-3 text-sm text-slate-300">
+              <p className="rounded-2xl border border-white/10 bg-[#0d1424] px-4 py-3">
+                Recuerda: cada categoría puede tener varios platos con ingredientes y precios.
+              </p>
+            </div>
+          </motion.section>
+        </div>
+
+        <motion.section variants={card} className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-2xl font-semibold text-white">Categorías y platos</h2>
+            <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-300">
+              Completa cada plato antes de publicar
+            </span>
+          </div>
+
+          <div className="space-y-6">
+            <AnimatePresence>
+              {categories.map((category) => (
+                <motion.div
+                  key={category.id}
+                  variants={card}
+                  initial="hidden"
+                  animate="visible"
+                  exit={{ opacity: 0, y: 10 }}
+                  className="rounded-[26px] border border-white/10 bg-[#0b1426] p-6 shadow-[0_25px_60px_rgba(0,0,0,0.5)]"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <input
+                      value={category.nombre}
+                      onChange={(e) => updateCategoryName(category.id, e.target.value)}
+                      className="flex-1 min-w-[220px] rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-lg font-semibold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
+                      placeholder="Nombre de la categoría"
+                    />
+                    <div className="flex items-center gap-2">
+                      <motion.button
+                        type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => addDish(category.id)}
+                        className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-400/30"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Añadir plato
+                      </motion.button>
+                      <motion.button
+                        type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => removeCategory(category.id)}
+                        className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-red-400/15 px-4 py-3 text-sm font-semibold text-red-200 hover:bg-red-400/25"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Eliminar
+                      </motion.button>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 space-y-4">
+                    {category.platos.length === 0 && (
+                      <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-6 text-center text-sm text-slate-400">
+                        Esta categoría no tiene platos aún. Agrega el primero.
+                      </div>
+                    )}
+
+                    {category.platos.map((dish) => (
+                      <div
+                        key={dish.id}
+                        className="grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 md:grid-cols-[1.4fr_0.6fr_1fr_1.4fr_auto]"
+                      >
+                        <input
+                          value={dish.nombre}
+                          onChange={(e) => updateDish(category.id, dish.id, "nombre", e.target.value)}
+                          placeholder="Nombre del plato"
+                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
+                        />
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={dish.precio || ""}
+                          onChange={(e) => updateDish(category.id, dish.id, "precio", Number.parseFloat(e.target.value) || 0)}
+                          placeholder="Precio"
+                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
+                        />
+                        <input
+                          value={dish.tagline ?? ""}
+                          onChange={(e) => updateDish(category.id, dish.id, "tagline", e.target.value)}
+                          placeholder="Tagline (ej: BBQ Power!)"
+                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
+                        />
+                        <input
+                          value={dish.ingredientes}
+                          onChange={(e) => updateDish(category.id, dish.id, "ingredientes", e.target.value)}
+                          placeholder="Ingredientes"
+                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
+                        />
+                        <div className="md:col-span-5 flex flex-wrap items-center gap-3">
+                          <label className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-200">
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp"
+                              className="hidden"
+                              onChange={onDishPhotoSelected(category.id, dish.id)}
+                            />
+                            <span className="text-slate-300">Subir foto (PNG, JPG o WEBP)</span>
+                          </label>
+                          {uploadingDish[dish.id] && (
+                            <span className="text-xs text-emerald-300">Subiendo...</span>
+                          )}
+                          {dish.foto_url && (
+                            <img
+                              src={dish.foto_url}
+                              alt={dish.nombre || "Foto del plato"}
+                              className="h-16 w-16 rounded-xl border border-white/10 object-cover"
+                            />
+                          )}
+                        </div>
+                        <motion.button
+                          type="button"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => removeDish(category.id, dish.id)}
+                          className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-red-400/15 px-3 py-2 text-sm text-red-200 hover:bg-red-400/25"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </motion.button>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </motion.section>
+
+        <motion.section variants={card} className="rounded-[26px] border border-white/10 bg-white/5 p-6 text-white">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-semibold text-white">Guardar menú</h3>
+              <p className="text-sm text-slate-400">
+                Guarda los cambios para que se reflejen en tu menú.
+              </p>
+            </div>
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={saveMenu}
+              disabled={isSaving}
+              className="rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30 disabled:opacity-50"
+            >
+              {isSaving ? "Guardando..." : menuId ? "Guardar cambios" : "Guardar menú"}
+            </motion.button>
+          </div>
+          {saveError && <p className="mt-3 text-sm text-red-300">{saveError}</p>}
+          {saveSuccess && <p className="mt-3 text-sm text-emerald-300">{saveSuccess}</p>}
+        </motion.section>
+      </motion.div>
+    </div>
+  )
+}

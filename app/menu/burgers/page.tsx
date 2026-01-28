@@ -2,160 +2,94 @@
 // @ts-nocheck
 
 import { motion } from "framer-motion"
-import Image, { StaticImageData } from "next/image"
-import { useRouter } from "next/navigation"
-import { useMemo, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useMemo, useState } from "react"
+import { supabase } from "@/lib/supabaseClient"
+import RequireAuth from "@/components/guards/RequireAuth"
 
 export const dynamic = "force-dynamic"
 
 
-import fourMeatPlantain from "@/public/4-meat-burger-with-plantain-bun-removebg-preview.png"
-import fourMeatRegular from "@/public/4-meat-burger-with-regular-bun-removebg-preview.png"
-import burgerOnionPlantain from "@/public/crispy-bacon-burger-regular-bun-removebg-preview.png"
-import burgerOnionRegular from "@/public/crispy-bacon-burger-regular-bun-removebg-preview.png"
-import crispyBaconPlantain from "@/public/crispy-bacon-burger-regular-bun-removebg-preview.png"
-import crispyBaconRegular from "@/public/crispy-bacon-burger-regular-bun-removebg-preview.png"
-import tripleBbqBeef from "@/public/triple-bbq-ribs-burger-with-beef-removebg-preview.png"
-import tripleBbqPlantain from "@/public/triple-bbq-ribs-burger-with-plantain-bun-removebg-preview.png"
-
-const MotionImage = motion(Image)
 const MotionButton = motion.button
 
-const dietaryFilters = [
-    { id: "gluten-free", label: "Sin gluten", helper: "Bases sin harina o con patacon", icon: "????" },
-    { id: "veg-friendly", label: "Veg-friendly", helper: "Ingredientes plant-based o veggies", icon: "??" },
-    { id: "protein-plus", label: "Proteína extra", helper: "Perfectos para subir macros", icon: "??" },
-] as const
-type ProductVariant = {
-    type: string
-    location: string
-    price: string
-    image: StaticImageData
+type Dish = {
+    id: number | string
+    nombre: string
+    ingredientes: string
+    precio: number
+    foto_url?: string
 }
-type Product = {
-    id: string
-    name: string
-    tags: string[]
-    variants: ProductVariant[]
+
+type Category = {
+    id: number | string
+    nombre: string
+    platos: Dish[]
 }
 
 export default function BurgersPage() {
     const router = useRouter()
-
-    const products = useMemo<Product[]>(
-        () => [
-            {
-                id: "1",
-                name: "Triple BBQ Ribs",
-                tags: ["protein-plus", "gluten-free"],
-                variants: [
-                    { type: "100% Res", location: "Stop24", price: "$40.000", image: tripleBbqBeef },
-                    { type: "100% Res", location: "Patacon", price: "$41.000", image: tripleBbqPlantain },
-                ],
-            },
-            {
-                id: "2",
-                name: "4 Carnes",
-                tags: ["protein-plus", "gluten-free"],
-                variants: [
-                    { type: "", location: "Stop24", price: "$40.000", image: fourMeatRegular },
-                    { type: "", location: "Patacon", price: "$41.000", image: fourMeatPlantain },
-                ],
-            },
-            {
-                id: "3",
-                name: "Onion Rings",
-                tags: ["veg-friendly", "gluten-free"],
-                variants: [
-                    { type: "100% Res", location: "Stop 24", price: "$26.000", image: burgerOnionRegular },
-                    { type: "100% Res", location: "Patacon", price: "$27.000", image: burgerOnionPlantain },
-                ],
-            },
-            {
-                id: "4",
-                name: "Crispy Bacon",
-                tags: ["protein-plus"],
-                variants: [
-                    { type: "100% Res", location: "Stop24", price: "$28.000", image: crispyBaconRegular },
-                    { type: "100% Res", location: "Patacon", price: "$29.000", image: crispyBaconPlantain },
-                ],
-            },
-        ],
-        []
-    )
+    const searchParams = useSearchParams()
+    const categoryId = searchParams.get("category") ?? ""
+    const [categoryName, setCategoryName] = useState("Categoría")
+    const [dishes, setDishes] = useState<Dish[]>([])
+    const [menuLoading, setMenuLoading] = useState(true)
+    const [menuError, setMenuError] = useState("")
 
     const [searchQuery, setSearchQuery] = useState("")
-    const [activeDietaryFilters, setActiveDietaryFilters] = useState<string[]>([])
-    const [isFilterBarOpen, setIsFilterBarOpen] = useState(false)
 
-    const dietaryFilterLookup = useMemo(
-        () => Object.fromEntries(dietaryFilters.map((filter) => [filter.id, filter])),
-        []
-    )
-
-    const filteredProducts = useMemo(() => {
-        let result = products
-
-        if (activeDietaryFilters.length > 0) {
-            result = result.filter((product) =>
-                activeDietaryFilters.every((filterId) => product.tags.includes(filterId))
-            )
-        }
-
+    const filteredDishes = useMemo(() => {
         const trimmedQuery = searchQuery.trim().toLowerCase()
-        if (trimmedQuery.length > 0) {
-            result = result.filter((product) => {
-                if (product.name.toLowerCase().includes(trimmedQuery)) return true
+        if (!trimmedQuery) return dishes
+        return dishes.filter((dish) => {
+            if (dish.nombre.toLowerCase().includes(trimmedQuery)) return true
+            if (dish.ingredientes?.toLowerCase().includes(trimmedQuery)) return true
+            return false
+        })
+    }, [dishes, searchQuery])
 
-                if (product.tags.some((tag) => tag.toLowerCase().includes(trimmedQuery))) return true
+    const hasResults = filteredDishes.length > 0
 
-                if (
-                    product.variants.some(
-                        (variant) =>
-                            variant.type.toLowerCase().includes(trimmedQuery) ||
-                            variant.location.toLowerCase().includes(trimmedQuery),
-                    )
-                ) {
-                    return true
-                }
+    useEffect(() => {
+        const loadMenu = async () => {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session) {
+                setMenuLoading(false)
+                return
+            }
 
-                return false
-            })
+            const { data, error } = await supabase
+                .from("menus")
+                .select("categories")
+                .eq("user_id", session.user.id)
+                .maybeSingle()
+
+            if (error) {
+                setMenuError("No pudimos cargar tu menú.")
+                setMenuLoading(false)
+                return
+            }
+
+            const categories = (data?.categories ?? []) as Category[]
+            const selected = categories.find((cat) => String(cat.id) === String(categoryId))
+            if (selected) {
+                setCategoryName(selected.nombre)
+                setDishes(selected.platos ?? [])
+            } else if (categories[0]) {
+                setCategoryName(categories[0].nombre)
+                setDishes(categories[0].platos ?? [])
+            }
+
+            setMenuLoading(false)
         }
 
-        return result
-    }, [activeDietaryFilters, products, searchQuery])
+        loadMenu()
+    }, [categoryId])
 
-    const hasActiveFilters = activeDietaryFilters.length > 0
-    const hasResults = filteredProducts.length > 0
-
-    const activeFilterSummary = hasActiveFilters
-        ? activeDietaryFilters
-            .map((filterId) => dietaryFilterLookup[filterId]?.label ?? filterId)
-            .join(" + ")
-        : ""
-
-    const toggleDietaryFilter = (filterId: string) => {
-        setActiveDietaryFilters((prev) =>
-            prev.includes(filterId) ? prev.filter((id) => id !== filterId) : [...prev, filterId]
-        )
-    }
-
-    const clearDietaryFilters = () => {
-        setActiveDietaryFilters([])
-    }
-
-    const handleSearch = () => {
-        console.log("[v0] Search button clicked")
-    }
-
-    const handleFilter = () => {
-        setIsFilterBarOpen((prev) => !prev)
-    }
-
-    const handleShare = () => {
-        console.log("[v0] Share button clicked")
-    }
+    const handleSearch = () => {}
+    const handleFilter = () => {}
+    const handleShare = () => {}
 
     const styles = {
         container: {
@@ -347,6 +281,24 @@ export default function BurgersPage() {
             fontSize: "0.9rem",
             outline: "none",
         },
+        statusCard: {
+            margin: "0 1rem 0.75rem",
+            padding: "0.75rem 1rem",
+            borderRadius: "14px",
+            border: "1px dashed rgba(255, 255, 255, 0.2)",
+            background: "rgba(0, 0, 0, 0.55)",
+            color: "rgba(255, 255, 255, 0.7)",
+            textAlign: "center" as const,
+        },
+        statusError: {
+            margin: "0 1rem 0.75rem",
+            padding: "0.75rem 1rem",
+            borderRadius: "14px",
+            border: "1px solid rgba(248, 113, 113, 0.5)",
+            background: "rgba(248, 113, 113, 0.15)",
+            color: "rgba(254, 202, 202, 0.9)",
+            textAlign: "center" as const,
+        },
         productsGrid: {
             display: "grid",
             gridTemplateColumns: "repeat(2, 1fr)",
@@ -356,8 +308,8 @@ export default function BurgersPage() {
         },
         productCard: {
             backgroundColor: "rgba(20, 20, 20, 0.8)",
-            borderRadius: "12px",
-            padding: "clamp(0.75rem, 3vw, 1rem)",
+            borderRadius: "16px",
+            padding: "clamp(0.9rem, 3.5vw, 1.2rem)",
             display: "flex",
             flexDirection: "column" as const,
             alignItems: "center",
@@ -367,6 +319,13 @@ export default function BurgersPage() {
             cursor: "pointer",
             transition: "all 0.3s ease",
         },
+        productImageWrapper: {
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "0.35rem 0 0.1rem",
+        },
         productName: {
             color: "#fff",
             fontSize: "clamp(1rem, 4vw, 1.3rem)",
@@ -374,6 +333,13 @@ export default function BurgersPage() {
             fontStyle: "italic",
             textAlign: "center" as const,
             marginBottom: "0.25rem",
+        },
+        productIngredients: {
+            fontSize: "clamp(0.7rem, 2.6vw, 0.85rem)",
+            color: "rgba(255, 255, 255, 0.7)",
+            textAlign: "center" as const,
+            lineHeight: 1.4,
+            minHeight: "2.4em",
         },
         variantInfo: {
             display: "flex",
@@ -406,8 +372,22 @@ export default function BurgersPage() {
             maxWidth: "180px",
             height: "auto",
             aspectRatio: "1",
-            objectFit: "cover" as const,
-            borderRadius: "8px",
+            objectFit: "contain" as const,
+            borderRadius: "12px",
+            filter: "drop-shadow(0 18px 28px rgba(0, 0, 0, 0.45))",
+        },
+        productImagePlaceholder: {
+            width: "min(52vw, 180px)",
+            aspectRatio: "1",
+            borderRadius: "14px",
+            border: "1px dashed rgba(255, 255, 255, 0.2)",
+            background: "linear-gradient(140deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.35))",
+            display: "grid",
+            placeItems: "center",
+            color: "rgba(255, 255, 255, 0.5)",
+            fontSize: "0.75rem",
+            textTransform: "uppercase" as const,
+            letterSpacing: "0.08em",
         },
         price: {
             color: "#FFD700",
@@ -476,141 +456,53 @@ export default function BurgersPage() {
     }
 
     return (
-        <div style={styles.container}>
-            <div style={styles.overlay} />
+        <RequireAuth>
+            <div style={styles.container}>
+                <div style={styles.overlay} />
 
-            <div style={styles.content}>
-                <motion.header
-                    style={styles.header}
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    <motion.button
-                        style={styles.backButton}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => router.push("/menu")}
-                    >
-                        <div style={styles.backArrow} />
-                    </motion.button>
-
-                    <h1 style={styles.title}>LAS PROPIAS BURGERS</h1>
-                </motion.header>
-
-                {isFilterBarOpen && (
-                    <motion.div
-                        style={styles.filterModalOverlay}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.25 }}
-                        onClick={() => setIsFilterBarOpen(false)}
-                    >
-                        <motion.div
-                            style={styles.filterModalCard}
-                            initial={{ scale: 0.9, opacity: 0, y: 10 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            transition={{ duration: 0.25, ease: "easeOut" }}
-                            onClick={(event) => event.stopPropagation()}
-                        >
-                            <div style={styles.filterModalHeader}>
-                                <span style={styles.filterModalTitle}>Filtros</span>
-                                <button
-                                    type="button"
-                                    style={styles.filterModalClose}
-                                    onClick={() => setIsFilterBarOpen(false)}
-                                >
-                                    Cerrar
-                                </button>
-                            </div>
-
-                            <div style={styles.filterBar}>
-                                {dietaryFilters.map((filter) => {
-                                    const isActive = activeDietaryFilters.includes(filter.id)
-                                    return (
-                                        <MotionButton
-                                            key={filter.id}
-                                            type="button"
-                                            style={{
-                                                ...styles.filterChip,
-                                                ...(isActive ? styles.filterChipActive : {}),
-                                            }}
-                                            onClick={() => toggleDietaryFilter(filter.id)}
-                                            whileHover={{ scale: 1.05 }}
-                                            whileTap={{ scale: 0.95 }}
-                                        >
-                                            <span style={styles.filterChipIcon}>{filter.icon}</span>
-                                            <span style={styles.filterChipCopy}>
-                                                <span style={styles.filterChipLabel}>
-                                                    {filter.label}
-                                                </span>
-                                                <span style={styles.filterChipHelper}>
-                                                    {filter.helper}
-                                                </span>
-                                            </span>
-                                        </MotionButton>
-                                    )
-                                })}
-                                {hasActiveFilters && (
-                                    <MotionButton
-                                        key="clear-filters"
-                                        type="button"
-                                        style={styles.filterReset}
-                                        onClick={clearDietaryFilters}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.94 }}
-                                    >
-                                        Limpiar
-                                    </MotionButton>
-                                )}
-                            </div>
-
-                            <div style={styles.filterModalActions}>
-                                <button
-                                    type="button"
-                                    style={styles.filterModalApply}
-                                    onClick={() => setIsFilterBarOpen(false)}
-                                >
-                                    Listo
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-
-                {hasActiveFilters && (
-                    <motion.span
-                        style={styles.filterSummary}
-                        initial={{ opacity: 0, y: -6 }}
+                <div style={styles.content}>
+                    <motion.header
+                        style={styles.header}
+                        initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.5 }}
                     >
-                        Filtrando: {activeFilterSummary}
-                    </motion.span>
-                )}
+                        <motion.button
+                            style={styles.backButton}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => router.push("/menu")}
+                        >
+                            <div style={styles.backArrow} />
+                        </motion.button>
 
-                <div style={styles.searchBar}>
-                    <input
-                        type="text"
-                        placeholder="Buscar burger o local..."
-                        value={searchQuery}
-                        onChange={(event) => setSearchQuery(event.target.value)}
-                        style={styles.searchInput}
-                    />
-                </div>
+                        <h1 style={styles.title}>{categoryName.toUpperCase()}</h1>
+                    </motion.header>
 
-                <div style={styles.productsGrid}>
-                    {hasResults ? (
-                        filteredProducts.map((product, productIndex) =>
-                            product.variants.map((variant, variantIndex) => (
+                    {menuLoading && <div style={styles.statusCard}>Cargando platos...</div>}
+                    {menuError && <div style={styles.statusError}>{menuError}</div>}
+
+                    <div style={styles.searchBar}>
+                        <input
+                            type="text"
+                            placeholder="Buscar plato o ingrediente..."
+                            value={searchQuery}
+                            onChange={(event) => setSearchQuery(event.target.value)}
+                            style={styles.searchInput}
+                        />
+                    </div>
+
+                    <div style={styles.productsGrid}>
+                        {hasResults ? (
+                            filteredDishes.map((dish, index) => (
                                 <motion.div
-                                    key={`${product.id}-${variantIndex}`}
+                                    key={dish.id}
                                     style={styles.productCard}
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{
                                         duration: 0.4,
-                                        delay: (productIndex * 2 + variantIndex) * 0.1,
+                                        delay: index * 0.08,
                                     }}
                                     whileHover={{
                                         scale: 1.05,
@@ -618,94 +510,85 @@ export default function BurgersPage() {
                                         borderColor: "rgba(255, 215, 0, 0.5)",
                                     }}
                                     whileTap={{ scale: 0.98 }}
-                                    onClick={() => router.push(`/menu/burgers/${product.id}`)}
+                                    onClick={() =>
+                                        router.push(`/menu/burgers/${dish.id}?category=${encodeURIComponent(categoryId)}`)
+                                    }
                                 >
-                                    <div style={styles.productTags}>
-                                        {product.tags.map((tag) => (
-                                            <span key={tag} style={styles.tagPill}>
-                                                <span>{dietaryFilterLookup[tag]?.icon ?? "?"}</span>
-                                                <span>{dietaryFilterLookup[tag]?.label ?? tag}</span>
-                                            </span>
-                                        ))}
+                                    <h3 style={styles.productName}>{dish.nombre}</h3>
+                                    <p style={styles.productIngredients}>{dish.ingredientes}</p>
+                                    <div style={styles.productImageWrapper}>
+                                        {dish.foto_url ? (
+                                            <img
+                                                src={dish.foto_url}
+                                                alt={dish.nombre || "Foto del plato"}
+                                                style={styles.productImage}
+                                            />
+                                        ) : (
+                                            <div style={styles.productImagePlaceholder}>Sin foto</div>
+                                        )}
                                     </div>
-
-                                    <h3 style={styles.productName}>{product.name}</h3>
-
-                                    <div style={styles.variantInfo}>
-                                        {variant.type && <span>{variant.type}</span>}
-                                        <span>{variant.location}</span>
-                                    </div>
-
-                                    <MotionImage
-                                        src={variant.image}
-                                        alt={`${product.name} - ${variant.location}`}
-                                        style={styles.productImage}
-                                        whileHover={{ scale: 1.1, rotate: 2 }}
-                                        transition={{ duration: 0.3 }}
-                                    />
-
-                                    <p style={styles.price}>{variant.price}</p>
+                                    <p style={styles.price}>${dish.precio.toFixed(2)}</p>
                                 </motion.div>
-                            )),
-                        )
-                    ) : (
-                        <div style={styles.emptyState}>
-                            <p style={styles.emptyTitle}>Sin coincidencias</p>
-                            <p style={styles.emptySubtitle}>Ajusta los filtros para ver más opciones.</p>
-                        </div>
-                    )}
+                            ))
+                        ) : (
+                            <div style={styles.emptyState}>
+                                <p style={styles.emptyTitle}>Sin coincidencias</p>
+                                <p style={styles.emptySubtitle}>Agrega platos o ajusta la búsqueda.</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
+
+                <motion.footer
+                    style={styles.footer}
+                    initial={{ y: 100 }}
+                    animate={{ y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                >
+                    <motion.button
+                        style={styles.actionButton}
+                        whileHover={{
+                            scale: 1.05,
+                            backgroundColor: "rgba(0, 0, 0, 0.3)",
+                            borderColor: "rgba(0, 0, 0, 0.5)",
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleSearch}
+                    >
+                        <div style={styles.buttonIcon}>🔍</div>
+                        <span style={styles.buttonText}>Buscar</span>
+                    </motion.button>
+
+                    <motion.button
+                        style={styles.actionButton}
+                        whileHover={{
+                            scale: 1.05,
+                            backgroundColor: "rgba(0, 0, 0, 0.3)",
+                            borderColor: "rgba(0, 0, 0, 0.5)",
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleFilter}
+                    >
+                        <div style={styles.buttonIcon}>🎚️</div>
+                        <span style={styles.buttonText}>Filtrar</span>
+                    </motion.button>
+
+                    <motion.button
+                        style={styles.actionButton}
+                        whileHover={{
+                            scale: 1.05,
+                            backgroundColor: "rgba(0, 0, 0, 0.3)",
+                            borderColor: "rgba(0, 0, 0, 0.5)",
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleShare}
+                    >
+                        <div style={styles.buttonIcon}>📤</div>
+                        <span style={styles.buttonText}>Compartir</span>
+                    </motion.button>
+                </motion.footer>
             </div>
-
-            <motion.footer
-                style={styles.footer}
-                initial={{ y: 100 }}
-                animate={{ y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-            >
-                <motion.button
-                    style={styles.actionButton}
-                    whileHover={{
-                        scale: 1.05,
-                        backgroundColor: "rgba(0, 0, 0, 0.3)",
-                        borderColor: "rgba(0, 0, 0, 0.5)",
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleSearch}
-                >
-                    <div style={styles.buttonIcon}>🔍</div>
-                    <span style={styles.buttonText}>Buscar</span>
-                </motion.button>
-
-                <motion.button
-                    style={styles.actionButton}
-                    whileHover={{
-                        scale: 1.05,
-                        backgroundColor: "rgba(0, 0, 0, 0.3)",
-                        borderColor: "rgba(0, 0, 0, 0.5)",
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleFilter}
-                >
-                    <div style={styles.buttonIcon}>🎚️</div>
-                    <span style={styles.buttonText}>Filtrar</span>
-                </motion.button>
-
-                <motion.button
-                    style={styles.actionButton}
-                    whileHover={{
-                        scale: 1.05,
-                        backgroundColor: "rgba(0, 0, 0, 0.3)",
-                        borderColor: "rgba(0, 0, 0, 0.5)",
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleShare}
-                >
-                    <div style={styles.buttonIcon}>📤</div>
-                    <span style={styles.buttonText}>Compartir</span>
-                </motion.button>
-            </motion.footer>
-        </div>
+        </RequireAuth>
     )
 }
 

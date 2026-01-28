@@ -23,7 +23,10 @@ export default function MobileNav() {
   }
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+10px)]">
+    <div
+      id="dashboard-mobile-nav"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+10px)]"
+    >
       <div className="rounded-[28px] border border-white/10 bg-black/70 backdrop-blur-2xl shadow-[0_-20px_60px_rgba(0,0,0,0.6)]">
         <nav className="flex items-center justify-between px-4 py-3">
           {items.map((item, index) => {

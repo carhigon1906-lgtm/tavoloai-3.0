@@ -17,7 +17,7 @@ function StatsCard({ title, value, trend }: StatsCardProps) {
     <motion.div
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
-      className="relative w-full min-w-[260px] max-w-sm snap-start overflow-hidden rounded-[28px] border border-white/10 bg-white/10 p-7 shadow-[0_18px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl group sm:min-w-0 sm:p-6"
+      className="relative w-full min-w-[260px] max-w-sm snap-center overflow-hidden rounded-[28px] border border-white/10 bg-white/10 p-7 shadow-[0_18px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl group transition-transform duration-300 sm:min-w-0 sm:p-6"
     >
       <div className="space-y-6">
         <div className="flex items-center justify-between">

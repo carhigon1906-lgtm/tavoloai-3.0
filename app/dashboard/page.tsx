@@ -114,7 +114,8 @@ export default function DashboardPage() {
     const scrollToIndex = (nextIndex: number) => {
       if (cards.length === 0) return
       const next = cards[nextIndex]
-      next.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" })
+      const targetLeft = next.offsetLeft - (container.clientWidth - next.clientWidth) / 2
+      container.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" })
     }
 
     const tick = () => {
@@ -129,6 +130,7 @@ export default function DashboardPage() {
     const resizeHandler = () => {
       collectCards()
       index = 0
+      scrollToIndex(0)
     }
     window.addEventListener("resize", resizeHandler)
 
@@ -152,7 +154,12 @@ export default function DashboardPage() {
     let rafId = 0
 
     const updateActive = () => {
-      const viewportCenter = window.innerHeight * 0.42
+      const header = document.querySelector("header")
+      const bottomNav = document.getElementById("dashboard-mobile-nav")
+      const headerHeight = header ? (header as HTMLElement).offsetHeight : 0
+      const bottomNavHeight = bottomNav ? (bottomNav as HTMLElement).offsetHeight : 0
+      const availableHeight = window.innerHeight - headerHeight - bottomNavHeight
+      const viewportCenter = headerHeight + availableHeight / 2
       let best: { key: string; distance: number } | null = null
 
       cards.forEach((card) => {
@@ -214,7 +221,7 @@ export default function DashboardPage() {
 
         <motion.section
           variants={item}
-          className="flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible xl:grid-cols-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory scroll-smooth gap-6 overflow-x-auto pb-4 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible xl:grid-cols-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           ref={statsScrollRef}
         >
           {stats.map(({ title, value, trend }) => (
