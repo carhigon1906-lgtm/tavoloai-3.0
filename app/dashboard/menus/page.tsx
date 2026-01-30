@@ -247,7 +247,7 @@ export default function MenusPage() {
 
   const publicUrlFor = (m: Menu) => {
     const origin = typeof window !== "undefined" ? window.location.origin : "https://example.com"
-    return `${origin}/menu/${m.slug}`
+    return `${origin}/menu?menu=${encodeURIComponent(String(m.id))}`
   }
 
   const selectableItems = useMemo(() => items, [items])

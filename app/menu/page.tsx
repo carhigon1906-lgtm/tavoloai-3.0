@@ -7,8 +7,7 @@ import { useEffect, useMemo, useState } from "react"
 import type { StaticImageData } from "next/image"
 import Image from "next/image"
 import { supabase } from "@/lib/supabaseClient"
-import RequireAuth from "@/components/guards/RequireAuth"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import tavoloLogo from "@/public/logo.png"
 import logoBlanco from "@/public/logoblanco.png"
@@ -67,13 +66,16 @@ const iconForCategory = (name: string) => {
 
 export default function HomePage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const menuIdParam = searchParams.get("menu") ?? ""
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
     const [activeImageIndex, setActiveImageIndex] = useState(0)
     const prefersReducedMotion = useReducedMotion()
     const [isMobileViewport, setIsMobileViewport] = useState(false)
     const [showIntro, setShowIntro] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
-    const [menuData, setMenuData] = useState<{ logo_url?: string; categories: Category[] }>({
+    const [menuData, setMenuData] = useState<{ id?: string; logo_url?: string; categories: Category[] }>({
+        id: "",
         logo_url: "",
         categories: [],
     })
@@ -82,7 +84,8 @@ export default function HomePage() {
 
     const handleCategoryClick = (categoryId: string) => {
         setSelectedCategory(categoryId)
-        router.push(`/menu/burgers?category=${encodeURIComponent(categoryId)}`)
+        const menuQuery = menuData.id ? `&menu=${encodeURIComponent(menuData.id)}` : ""
+        router.push(`/menu/burgers?category=${encodeURIComponent(categoryId)}${menuQuery}`)
     }
 
     useEffect(() => {
@@ -112,16 +115,14 @@ export default function HomePage() {
             const {
                 data: { session },
             } = await supabase.auth.getSession()
-            if (!session) {
-                setMenuLoading(false)
-                return
-            }
 
-            const { data, error } = await supabase
-                .from("menus")
-                .select("logo_url, categories")
-                .eq("user_id", session.user.id)
-                .maybeSingle()
+            const baseQuery = supabase.from("menus").select("id, logo_url, categories")
+            const query = menuIdParam
+                ? baseQuery.eq("id", menuIdParam).maybeSingle()
+                : session?.user?.id
+                ? baseQuery.eq("user_id", session.user.id).maybeSingle()
+                : baseQuery.limit(1).maybeSingle()
+            const { data, error } = await query
 
             if (error) {
                 setMenuError("No pudimos cargar tu menú.")
@@ -129,14 +130,18 @@ export default function HomePage() {
                 return
             }
 
-            if (data && Array.isArray(data.categories)) {
-                setMenuData({ logo_url: data.logo_url || "", categories: data.categories })
+            if (data) {
+                setMenuData({
+                    id: data.id ? String(data.id) : "",
+                    logo_url: data.logo_url || "",
+                    categories: Array.isArray(data.categories) ? data.categories : [],
+                })
             }
             setMenuLoading(false)
         }
 
         loadMenu()
-    }, [])
+    }, [menuIdParam])
 
     useEffect(() => {
         const updateViewportFlag = () => {
@@ -196,8 +201,7 @@ export default function HomePage() {
     }, [prefersReducedMotion])
 
     return (
-        <RequireAuth>
-            <>
+        <>
             <AnimatePresence>
                 {showIntro && (
                     <motion.div
@@ -498,8 +502,7 @@ export default function HomePage() {
                     </div>
                 </motion.footer>
             </div>
-            </>
-        </RequireAuth>
+        </>
     )
 }
 
@@ -628,8 +631,8 @@ const styles: { [key: string]: React.CSSProperties } = {
         textTransform: 'uppercase',
     },
     carouselWrapper: {
-        width: 'min(70vw, 360px)',
-        height: 'min(70vw, 360px)',
+        width: 'min(62vw, 320px)',
+        height: 'min(62vw, 320px)',
         position: 'relative',
         transformOrigin: 'center',
     },
@@ -855,8 +858,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     },
     footer: {
         backgroundColor: '#FFD700',
-        padding: '1rem 1.5rem',
-        boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.3)',
+        padding: '0.6rem 1.2rem',
+        boxShadow: '0 -3px 16px rgba(0, 0, 0, 0.25)',
     },
     footerContent: {
         display: 'flex',
@@ -864,7 +867,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         alignItems: 'center',
         maxWidth: '800px',
         margin: '0 auto',
-        gap: '1.5rem',
+        gap: '1rem',
     },
     orderInfo: {
         display: 'flex',
@@ -872,14 +875,14 @@ const styles: { [key: string]: React.CSSProperties } = {
         maxWidth: '240px',
     },
     orderText: {
-        fontSize: 'clamp(1rem, 3vw, 1.3rem)',
+        fontSize: 'clamp(0.9rem, 2.6vw, 1.1rem)',
         fontWeight: 'bold',
         color: '#000',
         textTransform: 'uppercase',
         letterSpacing: '0.15rem',
     },
     orderSubtext: {
-        fontSize: 'clamp(0.75rem, 2.5vw, 0.95rem)',
+        fontSize: 'clamp(0.7rem, 2.2vw, 0.85rem)',
         color: '#111',
         fontWeight: 600,
         letterSpacing: '0.05rem',
@@ -888,12 +891,12 @@ const styles: { [key: string]: React.CSSProperties } = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '3.25rem',
-        height: '3.25rem',
+        width: '2.6rem',
+        height: '2.6rem',
         borderRadius: '9999px',
         backgroundColor: '#000',
         color: '#FFD700',
-        boxShadow: '0 10px 24px rgba(0, 0, 0, 0.25)',
+        boxShadow: '0 8px 18px rgba(0, 0, 0, 0.2)',
         cursor: 'pointer',
     },
     priceInfo: {
@@ -903,7 +906,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         maxWidth: '240px',
     },
     priceAmount: {
-        fontSize: 'clamp(1.1rem, 3vw, 1.4rem)',
+        fontSize: 'clamp(0.95rem, 2.6vw, 1.2rem)',
         fontWeight: 'bold',
         color: '#000',
         textAlign: 'right',
@@ -911,7 +914,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         letterSpacing: '0.1rem',
     },
     priceText: {
-        fontSize: 'clamp(0.75rem, 2.2vw, 0.95rem)',
+        fontSize: 'clamp(0.7rem, 2vw, 0.85rem)',
         color: '#000',
         fontWeight: 600,
         textAlign: 'right',

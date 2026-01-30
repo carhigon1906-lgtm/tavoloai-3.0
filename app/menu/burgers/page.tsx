@@ -5,7 +5,6 @@ import { motion } from "framer-motion"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
-import RequireAuth from "@/components/guards/RequireAuth"
 
 export const dynamic = "force-dynamic"
 
@@ -30,6 +29,7 @@ export default function BurgersPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const categoryId = searchParams.get("category") ?? ""
+    const menuIdParam = searchParams.get("menu") ?? ""
     const [categoryName, setCategoryName] = useState("Categoría")
     const [dishes, setDishes] = useState<Dish[]>([])
     const [menuLoading, setMenuLoading] = useState(true)
@@ -51,19 +51,18 @@ export default function BurgersPage() {
 
     useEffect(() => {
         const loadMenu = async () => {
+            setMenuLoading(true)
             const {
                 data: { session },
             } = await supabase.auth.getSession()
-            if (!session) {
-                setMenuLoading(false)
-                return
-            }
 
-            const { data, error } = await supabase
-                .from("menus")
-                .select("categories")
-                .eq("user_id", session.user.id)
-                .maybeSingle()
+            const baseQuery = supabase.from("menus").select("categories")
+            const query = menuIdParam
+                ? baseQuery.eq("id", menuIdParam).maybeSingle()
+                : session?.user?.id
+                ? baseQuery.eq("user_id", session.user.id).maybeSingle()
+                : baseQuery.limit(1).maybeSingle()
+            const { data, error } = await query
 
             if (error) {
                 setMenuError("No pudimos cargar tu menú.")
@@ -85,7 +84,7 @@ export default function BurgersPage() {
         }
 
         loadMenu()
-    }, [categoryId])
+    }, [categoryId, menuIdParam])
 
     const handleSearch = () => {}
     const handleFilter = () => {}
@@ -414,6 +413,46 @@ export default function BurgersPage() {
             fontSize: "0.85rem",
             color: "rgba(255, 255, 255, 0.75)",
         },
+        loadingWrap: {
+            position: "fixed" as const,
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            zIndex: 200,
+            display: "block",
+            backgroundColor: "rgba(0, 0, 0, 0.35)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
+        },
+        loadingRing: {
+            width: "36px",
+            height: "36px",
+            borderRadius: "9999px",
+            background:
+                "conic-gradient(from 90deg, rgba(255,255,255,0.15), rgba(255,255,255,0.95), rgba(255,255,255,0.15))",
+            WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0)",
+            mask: "radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0)",
+            animation: "spin 0.85s linear infinite",
+            boxShadow: "0 0 14px rgba(255, 255, 255, 0.25)",
+        },
+        loadingLabel: {
+            marginTop: "0.7rem",
+            fontSize: "0.75rem",
+            color: "rgba(255, 255, 255, 0.8)",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase" as const,
+        },
+        loadingCard: {
+            position: "absolute" as const,
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            display: "flex",
+            flexDirection: "column" as const,
+            alignItems: "center",
+            justifyContent: "center",
+        },
         footer: {
             position: "fixed" as const,
             bottom: 0,
@@ -456,9 +495,9 @@ export default function BurgersPage() {
     }
 
     return (
-        <RequireAuth>
-            <div style={styles.container}>
-                <div style={styles.overlay} />
+        <div style={styles.container}>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <div style={styles.overlay} />
 
                 <div style={styles.content}>
                     <motion.header
@@ -471,10 +510,12 @@ export default function BurgersPage() {
                             style={styles.backButton}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => router.push("/menu")}
+                            onClick={() =>
+                                router.push(menuIdParam ? `/menu?menu=${encodeURIComponent(menuIdParam)}` : "/menu")
+                            }
                         >
-                            <div style={styles.backArrow} />
-                        </motion.button>
+                        <div style={styles.backArrow} />
+                    </motion.button>
 
                         <h1 style={styles.title}>{categoryName.toUpperCase()}</h1>
                     </motion.header>
@@ -511,7 +552,11 @@ export default function BurgersPage() {
                                     }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() =>
-                                        router.push(`/menu/burgers/${dish.id}?category=${encodeURIComponent(categoryId)}`)
+                                        router.push(
+                                            `/menu/burgers/${dish.id}?category=${encodeURIComponent(categoryId)}${
+                                                menuIdParam ? `&menu=${encodeURIComponent(menuIdParam)}` : ""
+                                            }`,
+                                        )
                                     }
                                 >
                                     <h3 style={styles.productName}>{dish.nombre}</h3>
@@ -587,8 +632,15 @@ export default function BurgersPage() {
                         <span style={styles.buttonText}>Compartir</span>
                     </motion.button>
                 </motion.footer>
-            </div>
-        </RequireAuth>
+                {menuLoading && (
+                    <div style={styles.loadingWrap}>
+                        <div style={styles.loadingCard}>
+                            <div style={styles.loadingRing} />
+                            <div style={styles.loadingLabel}>Cargando platos</div>
+                        </div>
+                    </div>
+                )}
+        </div>
     )
 }
 

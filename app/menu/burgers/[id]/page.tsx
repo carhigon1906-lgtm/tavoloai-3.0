@@ -5,7 +5,6 @@ import { motion } from "framer-motion"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
-import RequireAuth from "@/components/guards/RequireAuth"
 
 type Dish = {
   id: number | string
@@ -365,6 +364,7 @@ export default function DishDetailPage() {
   const searchParams = useSearchParams()
   const dishId = params?.id
   const categoryId = searchParams.get("category") ?? ""
+  const menuIdParam = searchParams.get("menu") ?? ""
 
   const [dish, setDish] = useState<Dish | null>(null)
   const [menuLoading, setMenuLoading] = useState(true)
@@ -378,16 +378,14 @@ export default function DishDetailPage() {
       const {
         data: { session },
       } = await supabase.auth.getSession()
-      if (!session) {
-        setMenuLoading(false)
-        return
-      }
 
-      const { data, error } = await supabase
-        .from("menus")
-        .select("categories")
-        .eq("user_id", session.user.id)
-        .maybeSingle()
+      const baseQuery = supabase.from("menus").select("categories")
+      const query = menuIdParam
+        ? baseQuery.eq("id", menuIdParam).maybeSingle()
+        : session?.user?.id
+        ? baseQuery.eq("user_id", session.user.id).maybeSingle()
+        : baseQuery.limit(1).maybeSingle()
+      const { data, error } = await query
 
       if (error) {
         setMenuError("No pudimos cargar el plato.")
@@ -409,7 +407,7 @@ export default function DishDetailPage() {
     }
 
     loadDish()
-  }, [dishId])
+  }, [dishId, menuIdParam])
 
   useEffect(() => {
     const evaluateViewport = () => {
@@ -464,9 +462,8 @@ export default function DishDetailPage() {
   }
 
   return (
-    <RequireAuth>
-      <div style={styles.container}>
-        <div style={styles.overlay} />
+    <div style={styles.container}>
+      <div style={styles.overlay} />
 
         <div style={styles.content}>
           <motion.header
@@ -480,7 +477,15 @@ export default function DishDetailPage() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={() =>
-                router.push(categoryId ? `/menu/burgers?category=${encodeURIComponent(categoryId)}` : "/menu/burgers")
+                router.push(
+                  categoryId
+                    ? `/menu/burgers?category=${encodeURIComponent(categoryId)}${
+                        menuIdParam ? `&menu=${encodeURIComponent(menuIdParam)}` : ""
+                      }`
+                    : menuIdParam
+                    ? `/menu/burgers?menu=${encodeURIComponent(menuIdParam)}`
+                    : "/menu/burgers",
+                )
               }
             >
               <div style={styles.backArrow} />
@@ -668,7 +673,6 @@ export default function DishDetailPage() {
             <span style={styles.shareIcon}>📤</span>
           </motion.button>
         </motion.footer>
-      </div>
-    </RequireAuth>
+    </div>
   )
 }
