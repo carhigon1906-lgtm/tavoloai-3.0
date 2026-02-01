@@ -282,16 +282,28 @@ export default function NewMenuPage() {
       let finalLogoUrl = logoUrl
       if (logoFile) {
         const filePath = `${session.user.id}/logo-${Date.now()}.png`
-        const { error: uploadError } = await supabase.storage
-          .from("menu-assets")
-          .upload(filePath, logoFile, { contentType: "image/png", upsert: true })
-        if (uploadError) {
+        const formData = new FormData()
+        formData.append("file", logoFile)
+        formData.append("path", filePath)
+        formData.append("bucket", "menu-assets")
+
+        const response = await fetch("/api/menu/upload-logo", {
+          method: "POST",
+          body: formData,
+        })
+
+        if (!response.ok) {
           setSaveError("No se pudo subir el logo. Revisa el bucket en Supabase.")
           return
         }
 
-        const { data } = supabase.storage.from("menu-assets").getPublicUrl(filePath)
-        finalLogoUrl = data.publicUrl
+        const result = await response.json()
+        if (!result?.publicUrl) {
+          setSaveError("No se pudo obtener la URL del logo.")
+          return
+        }
+
+        finalLogoUrl = result.publicUrl
         setLogoUrl(finalLogoUrl)
         setLogoPreview(finalLogoUrl)
         setLogoFile(null)
