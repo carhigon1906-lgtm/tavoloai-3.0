@@ -6,6 +6,7 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowLeft, Plus, Trash2, Upload, Image as ImageIcon, UtensilsCrossed } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
+import { useSearchParams } from "next/navigation"
 
 type Dish = {
   id: number
@@ -33,23 +34,9 @@ const card = {
   visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 280, damping: 26 } },
 }
 
-const initialCategories: Category[] = [
-  {
-    id: 1,
-    nombre: "Entradas",
-    platos: [
-      {
-        id: 11,
-        nombre: "Bruschetta",
-        ingredientes: "Tomate, ajo, albahaca, aceite de oliva",
-        precio: 6.5,
-        activo: true,
-      },
-    ],
-  },
-]
-
-export default function NewMenuPage() {
+export default function EditMenuPage() {
+  const searchParams = useSearchParams()
+  const menuIdParam = searchParams.get("menu") ?? ""
   const [menuId, setMenuId] = useState<string | null>(null)
   const [logoPreview, setLogoPreview] = useState<string>("")
   const [logoUrl, setLogoUrl] = useState<string>("")
@@ -59,7 +46,11 @@ export default function NewMenuPage() {
   const [saveError, setSaveError] = useState<string>("")
   const [saveSuccess, setSaveSuccess] = useState<string>("")
   const [isSaving, setIsSaving] = useState<boolean>(false)
-  const [isReadOnly, setIsReadOnly] = useState(false)
+  const [hasExistingMenu, setHasExistingMenu] = useState(false)
+  const [menuLoading, setMenuLoading] = useState(true)
+  const [menuError, setMenuError] = useState("")
+  const [menuName, setMenuName] = useState<string>("")
+  const [menuSlug, setMenuSlug] = useState<string>("")
   const [uploadingDish, setUploadingDish] = useState<Record<number, boolean>>({})
   const [confirmDishDelete, setConfirmDishDelete] = useState<{
     categoryId: number
@@ -70,23 +61,69 @@ export default function NewMenuPage() {
     categoryId: number
     categoryName: string
   } | null>(null)
-  const [categories, setCategories] = useState<Category[]>(initialCategories)
+  const [categories, setCategories] = useState<Category[]>([])
   const [newCategoryName, setNewCategoryName] = useState<string>("")
-  const [menuName, setMenuName] = useState<string>("")
-  const [menuSlug, setMenuSlug] = useState<string>("")
   const logoInputRef = useRef<HTMLInputElement | null>(null)
 
-  const slugify = (s: string) =>
-    s
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/\p{Diacritic}/gu, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)+/g, "")
-
   useEffect(() => {
-    setMenuSlug((prev) => (prev ? prev : slugify(menuName)))
-  }, [menuName])
+    const loadMenu = async () => {
+      setMenuLoading(true)
+      setMenuError("")
+
+      if (!menuIdParam) {
+        setMenuError("Selecciona un menu desde Mis menus.")
+        setMenuLoading(false)
+        return
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) {
+        setMenuError("Debes iniciar sesion para editar.")
+        setMenuLoading(false)
+        return
+      }
+
+      const { data, error } = await supabase
+        .from("menus")
+        .select("id, logo_url, categories, nombre, slug")
+        .eq("id", menuIdParam)
+        .eq("user_id", session.user.id)
+        .maybeSingle()
+
+      if (error) {
+        setMenuError("No pudimos cargar tu menu.")
+        setMenuLoading(false)
+        return
+      }
+      if (data) {
+        setMenuId(String(data.id))
+        setHasExistingMenu(true)
+        if (data.nombre) setMenuName(String(data.nombre))
+        if (data.slug) setMenuSlug(String(data.slug))
+        if (data.logo_url) {
+          setLogoUrl(String(data.logo_url))
+          setLogoPreview(String(data.logo_url))
+        }
+        if (Array.isArray(data.categories)) {
+          const normalized = data.categories.map((cat) => ({
+            ...cat,
+            platos: Array.isArray(cat.platos)
+              ? cat.platos.map((dish) => ({ ...dish, activo: dish.activo ?? true }))
+              : [],
+          }))
+          setCategories(normalized)
+        }
+      } else {
+        setMenuError("No encontramos este menu.")
+      }
+
+      setMenuLoading(false)
+    }
+
+    loadMenu()
+  }, [menuIdParam])
 
   const totalDishes = useMemo(
     () => categories.reduce((acc, category) => acc + category.platos.length, 0),
@@ -200,23 +237,6 @@ export default function NewMenuPage() {
     )
   }
 
-  const resetForm = () => {
-    setMenuId(null)
-    setMenuName("")
-    setMenuSlug("")
-    setLogoPreview("")
-    setLogoUrl("")
-    setLogoName("")
-    setLogoFile(null)
-    setLogoError("")
-    setSaveError("")
-    setSaveSuccess("")
-    setUploadingDish({})
-    setCategories(initialCategories)
-    setNewCategoryName("")
-    setIsReadOnly(false)
-  }
-
   const onDishPhotoSelected = (categoryId: number, dishId: number) => async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -278,7 +298,10 @@ export default function NewMenuPage() {
   }
 
   const saveMenu = async () => {
-    if (isReadOnly) return
+    if (!hasExistingMenu) {
+      setSaveError("No hay un menu para editar.")
+      return
+    }
     if (!menuName.trim()) {
       setSaveError("El nombre del menu es obligatorio.")
       return
@@ -328,30 +351,28 @@ export default function NewMenuPage() {
 
       const payload = {
         user_id: session.user.id,
-        nombre: menuName.trim(),
-        slug: menuSlug || slugify(menuName),
+        nombre: menuName.trim() || "Menu sin nombre",
+        slug: menuSlug || undefined,
         logo_url: finalLogoUrl,
         categories,
-        activo: true,
         updated_at: new Date().toISOString(),
       }
 
-      const { data, error } = await supabase.from("menus").insert(payload).select("id").single()
+      const { data, error } = await supabase.from("menus").update(payload).eq("id", menuIdParam).select("id").single()
 
       if (error) {
-        setSaveError(error.message || "No se pudo guardar el menú. Intenta nuevamente.")
+        setSaveError("No se pudo guardar el menú. Intenta nuevamente.")
         return
       }
 
       setMenuId(String(data.id))
-      setSaveSuccess("Menu guardado correctamente.")
-      setIsReadOnly(true)
+      setSaveSuccess("Menú guardado correctamente.")
     } finally {
       setIsSaving(false)
     }
   }
 
-  const creationLocked = isReadOnly
+  const editLocked = !hasExistingMenu && !menuLoading
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#04060f] via-[#081326] to-[#05070c] text-white">
@@ -373,9 +394,9 @@ export default function NewMenuPage() {
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Creación de menú</h1>
+              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Edición de menú</h1>
               <p className="mt-1 text-sm text-slate-300 sm:text-base">
-                Sube tu logo en PNG, crea categorías y agrega cada plato con nombre, ingredientes y precio.
+                Edita categorías, platos y precios del menú activo.
               </p>
             </div>
           </div>
@@ -388,15 +409,6 @@ export default function NewMenuPage() {
               <span className="absolute inset-0 -z-10 rounded-2xl bg-[radial-gradient(circle_at_20%_20%,rgba(34,211,238,0.6),transparent_60%),radial-gradient(circle_at_80%_20%,rgba(20,184,166,0.5),transparent_60%)]" />
               Ver mi menu
             </Link>
-            {creationLocked && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:bg-white/10"
-              >
-                Crear otro menu
-              </button>
-            )}
             <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
               <UtensilsCrossed className="h-4 w-4 text-emerald-300" />
               {categories.length} categorias - {totalDishes} platos
@@ -411,13 +423,8 @@ export default function NewMenuPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold text-white">Datos del menu</h2>
-              <p className="text-sm text-slate-400">Define el nombre antes de guardar.</p>
+              <p className="text-sm text-slate-400">Actualiza el nombre cuando sea necesario.</p>
             </div>
-            {creationLocked && (
-              <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-300">
-                Solo lectura
-              </span>
-            )}
           </div>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -426,7 +433,7 @@ export default function NewMenuPage() {
               <input
                 value={menuName}
                 onChange={(e) => setMenuName(e.target.value)}
-                disabled={creationLocked}
+                disabled={editLocked}
                 placeholder="Ej. Carta principal"
                 className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
               />
@@ -436,7 +443,7 @@ export default function NewMenuPage() {
               <input
                 value={menuSlug}
                 onChange={(e) => setMenuSlug(e.target.value)}
-                disabled={creationLocked}
+                disabled={editLocked}
                 placeholder="carta-principal"
                 className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
               />
@@ -444,7 +451,32 @@ export default function NewMenuPage() {
           </div>
         </motion.section>
 
-        <div className={`grid items-stretch gap-8 lg:grid-cols-2 ${creationLocked ? "pointer-events-none opacity-60" : ""}`}>
+        {menuLoading && (
+          <motion.section
+            variants={card}
+            className="rounded-[26px] border border-white/10 bg-white/5 p-6 text-slate-300"
+          >
+            Cargando menu...
+          </motion.section>
+        )}
+
+        {menuError && !menuLoading && (
+          <motion.section
+            variants={card}
+            className="rounded-[26px] border border-amber-300/30 bg-amber-400/10 p-6 text-amber-100 shadow-[0_25px_60px_rgba(0,0,0,0.5)]"
+          >
+            <h3 className="text-lg font-semibold text-white">No hay menu para editar</h3>
+            <p className="mt-1 text-sm text-amber-100/80">{menuError}</p>
+            <Link
+              href="/dashboard/menu/new"
+              className="mt-4 inline-flex items-center rounded-2xl border border-amber-200/40 bg-amber-400/20 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-400/30"
+            >
+              Crear menu ahora
+            </Link>
+          </motion.section>
+        )}
+
+        <div className={`grid items-stretch gap-8 lg:grid-cols-2 ${editLocked ? "pointer-events-none opacity-60" : ""}`}>
           <motion.section
             variants={card}
             className="flex h-full min-h-[300px] flex-col rounded-[28px] border border-white/10 bg-white/5 p-7 shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
@@ -456,8 +488,7 @@ export default function NewMenuPage() {
               <button
                 type="button"
                 onClick={() => logoInputRef.current?.click()}
-                disabled={creationLocked}
-                className="flex h-32 w-full items-center justify-center gap-3 rounded-2xl border border-dashed border-white/30 bg-white/5 text-sm font-semibold text-slate-200 transition hover:border-emerald-300/60 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex h-32 w-full items-center justify-center gap-3 rounded-2xl border border-dashed border-white/30 bg-white/5 text-sm font-semibold text-slate-200 transition hover:border-emerald-300/60 hover:text-white"
               >
                 <Upload className="h-4 w-4" />
                 {logoPreview ? "Cambiar logo" : "Subir logo PNG"}
@@ -483,14 +514,7 @@ export default function NewMenuPage() {
               </div>
             )}
 
-            <input
-              ref={logoInputRef}
-              type="file"
-              accept="image/png"
-              className="hidden"
-              onChange={onLogoSelected}
-              disabled={creationLocked}
-            />
+            <input ref={logoInputRef} type="file" accept="image/png" className="hidden" onChange={onLogoSelected} />
           </motion.section>
 
           <motion.section
@@ -505,16 +529,14 @@ export default function NewMenuPage() {
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 placeholder="Nombre de la categoría"
-                disabled={creationLocked}
-                className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
               />
               <motion.button
                 type="button"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={addCategory}
-                disabled={creationLocked}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30"
               >
                 <Plus className="h-4 w-4" />
                 Añadir categoría
@@ -529,7 +551,7 @@ export default function NewMenuPage() {
           </motion.section>
         </div>
 
-        <div className={creationLocked ? "pointer-events-none opacity-60" : ""}>
+        <div className={editLocked ? "pointer-events-none opacity-60" : ""}>
         <motion.section variants={card} className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-white">Categorías y platos</h2>
@@ -553,8 +575,7 @@ export default function NewMenuPage() {
                     <input
                       value={category.nombre}
                       onChange={(e) => updateCategoryName(category.id, e.target.value)}
-                      disabled={creationLocked}
-                      className="flex-1 min-w-[220px] rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-lg font-semibold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex-1 min-w-[220px] rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-lg font-semibold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
                       placeholder="Nombre de la categoría"
                     />
                     <div className="flex items-center gap-2">
@@ -563,8 +584,7 @@ export default function NewMenuPage() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => addDish(category.id)}
-                        disabled={creationLocked}
-                        className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-400/30 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-400/30"
                       >
                         <Plus className="h-4 w-4" />
                         Añadir plato
@@ -574,8 +594,7 @@ export default function NewMenuPage() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => requestRemoveCategory(category.id)}
-                        disabled={creationLocked}
-                        className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-red-400/15 px-4 py-3 text-sm font-semibold text-red-200 hover:bg-red-400/25 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-red-400/15 px-4 py-3 text-sm font-semibold text-red-200 hover:bg-red-400/25"
                       >
                         <Trash2 className="h-4 w-4" />
                         Eliminar
@@ -599,8 +618,7 @@ export default function NewMenuPage() {
                           value={dish.nombre}
                           onChange={(e) => updateDish(category.id, dish.id, "nombre", e.target.value)}
                           placeholder="Nombre del plato"
-                          disabled={creationLocked}
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
                         />
                         <input
                           type="number"
@@ -608,22 +626,19 @@ export default function NewMenuPage() {
                           value={dish.precio || ""}
                           onChange={(e) => updateDish(category.id, dish.id, "precio", Number.parseFloat(e.target.value) || 0)}
                           placeholder="Precio"
-                          disabled={creationLocked}
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
                         />
                         <input
                           value={dish.tagline ?? ""}
                           onChange={(e) => updateDish(category.id, dish.id, "tagline", e.target.value)}
                           placeholder="Tagline (ej: BBQ Power!)"
-                          disabled={creationLocked}
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
                         />
                         <input
                           value={dish.ingredientes}
                           onChange={(e) => updateDish(category.id, dish.id, "ingredientes", e.target.value)}
                           placeholder="Ingredientes"
-                          disabled={creationLocked}
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
                         />
                         <div className="md:col-span-5 flex flex-wrap items-center gap-3">
                           <label className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-r from-emerald-400/15 via-white/5 to-emerald-400/15 px-3 py-2 text-xs text-slate-100 shadow-[0_0_18px_rgba(52,211,153,0.18)] transition-transform duration-150 ease-out hover:border-emerald-300/50 hover:text-white hover:shadow-[0_0_24px_rgba(52,211,153,0.35)] active:scale-95 active:shadow-[0_0_14px_rgba(52,211,153,0.2)]">
@@ -632,7 +647,6 @@ export default function NewMenuPage() {
                               accept="image/png,image/jpeg,image/webp"
                               className="hidden"
                               onChange={onDishPhotoSelected(category.id, dish.id)}
-                              disabled={creationLocked}
                             />
                             <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                             <span className="relative text-slate-200">Subir foto</span>
@@ -653,8 +667,7 @@ export default function NewMenuPage() {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => requestRemoveDish(category.id, dish.id)}
-                          disabled={creationLocked}
-                          className="group relative inline-flex h-9 w-fit items-center justify-center justify-self-start overflow-hidden rounded-xl border border-red-300/40 bg-gradient-to-r from-red-500/35 via-red-400/20 to-red-500/35 px-2.5 text-xs font-semibold text-red-100 shadow-[0_0_18px_rgba(248,113,113,0.45)] transition-transform duration-150 ease-out hover:border-red-300/80 hover:text-white hover:shadow-[0_0_30px_rgba(239,68,68,0.95)] active:scale-95 active:shadow-[0_0_14px_rgba(248,113,113,0.35)] disabled:cursor-not-allowed disabled:opacity-60"
+                          className="group relative inline-flex h-9 w-fit items-center justify-center justify-self-start overflow-hidden rounded-xl border border-red-300/40 bg-gradient-to-r from-red-500/35 via-red-400/20 to-red-500/35 px-2.5 text-xs font-semibold text-red-100 shadow-[0_0_18px_rgba(248,113,113,0.45)] transition-transform duration-150 ease-out hover:border-red-300/80 hover:text-white hover:shadow-[0_0_30px_rgba(239,68,68,0.95)] active:scale-95 active:shadow-[0_0_14px_rgba(248,113,113,0.35)]"
                         >
                           <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-red-300/35 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                           <Trash2 className="relative h-4 w-4" />
@@ -681,7 +694,7 @@ export default function NewMenuPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={saveMenu}
-              disabled={isSaving || creationLocked}
+              disabled={isSaving || editLocked}
               className="rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30 disabled:opacity-50"
             >
               {isSaving ? "Guardando..." : menuId ? "Guardar cambios" : "Guardar menú"}

@@ -45,6 +45,7 @@ type Dish = {
     nombre: string
     ingredientes: string
     precio: number
+    activo?: boolean
 }
 
 type Category = {
@@ -120,7 +121,7 @@ export default function HomePage() {
             const query = menuIdParam
                 ? baseQuery.eq("id", menuIdParam).maybeSingle()
                 : session?.user?.id
-                ? baseQuery.eq("user_id", session.user.id).maybeSingle()
+                ? baseQuery.eq("user_id", session.user.id).limit(1).maybeSingle()
                 : baseQuery.limit(1).maybeSingle()
             const { data, error } = await query
 
@@ -179,12 +180,17 @@ export default function HomePage() {
 
     const effectiveCategories = useMemo(() => {
         if (menuData.categories.length === 0) return []
-        return menuData.categories.map((cat) => ({
-            id: String(cat.id),
-            name: cat.nombre.toUpperCase(),
-            icon: iconForCategory(cat.nombre),
-            platos: cat.platos,
-        }))
+        return menuData.categories
+            .map((cat) => {
+                const platos = (cat.platos ?? []).filter((dish) => dish.activo !== false)
+                return {
+                    id: String(cat.id),
+                    name: cat.nombre.toUpperCase(),
+                    icon: iconForCategory(cat.nombre),
+                    platos,
+                }
+            })
+            .filter((cat) => cat.platos.length > 0)
     }, [menuData.categories])
 
     const filteredCategories = effectiveCategories.filter((category) =>

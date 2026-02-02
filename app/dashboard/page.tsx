@@ -23,9 +23,9 @@ const item = {
 const dashboardLinks = [
   {
     key: "new-menu",
-    name: "Creacion de nuevo menu",
-    title: "CREACION DE NUEVO MENU",
-    desc: "Arma un menu completo con secciones y platos sugeridos.",
+    name: "Creacion de menu",
+    title: "CREACION DE MENU",
+    desc: "Crea tu menu desde cero con secciones y platos sugeridos.",
     icon: BookOpen,
     href: "/dashboard/menu/new",
     color: "from-emerald-400 to-lime-600",
@@ -292,7 +292,7 @@ export default function DashboardPage() {
                     ? "rgba(52,211,153,0.85)"
                     : key === "panic"
                       ? "rgba(251,191,36,0.8)"
-                      : key === "studio"
+                    : key === "studio"
                         ? "rgba(139,92,246,0.8)"
                         : key === "posters"
                           ? "rgba(34,211,238,0.8)"
@@ -310,7 +310,7 @@ export default function DashboardPage() {
                     ? "radial-gradient(circle at 20% 20%, rgba(52,211,153,0.85), transparent 55%)"
                     : key === "panic"
                       ? "radial-gradient(circle at 20% 20%, rgba(251,191,36,0.85), transparent 55%)"
-                      : key === "studio"
+                    : key === "studio"
                         ? "radial-gradient(circle at 20% 20%, rgba(139,92,246,0.85), transparent 55%)"
                         : key === "posters"
                           ? "radial-gradient(circle at 20% 20%, rgba(34,211,238,0.85), transparent 55%)"

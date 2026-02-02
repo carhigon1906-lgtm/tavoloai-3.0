@@ -13,6 +13,7 @@ type Dish = {
   ingredientes: string
   precio: number
   foto_url?: string
+  activo?: boolean
 }
 
 type Category = {
@@ -383,7 +384,7 @@ export default function DishDetailPage() {
       const query = menuIdParam
         ? baseQuery.eq("id", menuIdParam).maybeSingle()
         : session?.user?.id
-        ? baseQuery.eq("user_id", session.user.id).maybeSingle()
+        ? baseQuery.eq("user_id", session.user.id).limit(1).maybeSingle()
         : baseQuery.limit(1).maybeSingle()
       const { data, error } = await query
 
@@ -394,7 +395,7 @@ export default function DishDetailPage() {
       }
 
       const categories = (data?.categories ?? []) as Category[]
-      const flattened = categories.flatMap((cat) => cat.platos ?? [])
+      const flattened = categories.flatMap((cat) => (cat.platos ?? []).filter((dish) => dish.activo !== false))
       const found = flattened.find((item) => String(item.id) === String(dishId))
 
       if (found) {

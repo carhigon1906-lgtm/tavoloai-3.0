@@ -17,6 +17,7 @@ type Dish = {
     ingredientes: string
     precio: number
     foto_url?: string
+    activo?: boolean
 }
 
 type Category = {
@@ -60,7 +61,7 @@ export default function BurgersPage() {
             const query = menuIdParam
                 ? baseQuery.eq("id", menuIdParam).maybeSingle()
                 : session?.user?.id
-                ? baseQuery.eq("user_id", session.user.id).maybeSingle()
+                ? baseQuery.eq("user_id", session.user.id).limit(1).maybeSingle()
                 : baseQuery.limit(1).maybeSingle()
             const { data, error } = await query
 
@@ -74,10 +75,10 @@ export default function BurgersPage() {
             const selected = categories.find((cat) => String(cat.id) === String(categoryId))
             if (selected) {
                 setCategoryName(selected.nombre)
-                setDishes(selected.platos ?? [])
+                setDishes((selected.platos ?? []).filter((dish) => dish.activo !== false))
             } else if (categories[0]) {
                 setCategoryName(categories[0].nombre)
-                setDishes(categories[0].platos ?? [])
+                setDishes((categories[0].platos ?? []).filter((dish) => dish.activo !== false))
             }
 
             setMenuLoading(false)
