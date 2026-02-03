@@ -153,7 +153,7 @@ export default function MenusPage() {
               className="inline-flex items-center gap-2 rounded-2xl border border-emerald-300/40 bg-emerald-400/20 px-4 py-2 text-sm font-semibold text-emerald-100 shadow-lg transition hover:bg-emerald-400/30"
             >
               <Plus className="h-4 w-4" />
-              A?adir menu
+              Añadir menú
             </motion.button>
           </div>
 

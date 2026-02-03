@@ -23,9 +23,9 @@ const item = {
 const dashboardLinks = [
   {
     key: "new-menu",
-    name: "Creacion de menu",
-    title: "CREACION DE MENU",
-    desc: "Crea tu menu desde cero con secciones y platos sugeridos.",
+    name: "Creación de menú",
+    title: "CREACIÓN DE MENÚ",
+    desc: "Crea tu menú desde cero con secciones y platos sugeridos.",
     icon: BookOpen,
     href: "/dashboard/menu/new",
     color: "from-emerald-400 to-lime-600",
@@ -68,11 +68,11 @@ const dashboardLinks = [
   },
   {
     key: "stats",
-    name: "Estadisticas",
-    title: "ESTADISTICAS",
-    desc: "Estadisticas del menu QR inteligente en tiempo real.",
+    name: "Estadísticas",
+    title: "ESTADÍSTICAS",
+    desc: "Estadísticas del menú QR inteligente en tiempo real.",
     icon: BarChart3,
-    href: "/dashboard/stats",
+    href: "/dashboard/reports",
     color: "from-sky-400 to-emerald-500",
   },
 ]
@@ -90,6 +90,7 @@ const stats = [
 
 const qrScanValues = [10, 14, 9, 18, 22, 17, 25]
 const qrScanDays = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"]
+const maxQrScans = Math.max(...qrScanValues)
 
 export default function DashboardPage() {
   const statsScrollRef = useRef<HTMLDivElement | null>(null)
@@ -240,27 +241,16 @@ export default function DashboardPage() {
             <span className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-slate-200">Semana actual</span>
           </div>
 
-          <div className="flex h-52 items-end justify-between gap-3 px-2 [--bar-scale:7px] sm:[--bar-scale:6px]">
+          <div className="mt-2 grid h-44 grid-cols-7 items-end gap-3">
             {qrScanValues.map((value, index) => (
-              <motion.div
-                key={index}
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: `calc(${value} * var(--bar-scale))`, opacity: 1 }}
-                transition={{ delay: index * 0.08, duration: 0.5, ease: "easeOut" }}
-                className="relative flex-1 rounded-t-lg border border-blue-400/30 bg-gradient-to-t from-blue-500/40 to-teal-400/20 shadow-lg"
-              >
-                <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] font-semibold text-slate-400">
-                  {value}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="mt-4 flex justify-between px-2 text-xs font-medium text-slate-400">
-            {qrScanDays.map((day) => (
-              <span key={day} className="flex-1 text-center">
-                {day}
-              </span>
+              <div key={`${value}-${index}`} className="flex h-full flex-col items-center justify-end gap-2">
+                <span className="text-xs font-semibold text-teal-100">{value}</span>
+                <div
+                  className="mx-auto w-20 rounded-2xl bg-gradient-to-t from-teal-500/90 via-cyan-300/70 to-teal-100/35 shadow-[0_12px_30px_rgba(20,184,166,0.55)] sm:w-24"
+                  style={{ height: `${Math.max(24, (value / maxQrScans) * 100)}%` }}
+                />
+                <span className="text-[10px] uppercase tracking-widest text-slate-400">{qrScanDays[index]}</span>
+              </div>
             ))}
           </div>
         </motion.section>

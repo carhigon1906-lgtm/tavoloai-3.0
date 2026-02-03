@@ -4,15 +4,16 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Home, Menu, Image, Settings, BarChart3, LogOut, ChefHat } from "lucide-react"
+import { Home, Menu, Image as ImageIcon, Settings, BarChart3, LogOut, ChefHat, Store } from "lucide-react"
 import { useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 
 const menuItems = [
   { icon: Home, label: "Dashboard", href: "/dashboard" },
   { icon: Menu, label: "Mis Menús", href: "/dashboard/menus" },
-  { icon: Image, label: "Laboratorio IA", href: "/dashboard/media" },
+  { icon: ImageIcon, label: "Laboratorio IA", href: "/dashboard/media" },
   { icon: BarChart3, label: "Estadísticas", href: "/dashboard/reports" },
+  { icon: Store, label: "Mi local", href: "/dashboard/local" },
   { icon: Settings, label: "Configuración", href: "/dashboard/settings" },
 ]
 

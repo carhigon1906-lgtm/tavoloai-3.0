@@ -476,47 +476,7 @@ export default function EditMenuPage() {
           </motion.section>
         )}
 
-        <div className={`grid items-stretch gap-8 lg:grid-cols-2 ${editLocked ? "pointer-events-none opacity-60" : ""}`}>
-          <motion.section
-            variants={card}
-            className="flex h-full min-h-[300px] flex-col rounded-[28px] border border-white/10 bg-white/5 p-7 shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
-          >
-            <h2 className="text-xl font-semibold text-white">Logo del menú</h2>
-            <p className="mt-1 text-sm text-slate-400">Formato obligatorio: PNG transparente o fondo sólido.</p>
-
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => logoInputRef.current?.click()}
-                className="flex h-32 w-full items-center justify-center gap-3 rounded-2xl border border-dashed border-white/30 bg-white/5 text-sm font-semibold text-slate-200 transition hover:border-emerald-300/60 hover:text-white"
-              >
-                <Upload className="h-4 w-4" />
-                {logoPreview ? "Cambiar logo" : "Subir logo PNG"}
-              </button>
-              <div className="flex h-32 w-full flex-col items-center justify-center rounded-2xl border border-white/10 bg-[#0a1220] px-6 text-center text-xs text-slate-300">
-                <ImageIcon className="mb-2 h-5 w-5 text-emerald-300" />
-                {logoName ? (
-                  <span className="text-white">{logoName}</span>
-                ) : (
-                  <span>Vista previa</span>
-                )}
-              </div>
-            </div>
-
-            {logoError && <p className="mt-3 text-sm text-red-300">{logoError}</p>}
-            {logoPreview && (
-              <div className="mt-5">
-                <img
-                  src={logoPreview}
-                  alt="Logo del menú"
-                  className="h-40 w-auto rounded-2xl border border-white/10 bg-white/90 p-3"
-                />
-              </div>
-            )}
-
-            <input ref={logoInputRef} type="file" accept="image/png" className="hidden" onChange={onLogoSelected} />
-          </motion.section>
-
+        <div className={`grid items-stretch gap-8 ${editLocked ? "pointer-events-none opacity-60" : ""}`}>
           <motion.section
             variants={card}
             className="flex h-full min-h-[300px] flex-col rounded-[28px] border border-white/10 bg-white/5 p-7 shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
