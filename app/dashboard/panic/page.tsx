@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { AlertTriangle, ArrowLeft, Eye, EyeOff } from "lucide-react"
+import { AlertTriangle, ArrowLeft, Eye, EyeOff, Utensils } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 
@@ -351,11 +351,26 @@ export default function PanicPage() {
                             key={dish.id}
                             className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
                           >
-                            <div className="min-w-[220px]">
-                              <p className="text-sm font-semibold text-white">{dish.nombre || "Plato sin nombre"}</p>
-                              <p className="text-xs text-slate-400">
-                                {dish.ingredientes || "Ingredientes por definir"}
-                              </p>
+                            <div className="flex min-w-[220px] items-center gap-3">
+                              {dish.foto_url ? (
+                                <img
+                                  src={dish.foto_url}
+                                  alt={dish.nombre ? `Foto de ${dish.nombre}` : "Foto del plato"}
+                                  className="h-12 w-12 rounded-xl border border-white/10 object-cover shadow-[0_8px_20px_rgba(0,0,0,0.35)]"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              ) : (
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300">
+                                  <Utensils className="h-5 w-5" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-sm font-semibold text-white">{dish.nombre || "Plato sin nombre"}</p>
+                                <p className="text-xs text-slate-400">
+                                  {dish.ingredientes || "Ingredientes por definir"}
+                                </p>
+                              </div>
                             </div>
 
                             <div className="flex items-center gap-3">

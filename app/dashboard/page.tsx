@@ -241,12 +241,12 @@ export default function DashboardPage() {
             <span className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-slate-200">Semana actual</span>
           </div>
 
-          <div className="mt-2 grid h-44 grid-cols-7 items-end gap-3">
+          <div className="mt-2 grid h-44 grid-cols-7 items-end gap-1.5 sm:gap-3">
             {qrScanValues.map((value, index) => (
               <div key={`${value}-${index}`} className="flex h-full flex-col items-center justify-end gap-2">
                 <span className="text-xs font-semibold text-teal-100">{value}</span>
                 <div
-                  className="mx-auto w-20 rounded-2xl bg-gradient-to-t from-teal-500/90 via-cyan-300/70 to-teal-100/35 shadow-[0_12px_30px_rgba(20,184,166,0.55)] sm:w-24"
+                  className="mx-auto w-full max-w-[28px] rounded-2xl bg-gradient-to-t from-teal-500/90 via-cyan-300/70 to-teal-100/35 shadow-[0_12px_30px_rgba(20,184,166,0.55)] sm:max-w-none sm:w-24"
                   style={{ height: `${Math.max(24, (value / maxQrScans) * 100)}%` }}
                 />
                 <span className="text-[10px] uppercase tracking-widest text-slate-400">{qrScanDays[index]}</span>
