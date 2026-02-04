@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   description:
     "Actualiza precios, mejora fotos y lanza promos en segundos con IA. El menú digital que trabaja por ti las 24 horas.",
   keywords: ["menú digital", "restaurante", "IA", "inteligencia artificial", "hostelería"],
+  icons: {
+    icon: "/logoblanco.png",
+  },
   openGraph: {
     title: "TavoloAI - El menú inteligente que vende más",
     description: "Actualiza precios, mejora fotos y lanza promos en segundos con IA",
