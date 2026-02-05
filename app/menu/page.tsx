@@ -75,9 +75,10 @@ export default function HomePage() {
     const [isMobileViewport, setIsMobileViewport] = useState(false)
     const [showIntro, setShowIntro] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
-    const [menuData, setMenuData] = useState<{ id?: string; logo_url?: string; categories: Category[] }>({
+    const [menuData, setMenuData] = useState<{ id?: string; logo_url?: string; nombre?: string; categories: Category[] }>({
         id: "",
         logo_url: "",
+        nombre: "",
         categories: [],
     })
     const [menuLoading, setMenuLoading] = useState(true)
@@ -117,7 +118,7 @@ export default function HomePage() {
                 data: { session },
             } = await supabase.auth.getSession()
 
-            const baseQuery = supabase.from("menus").select("id, logo_url, categories")
+            const baseQuery = supabase.from("menus").select("id, logo_url, nombre, categories")
             const query = menuIdParam
                 ? baseQuery.eq("id", menuIdParam).maybeSingle()
                 : session?.user?.id
@@ -131,13 +132,14 @@ export default function HomePage() {
                 return
             }
 
-            if (data) {
-                setMenuData({
-                    id: data.id ? String(data.id) : "",
-                    logo_url: data.logo_url || "",
-                    categories: Array.isArray(data.categories) ? data.categories : [],
-                })
-            }
+                if (data) {
+                    setMenuData({
+                        id: data.id ? String(data.id) : "",
+                        logo_url: data.logo_url || "",
+                        nombre: data.nombre || "",
+                        categories: Array.isArray(data.categories) ? data.categories : [],
+                    })
+                }
             setMenuLoading(false)
         }
 
@@ -249,17 +251,28 @@ export default function HomePage() {
                                     animate={{ scale: 1, rotate: 0 }}
                                     transition={{ delay: 0.12, duration: 0.45, ease: "easeOut" }}
                                 >
-                                    <MotionImage
-                                        src={tavoloLogo}
-                                        alt="Taboloai logo"
-                                        style={styles.introBadgeImage}
-                                        width={160}
-                                        height={160}
-                                        priority
-                                        initial={{ scale: 0.92, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        transition={{ delay: 0.18, duration: 0.45, ease: "easeOut" }}
-                                    />
+                                    {menuData.logo_url ? (
+                                        <motion.img
+                                            src={menuData.logo_url}
+                                            alt="Logo del menú"
+                                            style={styles.introBadgeImage}
+                                            initial={{ scale: 0.92, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            transition={{ delay: 0.18, duration: 0.45, ease: "easeOut" }}
+                                        />
+                                    ) : (
+                                        <MotionImage
+                                            src={tavoloLogo}
+                                            alt="Taboloai logo"
+                                            style={styles.introBadgeImage}
+                                            width={160}
+                                            height={160}
+                                            priority
+                                            initial={{ scale: 0.92, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            transition={{ delay: 0.18, duration: 0.45, ease: "easeOut" }}
+                                        />
+                                    )}
                                 </motion.div>
                             </motion.div>
                             <motion.h1
@@ -268,7 +281,7 @@ export default function HomePage() {
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.28, duration: 0.45, ease: "easeOut" }}
                             >
-                                Taboloai
+                                {menuData.nombre || "Taboloai"}
                             </motion.h1>
                             <motion.p
                                 style={styles.introSubtitle}
@@ -309,7 +322,7 @@ export default function HomePage() {
                     ) : (
                         <Image src={logoBlanco} alt="Taboloai" style={styles.brandLogo} />
                     )}
-                    <span style={styles.brandTagline}>Menu inteligente para tu carta digital</span>
+                    <span style={styles.brandTagline}>{menuData.nombre || "Menu inteligente para tu carta digital"}</span>
                     <MotionBox
                         style={styles.carouselWrapper}
                         initial={
@@ -491,7 +504,7 @@ export default function HomePage() {
                 >
                     <div style={styles.footerContent}>
                         <div style={styles.orderInfo}>
-                            <span style={styles.orderText}>Taboloai</span>
+                            <span style={styles.orderText}>{menuData.nombre || "Taboloai"}</span>
                             <span style={styles.orderSubtext}>Crea tu carta inteligente en minutos</span>
                         </div>
                         <motion.div

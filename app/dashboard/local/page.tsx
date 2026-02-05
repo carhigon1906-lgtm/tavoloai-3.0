@@ -102,6 +102,15 @@ export default function LocalPage() {
       setBusinessAddressSaved(businessAddress.trim())
       setBusinessPhoneSaved(businessPhone.trim())
       setNameSuccess("Datos actualizados.")
+
+      const { error: menusError } = await supabase
+        .from("menus")
+        .update({ nombre: businessName.trim(), updated_at: new Date().toISOString() })
+        .eq("user_id", userId)
+
+      if (menusError) {
+        setNameError("No se pudo actualizar el nombre en los menús públicos.")
+      }
     }
 
     setIsSavingName(false)
@@ -117,6 +126,7 @@ export default function LocalPage() {
     setIsUploadingLogo(true)
     setLogoError("")
 
+    const previousLogoUrl = logoUrl
     const filePath = `${userId}/business-logo-${Date.now()}.png`
     const formData = new FormData()
     formData.append("file", logoFile)
@@ -151,7 +161,35 @@ export default function LocalPage() {
         return
       }
 
-      setLogoUrl(result.publicUrl)
+      const { error: menusError } = await supabase
+        .from("menus")
+        .update({ logo_url: result.publicUrl, updated_at: new Date().toISOString() })
+        .eq("user_id", userId)
+
+      if (menusError) {
+        setLogoError("No se pudo actualizar el logo en los menús públicos.")
+        return
+      }
+
+        if (previousLogoUrl && previousLogoUrl !== result.publicUrl) {
+          const url = new URL(previousLogoUrl)
+          const marker = "/storage/v1/object/public/"
+          const idx = url.pathname.indexOf(marker)
+          if (idx !== -1) {
+            const remainder = url.pathname.slice(idx + marker.length)
+            const [bucket, ...pathParts] = remainder.split("/")
+            const path = pathParts.join("/")
+            if (bucket && path) {
+              await fetch("/api/menu/delete-logo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ bucket, path }),
+              })
+            }
+          }
+        }
+
+        setLogoUrl(result.publicUrl)
       setLogoPreview(result.publicUrl)
       setLogoName("")
       setLogoFile(null)
@@ -290,19 +328,19 @@ export default function LocalPage() {
                 {logoPreview ? "Cambiar logo" : "Subir logo PNG"}
               </button>
 
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-slate-300">
-                <ImageIcon className="h-5 w-5 text-emerald-300" />
-                {logoName ? <span className="text-white">{logoName}</span> : <span>Vista previa</span>}
+              <div className="flex min-h-[64px] items-center justify-center rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-slate-300">
+                {logoPreview ? (
+                  <img src={logoPreview} alt="Logo del restaurante" className="h-12 w-auto object-contain" />
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <ImageIcon className="h-5 w-5 text-emerald-300" />
+                    <span>Vista previa</span>
+                  </div>
+                )}
               </div>
             </div>
 
-            {logoPreview && (
-              <img
-                src={logoPreview}
-                alt="Logo del restaurante"
-                className="h-24 w-auto rounded-2xl border border-white/10 bg-white/90 p-2"
-              />
-            )}
+            {logoName && <p className="text-xs font-medium text-slate-400">Archivo: {logoName}</p>}
 
             {logoError && <p className="text-sm font-medium text-rose-300">{logoError}</p>}
 

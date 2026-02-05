@@ -237,6 +237,9 @@ export default function NewMenuPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    const previousPhotoUrl =
+      categories.find((cat) => cat.id === categoryId)?.platos.find((dish) => dish.id === dishId)?.foto_url ?? ""
+
     const allowedTypes: Record<string, string> = {
       "image/png": "png",
       "image/jpeg": "jpg",
@@ -290,6 +293,23 @@ export default function NewMenuPage() {
     }
 
     updateDish(categoryId, dishId, "foto_url", result.publicUrl)
+    if (previousPhotoUrl && previousPhotoUrl !== result.publicUrl) {
+      const url = new URL(previousPhotoUrl)
+      const marker = "/storage/v1/object/public/"
+      const idx = url.pathname.indexOf(marker)
+      if (idx !== -1) {
+        const remainder = url.pathname.slice(idx + marker.length)
+        const [bucket, ...pathParts] = remainder.split("/")
+        const path = pathParts.join("/")
+        if (bucket && path) {
+          await fetch("/api/menu/delete-logo", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ bucket, path }),
+          })
+        }
+      }
+    }
     setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
   }
 
@@ -644,7 +664,9 @@ export default function NewMenuPage() {
                               disabled={creationLocked}
                             />
                             <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                            <span className="relative text-slate-200">Subir foto</span>
+                            <span className="relative text-slate-200">
+                              {dish.foto_url ? "Remplazar foto" : "Subir foto"}
+                            </span>
                           </label>
                           {uploadingDish[dish.id] && (
                             <span className="text-xs text-emerald-300">Subiendo...</span>
