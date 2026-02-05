@@ -4,7 +4,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Home, Menu, Image as ImageIcon, Settings, BarChart3, LogOut, ChefHat, Store } from "lucide-react"
+import { Home, Menu, Image as ImageIcon, BarChart3, LogOut, ChefHat, Store } from "lucide-react"
 import { useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 
@@ -14,7 +14,6 @@ const menuItems = [
   { icon: ImageIcon, label: "Laboratorio IA", href: "/dashboard/media" },
   { icon: BarChart3, label: "Estadísticas", href: "/dashboard/reports" },
   { icon: Store, label: "Mi local", href: "/dashboard/local" },
-  { icon: Settings, label: "Configuración", href: "/dashboard/settings" },
 ]
 
 const MotionLink = motion(Link)

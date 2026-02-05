@@ -63,6 +63,7 @@ export default function EditMenuPage() {
   } | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [newCategoryName, setNewCategoryName] = useState<string>("")
+  const [ingredientDrafts, setIngredientDrafts] = useState<Record<number, string>>({})
   const logoInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -124,6 +125,47 @@ export default function EditMenuPage() {
 
     loadMenu()
   }, [menuIdParam])
+
+  const slugify = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "")
+
+  useEffect(() => {
+    setMenuSlug(slugify(menuName))
+  }, [menuName])
+
+  const parseIngredients = (value: string) =>
+    value
+      .split(/[,\n;]+/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+
+  const formatIngredients = (items: string[]) => items.join(", ")
+
+  const addIngredients = (categoryId: number, dishId: number, current: string[], raw: string) => {
+    const incoming = parseIngredients(raw)
+    if (incoming.length === 0) return
+    const seen = new Set(current.map((item) => item.toLowerCase()))
+    const next = [...current]
+    for (const item of incoming) {
+      const key = item.toLowerCase()
+      if (!seen.has(key)) {
+        seen.add(key)
+        next.push(item)
+      }
+    }
+    updateDish(categoryId, dishId, "ingredientes", formatIngredients(next))
+    setIngredientDrafts((prev) => ({ ...prev, [dishId]: "" }))
+  }
+
+  const removeIngredient = (categoryId: number, dishId: number, current: string[], index: number) => {
+    const next = current.filter((_, idx) => idx !== index)
+    updateDish(categoryId, dishId, "ingredientes", formatIngredients(next))
+  }
 
   const totalDishes = useMemo(
     () => categories.reduce((acc, category) => acc + category.platos.length, 0),
@@ -302,6 +344,14 @@ export default function EditMenuPage() {
       setSaveError("No hay un menu para editar.")
       return
     }
+    if (menuLoading) {
+      setSaveError("Espera a que el menu termine de cargar antes de guardar.")
+      return
+    }
+    if (menuError) {
+      setSaveError("No se puede guardar mientras hay un error cargando el menu.")
+      return
+    }
     if (!menuName.trim()) {
       setSaveError("El nombre del menu es obligatorio.")
       return
@@ -352,7 +402,7 @@ export default function EditMenuPage() {
       const payload = {
         user_id: session.user.id,
         nombre: menuName.trim() || "Menu sin nombre",
-        slug: menuSlug || undefined,
+        slug: slugify(menuName),
         logo_url: finalLogoUrl,
         categories,
         updated_at: new Date().toISOString(),
@@ -427,7 +477,7 @@ export default function EditMenuPage() {
             </div>
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="mt-5 grid gap-4 sm:grid-cols-1">
             <div className="space-y-2">
               <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">Nombre del menu</label>
               <input
@@ -435,16 +485,6 @@ export default function EditMenuPage() {
                 onChange={(e) => setMenuName(e.target.value)}
                 disabled={editLocked}
                 placeholder="Ej. Carta principal"
-                className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">Slug</label>
-              <input
-                value={menuSlug}
-                onChange={(e) => setMenuSlug(e.target.value)}
-                disabled={editLocked}
-                placeholder="carta-principal"
                 className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
@@ -594,12 +634,58 @@ export default function EditMenuPage() {
                           placeholder="Tagline (ej: BBQ Power!)"
                           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
                         />
-                        <input
-                          value={dish.ingredientes}
-                          onChange={(e) => updateDish(category.id, dish.id, "ingredientes", e.target.value)}
-                          placeholder="Ingredientes"
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
-                        />
+                        <div className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus-within:ring-2 focus-within:ring-emerald-300/40">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {parseIngredients(dish.ingredientes).map((item, idx) => (
+                              <span
+                                key={`${dish.id}-ing-${idx}`}
+                                className="inline-flex items-center gap-2 rounded-full border border-emerald-300/30 bg-emerald-400/15 px-3 py-1 text-xs text-emerald-100"
+                              >
+                                {item}
+                                <button
+                                  type="button"
+                                  onClick={() => removeIngredient(category.id, dish.id, parseIngredients(dish.ingredientes), idx)}
+                                  className="text-emerald-200/80 transition hover:text-white"
+                                  aria-label="Quitar ingrediente"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                            <input
+                              value={ingredientDrafts[dish.id] ?? ""}
+                              onChange={(e) => setIngredientDrafts((prev) => ({ ...prev, [dish.id]: e.target.value }))}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === "," || e.key === "Tab") {
+                                  e.preventDefault()
+                                  addIngredients(
+                                    category.id,
+                                    dish.id,
+                                    parseIngredients(dish.ingredientes),
+                                    ingredientDrafts[dish.id] ?? "",
+                                  )
+                                }
+                                if (e.key === "Backspace" && !(ingredientDrafts[dish.id] ?? "").trim()) {
+                                  const current = parseIngredients(dish.ingredientes)
+                                  if (current.length > 0) {
+                                    e.preventDefault()
+                                    removeIngredient(category.id, dish.id, current, current.length - 1)
+                                  }
+                                }
+                              }}
+                              onBlur={() =>
+                                addIngredients(
+                                  category.id,
+                                  dish.id,
+                                  parseIngredients(dish.ingredientes),
+                                  ingredientDrafts[dish.id] ?? "",
+                                )
+                              }
+                              placeholder="Ingredientes"
+                              className="min-w-[120px] flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
+                            />
+                          </div>
+                        </div>
                         <div className="md:col-span-5 flex flex-wrap items-center gap-3">
                           <label className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-r from-emerald-400/15 via-white/5 to-emerald-400/15 px-3 py-2 text-xs text-slate-100 shadow-[0_0_18px_rgba(52,211,153,0.18)] transition-transform duration-150 ease-out hover:border-emerald-300/50 hover:text-white hover:shadow-[0_0_24px_rgba(52,211,153,0.35)] active:scale-95 active:shadow-[0_0_14px_rgba(52,211,153,0.2)]">
                             <input
@@ -654,7 +740,7 @@ export default function EditMenuPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={saveMenu}
-              disabled={isSaving || editLocked}
+              disabled={isSaving || editLocked || menuLoading || !!menuError}
               className="rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30 disabled:opacity-50"
             >
               {isSaving ? "Guardando..." : menuId ? "Guardar cambios" : "Guardar menú"}

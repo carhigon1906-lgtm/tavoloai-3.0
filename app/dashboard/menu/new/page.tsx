@@ -60,6 +60,7 @@ export default function NewMenuPage() {
   const [newCategoryName, setNewCategoryName] = useState<string>("")
   const [menuName, setMenuName] = useState<string>("")
   const [menuSlug, setMenuSlug] = useState<string>("")
+  const [ingredientDrafts, setIngredientDrafts] = useState<Record<number, string>>({})
   const logoInputRef = useRef<HTMLInputElement | null>(null)
 
   const slugify = (s: string) =>
@@ -71,8 +72,37 @@ export default function NewMenuPage() {
       .replace(/(^-|-$)+/g, "")
 
   useEffect(() => {
-    setMenuSlug((prev) => (prev ? prev : slugify(menuName)))
+    setMenuSlug(slugify(menuName))
   }, [menuName])
+
+  const parseIngredients = (value: string) =>
+    value
+      .split(/[,\n;]+/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+
+  const formatIngredients = (items: string[]) => items.join(", ")
+
+  const addIngredients = (categoryId: number, dishId: number, current: string[], raw: string) => {
+    const incoming = parseIngredients(raw)
+    if (incoming.length === 0) return
+    const seen = new Set(current.map((item) => item.toLowerCase()))
+    const next = [...current]
+    for (const item of incoming) {
+      const key = item.toLowerCase()
+      if (!seen.has(key)) {
+        seen.add(key)
+        next.push(item)
+      }
+    }
+    updateDish(categoryId, dishId, "ingredientes", formatIngredients(next))
+    setIngredientDrafts((prev) => ({ ...prev, [dishId]: "" }))
+  }
+
+  const removeIngredient = (categoryId: number, dishId: number, current: string[], index: number) => {
+    const next = current.filter((_, idx) => idx !== index)
+    updateDish(categoryId, dishId, "ingredientes", formatIngredients(next))
+  }
 
   const totalDishes = useMemo(
     () => categories.reduce((acc, category) => acc + category.platos.length, 0),
@@ -265,6 +295,10 @@ export default function NewMenuPage() {
 
   const saveMenu = async () => {
     if (isReadOnly) return
+    if (!menuName.trim() && categories.length === 0 && !logoFile && !logoUrl) {
+      setSaveError("Debes completar el formulario antes de guardar el menú.")
+      return
+    }
     if (!menuName.trim()) {
       setSaveError("El nombre del menu es obligatorio.")
       return
@@ -315,7 +349,7 @@ export default function NewMenuPage() {
       const payload = {
         user_id: session.user.id,
         nombre: menuName.trim(),
-        slug: menuSlug || slugify(menuName),
+        slug: slugify(menuName),
         logo_url: finalLogoUrl,
         categories,
         activo: true,
@@ -406,7 +440,7 @@ export default function NewMenuPage() {
             )}
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="mt-5 grid gap-4 sm:grid-cols-1">
             <div className="space-y-2">
               <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">Nombre del menu</label>
               <input
@@ -414,16 +448,6 @@ export default function NewMenuPage() {
                 onChange={(e) => setMenuName(e.target.value)}
                 disabled={creationLocked}
                 placeholder="Ej. Carta principal"
-                className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wide text-slate-300">Slug</label>
-              <input
-                value={menuSlug}
-                onChange={(e) => setMenuSlug(e.target.value)}
-                disabled={creationLocked}
-                placeholder="carta-principal"
                 className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
@@ -556,13 +580,60 @@ export default function NewMenuPage() {
                           disabled={creationLocked}
                           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
                         />
-                        <input
-                          value={dish.ingredientes}
-                          onChange={(e) => updateDish(category.id, dish.id, "ingredientes", e.target.value)}
-                          placeholder="Ingredientes"
-                          disabled={creationLocked}
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
-                        />
+                        <div className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus-within:ring-2 focus-within:ring-emerald-300/40">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {parseIngredients(dish.ingredientes).map((item, idx) => (
+                              <span
+                                key={`${dish.id}-ing-${idx}`}
+                                className="inline-flex items-center gap-2 rounded-full border border-emerald-300/30 bg-emerald-400/15 px-3 py-1 text-xs text-emerald-100"
+                              >
+                                {item}
+                                <button
+                                  type="button"
+                                  onClick={() => removeIngredient(category.id, dish.id, parseIngredients(dish.ingredientes), idx)}
+                                  className="text-emerald-200/80 transition hover:text-white"
+                                  aria-label="Quitar ingrediente"
+                                  disabled={creationLocked}
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                            <input
+                              value={ingredientDrafts[dish.id] ?? ""}
+                              onChange={(e) => setIngredientDrafts((prev) => ({ ...prev, [dish.id]: e.target.value }))}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === "," || e.key === "Tab") {
+                                  e.preventDefault()
+                                  addIngredients(
+                                    category.id,
+                                    dish.id,
+                                    parseIngredients(dish.ingredientes),
+                                    ingredientDrafts[dish.id] ?? "",
+                                  )
+                                }
+                                if (e.key === "Backspace" && !(ingredientDrafts[dish.id] ?? "").trim()) {
+                                  const current = parseIngredients(dish.ingredientes)
+                                  if (current.length > 0) {
+                                    e.preventDefault()
+                                    removeIngredient(category.id, dish.id, current, current.length - 1)
+                                  }
+                                }
+                              }}
+                              onBlur={() =>
+                                addIngredients(
+                                  category.id,
+                                  dish.id,
+                                  parseIngredients(dish.ingredientes),
+                                  ingredientDrafts[dish.id] ?? "",
+                                )
+                              }
+                              placeholder="Ingredientes"
+                              disabled={creationLocked}
+                              className="min-w-[120px] flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                            />
+                          </div>
+                        </div>
                         <div className="md:col-span-5 flex flex-wrap items-center gap-3">
                           <label className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-r from-emerald-400/15 via-white/5 to-emerald-400/15 px-3 py-2 text-xs text-slate-100 shadow-[0_0_18px_rgba(52,211,153,0.18)] transition-transform duration-150 ease-out hover:border-emerald-300/50 hover:text-white hover:shadow-[0_0_24px_rgba(52,211,153,0.35)] active:scale-95 active:shadow-[0_0_14px_rgba(52,211,153,0.2)]">
                             <input
@@ -625,7 +696,11 @@ export default function NewMenuPage() {
               {isSaving ? "Guardando..." : menuId ? "Guardar cambios" : "Guardar menú"}
             </motion.button>
           </div>
-          {saveError && <p className="mt-3 text-sm text-red-300">{saveError}</p>}
+          {saveError && (
+            <div className="mt-3 rounded-2xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
+              {saveError}
+            </div>
+          )}
           {saveSuccess && <p className="mt-3 text-sm text-emerald-300">{saveSuccess}</p>}
         </motion.section>
         </div>

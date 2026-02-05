@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Edit3, Eye, Layers, Plus, Trash2 } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 
@@ -47,6 +47,9 @@ export default function MenusPage() {
   const [menus, setMenus] = useState<MenuRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [menuToDelete, setMenuToDelete] = useState<MenuRow | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState("")
 
   useEffect(() => {
     const loadMenus = async () => {
@@ -105,10 +108,50 @@ export default function MenusPage() {
   }
 
   const deleteMenu = async (menuId: number | string) => {
-    if (!confirm("Eliminar este menu?")) return
-    const { error } = await supabase.from("menus").delete().eq("id", menuId)
-    if (error) return
+    setIsDeleting(true)
+    setDeleteError("")
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (!session) {
+      setDeleteError("Debes iniciar sesión para eliminar el menú.")
+      setIsDeleting(false)
+      return
+    }
+
+    const { data, error } = await supabase
+      .from("menus")
+      .delete()
+      .eq("id", menuId)
+      .eq("user_id", session.user.id)
+      .select("id")
+    if (error) {
+      setDeleteError(error.message || "No se pudo eliminar el menú. Intenta nuevamente.")
+      setIsDeleting(false)
+      return
+    }
+
+    const { data: check, error: checkError } = await supabase
+      .from("menus")
+      .select("id")
+      .eq("id", menuId)
+      .eq("user_id", session.user.id)
+      .maybeSingle()
+
+    if (checkError) {
+      setDeleteError(checkError.message || "No se pudo verificar la eliminación. Intenta nuevamente.")
+      setIsDeleting(false)
+      return
+    }
+    if (check?.id) {
+      setDeleteError("No se pudo eliminar el menú. Verifica tus permisos.")
+      setIsDeleting(false)
+      return
+    }
+
     setMenus((prev) => prev.filter((m) => String(m.id) != String(menuId)))
+    setMenuToDelete(null)
+    setIsDeleting(false)
   }
 
   return (
@@ -233,7 +276,10 @@ export default function MenusPage() {
                       <button
                         type="button"
                         title="Eliminar"
-                        onClick={() => deleteMenu(m.id)}
+                        onClick={() => {
+                          setMenuToDelete(m)
+                          setDeleteError("")
+                        }}
                         className="h-9 w-9 rounded-xl border border-red-300/30 bg-red-500/15 text-red-200 hover:bg-red-500/25 transition"
                       >
                         <Trash2 className="h-4 w-4 mx-auto" />
@@ -246,6 +292,65 @@ export default function MenusPage() {
           </div>
         </motion.section>
       </motion.div>
+
+      <AnimatePresence>
+        {menuToDelete && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6 py-10 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-md rounded-3xl border border-white/10 bg-[#0b1220] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+              initial={{ y: 24, scale: 0.98, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 16, scale: 0.98, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/15 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.35)]">
+                  <Trash2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Eliminar menú</h3>
+                  <p className="mt-1 text-sm text-slate-300">
+                    Estás por borrar <span className="font-semibold text-white">{menuToDelete.nombre}</span>. Esta acción
+                    no se puede deshacer.
+                  </p>
+                </div>
+              </div>
+
+              {deleteError && (
+                <div className="mt-4 rounded-2xl border border-red-300/30 bg-red-400/10 px-4 py-3 text-sm text-red-200">
+                  {deleteError}
+                </div>
+              )}
+
+              <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMenuToDelete(null)}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"
+                >
+                  Cancelar
+                </button>
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => deleteMenu(menuToDelete.id)}
+                  disabled={isDeleting}
+                  className="group relative inline-flex items-center gap-2 overflow-hidden rounded-2xl border border-red-300/50 bg-gradient-to-r from-red-500/40 via-red-400/20 to-red-500/40 px-4 py-2 text-sm font-semibold text-red-100 shadow-[0_0_22px_rgba(239,68,68,0.55)] transition hover:border-red-300/90 hover:text-white hover:shadow-[0_0_32px_rgba(239,68,68,0.9)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-red-300/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                  <span className="relative">{isDeleting ? "Eliminando..." : "Eliminar"}</span>
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

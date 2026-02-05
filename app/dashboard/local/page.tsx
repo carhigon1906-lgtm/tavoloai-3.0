@@ -3,12 +3,16 @@
 
 import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
-import { Store, Upload, Image as ImageIcon, Save } from "lucide-react"
+import { Store, Upload, Image as ImageIcon, Save, MapPin, Phone } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 
 export default function LocalPage() {
   const [businessName, setBusinessName] = useState("")
   const [businessNameSaved, setBusinessNameSaved] = useState("")
+  const [businessAddress, setBusinessAddress] = useState("")
+  const [businessAddressSaved, setBusinessAddressSaved] = useState("")
+  const [businessPhone, setBusinessPhone] = useState("")
+  const [businessPhoneSaved, setBusinessPhoneSaved] = useState("")
   const [nameError, setNameError] = useState("")
   const [nameSuccess, setNameSuccess] = useState("")
   const [isSavingName, setIsSavingName] = useState(false)
@@ -32,6 +36,12 @@ export default function LocalPage() {
       const business = metadata.business ?? ""
       setBusinessName(business)
       setBusinessNameSaved(business)
+      const address = metadata.business_address ?? ""
+      setBusinessAddress(address)
+      setBusinessAddressSaved(address)
+      const phone = metadata.business_phone ?? ""
+      setBusinessPhone(phone)
+      setBusinessPhoneSaved(phone)
       setLogoUrl(metadata.business_logo_url ?? "")
       setLogoPreview(metadata.business_logo_url ?? "")
     })
@@ -63,7 +73,7 @@ export default function LocalPage() {
     reader.readAsDataURL(file)
   }
 
-  const saveBusinessName = async () => {
+  const saveBusinessDetails = async () => {
     if (!businessName.trim()) {
       setNameError("El nombre del restaurante es obligatorio.")
       return
@@ -80,6 +90,8 @@ export default function LocalPage() {
     const { error } = await supabase.auth.updateUser({
       data: {
         business: businessName.trim(),
+        business_address: businessAddress.trim(),
+        business_phone: businessPhone.trim(),
       },
     })
 
@@ -87,7 +99,9 @@ export default function LocalPage() {
       setNameError(error.message)
     } else {
       setBusinessNameSaved(businessName.trim())
-      setNameSuccess("Nombre actualizado.")
+      setBusinessAddressSaved(businessAddress.trim())
+      setBusinessPhoneSaved(businessPhone.trim())
+      setNameSuccess("Datos actualizados.")
     }
 
     setIsSavingName(false)
@@ -204,16 +218,55 @@ export default function LocalPage() {
               }}
               placeholder="Ingresa el nombre de tu restaurante"
             />
+            <div className="space-y-3">
+              <label className="flex items-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-200">
+                <MapPin className="h-4 w-4 text-slate-400" />
+                Dirección
+              </label>
+              <input
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 transition-all shadow-sm hover:bg-white/10 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                value={businessAddress}
+                onChange={(e) => {
+                  setBusinessAddress(e.target.value)
+                  setNameError("")
+                  setNameSuccess("")
+                }}
+                placeholder="Dirección completa del restaurante"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <label className="flex items-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-200">
+                <Phone className="h-4 w-4 text-slate-400" />
+                Teléfono
+              </label>
+              <input
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 transition-all shadow-sm hover:bg-white/10 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                value={businessPhone}
+                onChange={(e) => {
+                  setBusinessPhone(e.target.value)
+                  setNameError("")
+                  setNameSuccess("")
+                }}
+                placeholder="Número de contacto"
+              />
+            </div>
+
             <motion.button
               type="button"
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
-              onClick={saveBusinessName}
-              disabled={isSavingName || businessName.trim() === businessNameSaved.trim()}
+              onClick={saveBusinessDetails}
+              disabled={
+                isSavingName ||
+                (businessName.trim() === businessNameSaved.trim() &&
+                  businessAddress.trim() === businessAddressSaved.trim() &&
+                  businessPhone.trim() === businessPhoneSaved.trim())
+              }
               className="flex w-full items-center justify-center gap-3 rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-5 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-400/30 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Save className="h-4 w-4" />
-              {isSavingName ? "Guardando..." : "Guardar nombre"}
+              {isSavingName ? "Guardando..." : "Guardar datos"}
             </motion.button>
             {nameError && <p className="text-sm font-medium text-rose-300">{nameError}</p>}
             {nameSuccess && <p className="text-sm font-medium text-emerald-300">{nameSuccess}</p>}
