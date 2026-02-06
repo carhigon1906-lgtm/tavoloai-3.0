@@ -9,14 +9,10 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const menuId = searchParams.get("menu")?.trim()
 
-  let query = supabaseAdmin.from("menus").select("id, logo_url, nombre, categories, activo, created_at")
-  if (menuId) {
-    query = query.eq("id", menuId).eq("activo", true).maybeSingle()
-  } else {
-    query = query.eq("activo", true).order("created_at", { ascending: false }).limit(1).maybeSingle()
-  }
-
-  const { data, error } = await query
+  const baseQuery = supabaseAdmin.from("menus").select("id, logo_url, nombre, categories, activo, created_at")
+  const { data, error } = menuId
+    ? await baseQuery.eq("id", menuId).eq("activo", true).maybeSingle()
+    : await baseQuery.eq("activo", true).order("created_at", { ascending: false }).limit(1).maybeSingle()
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
