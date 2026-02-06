@@ -170,7 +170,7 @@ export default function MenusPage() {
       data: { session },
     } = await supabase.auth.getSession()
     if (!session) {
-      setDeleteError("Debes iniciar sesiÃ³n para eliminar el menÃº.")
+      setDeleteError("Debes iniciar sesión para eliminar el menú.")
       setIsDeleting(false)
       return
     }
@@ -182,7 +182,7 @@ export default function MenusPage() {
       .eq("user_id", session.user.id)
       .select("id")
     if (error) {
-      setDeleteError(error.message || "No se pudo eliminar el menÃº. Intenta nuevamente.")
+      setDeleteError(error.message || "No se pudo eliminar el menú. Intenta nuevamente.")
       setIsDeleting(false)
       return
     }
@@ -195,12 +195,12 @@ export default function MenusPage() {
       .maybeSingle()
 
     if (checkError) {
-      setDeleteError(checkError.message || "No se pudo verificar la eliminaciÃ³n. Intenta nuevamente.")
+      setDeleteError(checkError.message || "No se pudo verificar la eliminación. Intenta nuevamente.")
       setIsDeleting(false)
       return
     }
     if (check?.id) {
-      setDeleteError("No se pudo eliminar el menÃº. Verifica tus permisos.")
+      setDeleteError("No se pudo eliminar el menú. Verifica tus permisos.")
       setIsDeleting(false)
       return
     }
@@ -447,9 +447,9 @@ export default function MenusPage() {
                   <Trash2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Eliminar menÃº</h3>
+                  <h3 className="text-lg font-semibold text-white">Eliminar menú</h3>
                   <p className="mt-1 text-sm text-slate-300">
-                    EstÃ¡s por borrar <span className="font-semibold text-white">{menuToDelete.nombre}</span>. Esta acciÃ³n
+                    Estás por borrar <span className="font-semibold text-white">{menuToDelete.nombre}</span>. Esta acción
                     no se puede deshacer.
                   </p>
                 </div>

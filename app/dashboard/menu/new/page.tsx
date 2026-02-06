@@ -189,7 +189,7 @@ export default function NewMenuPage() {
   }
 
   const addCategory = () => {
-    if (!newCategoryName.trim()) return alert("Ingresa un nombre de categorÃ­a.")
+    if (!newCategoryName.trim()) return alert("Ingresa un nombre de categoría.")
     setCategories((prev) => [
       ...prev,
       { id: Date.now(), nombre: newCategoryName.trim(), platos: [] },
@@ -205,7 +205,7 @@ export default function NewMenuPage() {
     const category = categories.find((cat) => cat.id === categoryId)
     setConfirmCategoryDelete({
       categoryId,
-      categoryName: category?.nombre?.trim() || "esta categorÃ­a",
+      categoryName: category?.nombre?.trim() || "esta categoría",
     })
   }
 
@@ -311,7 +311,7 @@ export default function NewMenuPage() {
       data: { session },
     } = await supabase.auth.getSession()
     if (!session) {
-      setSaveError("Debes iniciar sesiÃ³n para subir imÃ¡genes.")
+      setSaveError("Debes iniciar sesión para subir imágenes.")
       return
     }
 
@@ -372,7 +372,7 @@ export default function NewMenuPage() {
   const saveMenu = async () => {
     if (isReadOnly) return
     if (!menuName.trim() && categories.length === 0 && !logoFile && !logoUrl) {
-      setSaveError("Debes completar el formulario antes de guardar el menÃº.")
+      setSaveError("Debes completar el formulario antes de guardar el menú.")
       return
     }
     if (!menuName.trim()) {
@@ -388,7 +388,7 @@ export default function NewMenuPage() {
         data: { session },
       } = await supabase.auth.getSession()
       if (!session) {
-        setSaveError("Debes iniciar sesiÃ³n para guardar.")
+        setSaveError("Debes iniciar sesión para guardar.")
         return
       }
 
@@ -435,7 +435,7 @@ export default function NewMenuPage() {
       const { data, error } = await supabase.from("menus").insert(payload).select("id").single()
 
       if (error) {
-        setSaveError(error.message || "No se pudo guardar el menÃº. Intenta nuevamente.")
+        setSaveError(error.message || "No se pudo guardar el menú. Intenta nuevamente.")
         return
       }
 
@@ -470,9 +470,9 @@ export default function NewMenuPage() {
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">CreaciÃ³n de menÃº</h1>
+              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Creación de menú</h1>
               <p className="mt-1 text-sm text-slate-300 sm:text-base">
-                Sube tu logo en PNG, crea categorÃ­as y agrega cada plato con nombre, ingredientes y precio.
+                Sube tu logo en PNG, crea categorías y agrega cada plato con nombre, ingredientes y precio.
               </p>
             </div>
           </div>
@@ -536,14 +536,14 @@ export default function NewMenuPage() {
             variants={card}
             className="flex h-full min-h-[300px] flex-col rounded-[28px] border border-white/10 bg-white/5 p-7 shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
           >
-            <h2 className="text-xl font-semibold text-white">Agregar categorÃ­as</h2>
+            <h2 className="text-xl font-semibold text-white">Agregar categorías</h2>
             <p className="mt-1 text-sm text-slate-400">Ej. Entradas, Platos fuertes, Bebidas, Postres.</p>
 
             <div className="mt-5 flex flex-col gap-3">
               <input
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="Nombre de la categorÃ­a"
+                placeholder="Nombre de la categoría"
                 disabled={creationLocked}
                 className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
               />
@@ -556,13 +556,13 @@ export default function NewMenuPage() {
                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Plus className="h-4 w-4" />
-                AÃ±adir categorÃ­a
+                Añadir categoría
               </motion.button>
             </div>
 
             <div className="mt-6 space-y-3 text-sm text-slate-300">
               <p className="rounded-2xl border border-white/10 bg-[#0d1424] px-4 py-3">
-                Recuerda: cada categorÃ­a puede tener varios platos con ingredientes y precios.
+                Recuerda: cada categoría puede tener varios platos con ingredientes y precios.
               </p>
             </div>
           </motion.section>
@@ -571,7 +571,7 @@ export default function NewMenuPage() {
         <div className={creationLocked ? "pointer-events-none opacity-60" : ""}>
         <motion.section variants={card} className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-2xl font-semibold text-white">CategorÃ­as y platos</h2>
+            <h2 className="text-2xl font-semibold text-white">Categorías y platos</h2>
             <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-300">
               Completa cada plato antes de publicar
             </span>
@@ -594,7 +594,7 @@ export default function NewMenuPage() {
                       onChange={(e) => updateCategoryName(category.id, e.target.value)}
                       disabled={creationLocked}
                       className="flex-1 min-w-[220px] rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-lg font-semibold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
-                      placeholder="Nombre de la categorÃ­a"
+                      placeholder="Nombre de la categoría"
                     />
                     <div className="flex items-center gap-2">
                       <motion.button
@@ -606,7 +606,7 @@ export default function NewMenuPage() {
                         className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-400/30 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <Plus className="h-4 w-4" />
-                        AÃ±adir plato
+                        Añadir plato
                       </motion.button>
                       <motion.button
                         type="button"
@@ -625,7 +625,7 @@ export default function NewMenuPage() {
                   <div className="mt-5 space-y-4">
                     {category.platos.length === 0 && (
                       <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-6 text-center text-sm text-slate-400">
-                        Esta categorÃ­a no tiene platos aÃºn. Agrega el primero.
+                        Esta categoría no tiene platos aún. Agrega el primero.
                       </div>
                     )}
 
@@ -672,7 +672,7 @@ export default function NewMenuPage() {
                                   aria-label="Quitar ingrediente"
                                   disabled={creationLocked}
                                 >
-                                  Ã—
+                                  ×
                                 </button>
                               </span>
                             ))}
@@ -759,9 +759,9 @@ export default function NewMenuPage() {
         <motion.section variants={card} className="rounded-[26px] border border-white/10 bg-white/5 p-6 text-white">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h3 className="text-xl font-semibold text-white">Guardar menÃº</h3>
+              <h3 className="text-xl font-semibold text-white">Guardar menú</h3>
               <p className="text-sm text-slate-400">
-                Guarda los cambios para que se reflejen en tu menÃº.
+                Guarda los cambios para que se reflejen en tu menú.
               </p>
             </div>
             <motion.button
@@ -772,7 +772,7 @@ export default function NewMenuPage() {
               disabled={isSaving || creationLocked}
               className="rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30 disabled:opacity-50"
             >
-              {isSaving ? "Guardando..." : menuId ? "Guardar cambios" : "Guardar menÃº"}
+              {isSaving ? "Guardando..." : menuId ? "Guardar cambios" : "Guardar menú"}
             </motion.button>
           </div>
           {saveError && (
@@ -879,8 +879,8 @@ export default function NewMenuPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-white">Eliminar plato</h3>
                   <p className="mt-1 text-sm text-slate-300">
-                    EstÃ¡s por borrar <span className="font-semibold text-white">{confirmDishDelete.dishName}</span>. Esta
-                    acciÃ³n no se puede deshacer.
+                    Estás por borrar <span className="font-semibold text-white">{confirmDishDelete.dishName}</span>. Esta
+                    acción no se puede deshacer.
                   </p>
                 </div>
               </div>
@@ -926,10 +926,10 @@ export default function NewMenuPage() {
                   <Trash2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Eliminar categorÃ­a</h3>
+                  <h3 className="text-lg font-semibold text-white">Eliminar categoría</h3>
                   <p className="mt-1 text-sm text-slate-300">
-                    EstÃ¡s por borrar <span className="font-semibold text-white">{confirmCategoryDelete.categoryName}</span> y
-                    todos sus platos. Esta acciÃ³n no se puede deshacer.
+                    Estás por borrar <span className="font-semibold text-white">{confirmCategoryDelete.categoryName}</span> y
+                    todos sus platos. Esta acción no se puede deshacer.
                   </p>
                 </div>
               </div>

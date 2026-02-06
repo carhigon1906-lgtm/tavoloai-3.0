@@ -5,26 +5,26 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Si usas una librerÃ­a de utilidades CSS (ej. tw-animate-css) puedes importarla despuÃ©s */
+/* Si usas una librería de utilidades CSS (ej. tw-animate-css) puedes importarla después */
 @import "tw-animate-css";
 
 /* ========= TavoloAI Design Tokens ========= */
 :root {
   /* Nueva paleta de colores TavoloAI */
   /* Colores principales */
-  --primary: 73 31 83; /* #491f53 - PÃºrpura oscuro */
-  --secondary: 49 39 131; /* #312783 - Azul pÃºrpura */
+  --primary: 73 31 83; /* #491f53 - Púrpura oscuro */
+  --secondary: 49 39 131; /* #312783 - Azul púrpura */
   --accent-1: 62 163 220; /* #3ea3dc - Azul cielo */
   --accent-2: 106 219 255; /* #6adbff - Azul claro */
   --accent-3: 0 106 233; /* #006ae9 - Azul */
-  --accent-4: 126 0 191; /* #7e00bf - PÃºrpura vibrante */
+  --accent-4: 126 0 191; /* #7e00bf - Púrpura vibrante */
 
   /* Colores base claros (modo claro) */
   --bg: 254 254 254; /* casi blanco */
   --surface: 248 248 248; /* gris muy claro */
   --fg: 17 17 17; /* casi negro */
 
-  /* Bordes y lÃ­neas */
+  /* Bordes y líneas */
   --border: 0 0 0 / 0.08;
 
   /* Sombras sutiles */
@@ -34,7 +34,7 @@
   --blur: saturate(180%) blur(24px);
   --panel: 255 255 255 / 0.7;
 
-  /* TipografÃ­as */
+  /* Tipografías */
   --font-heading: "Staatliches", "Inter", system-ui, sans-serif;
   --font-body: "Roboto Condensed", "Inter", system-ui, sans-serif;
   --font-alt: "Barlow Condensed", "Inter", system-ui, sans-serif;
@@ -261,13 +261,13 @@
     @apply brand-panel brand-blur brand-shadow rounded-3xl border border-brand;
   }
 
-  /* BotÃ³n actualizado con colores de marca */
+  /* Botón actualizado con colores de marca */
   .ios-button {
     @apply rounded-full px-6 py-3 text-white gradient-primary hover:opacity-90 active:scale-[0.98] transition-all duration-200 tap-highlight-none;
     box-shadow: 0 8px 24px rgba(73, 31, 83, 0.35);
   }
 
-  /* Variante de botÃ³n con gradiente de acento */
+  /* Variante de botón con gradiente de acento */
   .ios-button-accent {
     @apply rounded-full px-6 py-3 text-white gradient-accent hover:opacity-90 active:scale-[0.98] transition-all duration-200 tap-highlight-none;
     box-shadow: 0 8px 24px rgba(62, 163, 220, 0.35);
