@@ -47,6 +47,14 @@ export default function PanicPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState("")
   const [saveSuccess, setSaveSuccess] = useState("")
+  const [toast, setToast] = useState<{ type: "success" | "error" | "info"; message: string } | null>(null)
+
+  const showToast = (type: "success" | "error" | "info", message: string) => {
+    setToast({ type, message })
+    window.setTimeout(() => {
+      setToast((current) => (current?.message === message ? null : current))
+    }, 3000)
+  }
 
   useEffect(() => {
     const loadMenus = async () => {
@@ -142,10 +150,13 @@ export default function PanicPage() {
     [categories],
   )
 
-  const persistCategories = async (nextCategories: Category[]) => {
+  const toggleDish = async (categoryId: number | string, dishId: number | string) => {
+    if (menuLoading || isSaving) return
+
     setIsSaving(true)
     setSaveError("")
     setSaveSuccess("")
+    showToast("info", "Actualizando visibilidad del plato...")
 
     const {
       data: { session },
@@ -153,39 +164,95 @@ export default function PanicPage() {
 
     if (!session || !selectedMenuId) {
       setSaveError("Debes iniciar sesion para guardar cambios.")
+      showToast("error", "Debes iniciar sesión para guardar cambios.")
       setIsSaving(false)
       return
     }
 
-    const payload = { categories: nextCategories, updated_at: new Date().toISOString() }
-    const { error } = await supabase.from("menus").update(payload).eq("id", selectedMenuId)
+    const { data, error } = await supabase
+      .from("menus")
+      .select("categories")
+      .eq("id", selectedMenuId)
+      .eq("user_id", session.user.id)
+      .maybeSingle()
 
-    if (error) {
+    if (error || !data) {
+      setSaveError("No pudimos cargar tu menu para actualizarlo.")
+      showToast("error", "No pudimos cargar tu menú para actualizarlo.")
+      setIsSaving(false)
+      return
+    }
+
+    const baseCategories = Array.isArray(data.categories)
+      ? data.categories.map((cat) => ({
+          ...cat,
+          platos: Array.isArray(cat.platos)
+            ? cat.platos.map((dish) => ({ ...dish, activo: dish.activo ?? true }))
+            : [],
+        }))
+      : []
+
+    const baseTotal = baseCategories.reduce((acc, cat) => acc + (cat.platos?.length ?? 0), 0)
+    console.log("[panic] base categories", {
+      menuId: selectedMenuId,
+      categories: baseCategories.length,
+      dishes: baseTotal,
+    })
+
+    if (!baseCategories.length || baseTotal === 0) {
+      setSaveError("Aún no hay platos cargados para actualizar.")
+      showToast("error", "Aún no hay platos cargados para actualizar.")
+      setIsSaving(false)
+      return
+    }
+
+    const targetCategory = baseCategories.find((cat) => String(cat.id) === String(categoryId))
+    const targetDish = targetCategory?.platos?.find((dish) => String(dish.id) === String(dishId))
+    if (!targetCategory || !targetDish) {
+      setSaveError("No encontramos el plato seleccionado.")
+      showToast("error", "No encontramos el plato seleccionado.")
+      setIsSaving(false)
+      return
+    }
+
+    const nextCategories = baseCategories.map((cat) =>
+      String(cat.id) === String(categoryId)
+        ? {
+            ...cat,
+            platos: cat.platos.map((dish) =>
+              String(dish.id) === String(dishId) ? { ...dish, activo: !(dish.activo ?? true) } : dish,
+            ),
+          }
+        : cat,
+    )
+
+    setCategories(nextCategories)
+
+    const payload = { categories: nextCategories, updated_at: new Date().toISOString() }
+    const { error: updateError } = await supabase.from("menus").update(payload).eq("id", selectedMenuId)
+
+    if (updateError) {
+      setCategories(baseCategories)
       setSaveError("No se pudo actualizar el menu. Intenta nuevamente.")
+      showToast("error", "No se pudo actualizar el menú. Intenta nuevamente.")
+      console.log("[panic] update error", updateError)
     } else {
       setSaveSuccess("Actualizado.")
+      showToast(
+        "success",
+        targetDish.activo === false ? "Plato visible" : "Plato oculto",
+      )
+      const nextTotal = nextCategories.reduce((acc, cat) => acc + (cat.platos?.length ?? 0), 0)
+      console.log("[panic] updated categories", {
+        menuId: selectedMenuId,
+        categories: nextCategories.length,
+        dishes: nextTotal,
+        dishId,
+        nextActive: !(targetDish.activo ?? true),
+      })
     }
 
     setIsSaving(false)
-  }
-
-  const toggleDish = async (categoryId: number | string, dishId: number | string) => {
-    let nextCategories: Category[] = []
-    setCategories((prev) => {
-      nextCategories = prev.map((cat) =>
-        String(cat.id) === String(categoryId)
-          ? {
-              ...cat,
-              platos: cat.platos.map((dish) =>
-                String(dish.id) === String(dishId) ? { ...dish, activo: !(dish.activo ?? true) } : dish,
-              ),
-            }
-          : cat,
-      )
-      return nextCategories
-    })
-
-    await persistCategories(nextCategories)
   }
 
   return (
@@ -199,6 +266,19 @@ export default function PanicPage() {
         variants={container}
         className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-12"
       >
+        {toast && (
+          <div
+            className={`fixed right-6 top-6 z-50 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-[0_18px_40px_rgba(0,0,0,0.45)] ${
+              toast.type === "success"
+                ? "border-emerald-300/40 bg-emerald-500/20 text-emerald-100"
+                : toast.type === "error"
+                  ? "border-red-300/40 bg-red-500/20 text-red-100"
+                  : "border-white/20 bg-white/10 text-slate-200"
+            }`}
+          >
+            {toast.message}
+          </div>
+        )}
         <motion.section variants={card} className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link
