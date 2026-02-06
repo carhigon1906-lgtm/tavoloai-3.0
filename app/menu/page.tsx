@@ -253,27 +253,29 @@ export default function HomePage() {
                                     animate={{ scale: 1, rotate: 0 }}
                                     transition={{ delay: 0.12, duration: 0.45, ease: "easeOut" }}
                                 >
-                    {!menuLoading && menuData.logo_url ? (
-                        <motion.img
-                            src={menuData.logo_url}
-                            alt="Logo del menú"
-                            style={styles.introBadgeImage}
-                            initial={{ scale: 0.92, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.18, duration: 0.45, ease: "easeOut" }}
-                        />
-                    ) : !menuLoading ? (
-                        <MotionImage
-                            src={tavoloLogo}
-                            alt="Taboloai logo"
-                            style={styles.introBadgeImage}
-                            width={160}
+                                    {!menuLoading && menuData.logo_url ? (
+                                        <motion.img
+                                            src={menuData.logo_url}
+                                            alt="Logo del menú"
+                                            style={styles.introBadgeImage}
+                                            initial={{ scale: 0.92, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            transition={{ delay: 0.18, duration: 0.45, ease: "easeOut" }}
+                                        />
+                                    ) : !menuLoading ? (
+                                        <MotionImage
+                                            src={tavoloLogo}
+                                            alt="Taboloai logo"
+                                            style={styles.introBadgeImage}
+                                            width={160}
                                             height={160}
                                             priority
                                             initial={{ scale: 0.92, opacity: 0 }}
                                             animate={{ scale: 1, opacity: 1 }}
                                             transition={{ delay: 0.18, duration: 0.45, ease: "easeOut" }}
                                         />
+                                    ) : (
+                                        <div style={styles.introBadgeSkeleton} />
                                     )}
                                 </motion.div>
                             </motion.div>
@@ -589,6 +591,15 @@ const styles: { [key: string]: React.CSSProperties } = {
         height: '100%',
         objectFit: 'contain',
         filter: 'drop-shadow(0 16px 28px rgba(0, 0, 0, 0.45))',
+    },
+    introBadgeSkeleton: {
+        width: '100%',
+        height: '100%',
+        borderRadius: '28px',
+        background:
+            'linear-gradient(120deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08))',
+        backgroundSize: '200% 100%',
+        animation: 'logoShimmer 1.2s ease-in-out infinite',
     },
     introTitle: {
         fontSize: 'clamp(2.1rem, 9vw, 3.5rem)',
