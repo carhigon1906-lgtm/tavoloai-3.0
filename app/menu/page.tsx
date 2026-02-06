@@ -74,7 +74,12 @@ export default function HomePage() {
     const [isMobileViewport, setIsMobileViewport] = useState(false)
     const [showIntro, setShowIntro] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
-    const [menuData, setMenuData] = useState<{ id?: string; logo_url?: string; nombre?: string; categories: Category[] }>({
+    const [menuData, setMenuData] = useState<{
+        id?: string
+        logo_url?: string
+        nombre?: string
+        categories: Category[]
+    }>({
         id: "",
         logo_url: "",
         nombre: "",
@@ -248,21 +253,21 @@ export default function HomePage() {
                                     animate={{ scale: 1, rotate: 0 }}
                                     transition={{ delay: 0.12, duration: 0.45, ease: "easeOut" }}
                                 >
-                                    {menuData.logo_url ? (
-                                        <motion.img
-                                            src={menuData.logo_url}
-                                            alt="Logo del menú"
-                                            style={styles.introBadgeImage}
-                                            initial={{ scale: 0.92, opacity: 0 }}
-                                            animate={{ scale: 1, opacity: 1 }}
-                                            transition={{ delay: 0.18, duration: 0.45, ease: "easeOut" }}
-                                        />
-                                    ) : (
-                                        <MotionImage
-                                            src={tavoloLogo}
-                                            alt="Taboloai logo"
-                                            style={styles.introBadgeImage}
-                                            width={160}
+                    {!menuLoading && menuData.logo_url ? (
+                        <motion.img
+                            src={menuData.logo_url}
+                            alt="Logo del menú"
+                            style={styles.introBadgeImage}
+                            initial={{ scale: 0.92, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 0.18, duration: 0.45, ease: "easeOut" }}
+                        />
+                    ) : !menuLoading ? (
+                        <MotionImage
+                            src={tavoloLogo}
+                            alt="Taboloai logo"
+                            style={styles.introBadgeImage}
+                            width={160}
                                             height={160}
                                             priority
                                             initial={{ scale: 0.92, opacity: 0 }}
@@ -308,16 +313,19 @@ export default function HomePage() {
                     pointerEvents: showIntro ? "none" : "auto",
                 }}
             >
+                <style>{`@keyframes logoShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }`}</style>
                 <motion.div
                     style={styles.branding}
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ type: 'spring', stiffness: 120 }}
                 >
-                    {menuData.logo_url ? (
+                    {!menuLoading && menuData.logo_url ? (
                         <img src={menuData.logo_url} alt="Logo del menú" style={styles.brandLogo} />
-                    ) : (
+                    ) : !menuLoading ? (
                         <Image src={logoBlanco} alt="Taboloai" style={styles.brandLogo} />
+                    ) : (
+                        <div style={styles.logoSkeleton} />
                     )}
                     <span style={styles.brandTagline}>{menuData.nombre || "Menu inteligente para tu carta digital"}</span>
                     <MotionBox
@@ -638,6 +646,16 @@ const styles: { [key: string]: React.CSSProperties } = {
         height: 'auto',
         objectFit: 'contain',
         filter: 'drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55))',
+    },
+    logoSkeleton: {
+        width: 'min(140px, 42vw)',
+        height: 'min(140px, 42vw)',
+        borderRadius: '18px',
+        background:
+            'linear-gradient(120deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06))',
+        backgroundSize: '200% 100%',
+        animation: 'logoShimmer 1.2s ease-in-out infinite',
+        boxShadow: '0 12px 26px rgba(0, 0, 0, 0.35)',
     },
     brandTagline: {
         fontSize: 'clamp(0.9rem, 3vw, 1.2rem)',
