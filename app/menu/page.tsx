@@ -6,7 +6,6 @@ import { ShoppingBag } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import type { StaticImageData } from "next/image"
 import Image from "next/image"
-import { supabase } from "@/lib/supabaseClient"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import tavoloLogo from "@/public/logo.png"
@@ -114,24 +113,18 @@ export default function HomePage() {
 
     useEffect(() => {
         const loadMenu = async () => {
-            const {
-                data: { session },
-            } = await supabase.auth.getSession()
-
-            const baseQuery = supabase.from("menus").select("id, logo_url, nombre, categories")
-            const query = menuIdParam
-                ? baseQuery.eq("id", menuIdParam).maybeSingle()
-                : session?.user?.id
-                ? baseQuery.eq("user_id", session.user.id).limit(1).maybeSingle()
-                : baseQuery.limit(1).maybeSingle()
-            const { data, error } = await query
-
-            if (error) {
-                setMenuError("No pudimos cargar tu menú.")
-                setMenuLoading(false)
-                return
-            }
-
+            setMenuLoading(true)
+            setMenuError("")
+            try {
+                const params = menuIdParam ? `?menu=${encodeURIComponent(menuIdParam)}` : ""
+                const response = await fetch(`/api/menu/public${params}`, { cache: "no-store" })
+                if (!response.ok) {
+                    setMenuError("No pudimos cargar tu menú.")
+                    setMenuLoading(false)
+                    return
+                }
+                const result = await response.json()
+                const data = result?.menu
                 if (data) {
                     setMenuData({
                         id: data.id ? String(data.id) : "",
@@ -140,7 +133,11 @@ export default function HomePage() {
                         categories: Array.isArray(data.categories) ? data.categories : [],
                     })
                 }
-            setMenuLoading(false)
+            } catch {
+                setMenuError("No pudimos cargar tu menú.")
+            } finally {
+                setMenuLoading(false)
+            }
         }
 
         loadMenu()

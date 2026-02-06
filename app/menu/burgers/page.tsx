@@ -4,7 +4,6 @@
 import { motion } from "framer-motion"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
 
 export const dynamic = "force-dynamic"
 
@@ -53,35 +52,31 @@ export default function BurgersPage() {
     useEffect(() => {
         const loadMenu = async () => {
             setMenuLoading(true)
-            const {
-                data: { session },
-            } = await supabase.auth.getSession()
-
-            const baseQuery = supabase.from("menus").select("categories")
-            const query = menuIdParam
-                ? baseQuery.eq("id", menuIdParam).maybeSingle()
-                : session?.user?.id
-                ? baseQuery.eq("user_id", session.user.id).limit(1).maybeSingle()
-                : baseQuery.limit(1).maybeSingle()
-            const { data, error } = await query
-
-            if (error) {
+            setMenuError("")
+            try {
+                const params = menuIdParam ? `?menu=${encodeURIComponent(menuIdParam)}` : ""
+                const response = await fetch(`/api/menu/public${params}`, { cache: "no-store" })
+                if (!response.ok) {
+                    setMenuError("No pudimos cargar tu menú.")
+                    setMenuLoading(false)
+                    return
+                }
+                const result = await response.json()
+                const data = result?.menu
+                const categories = (data?.categories ?? []) as Category[]
+                const selected = categories.find((cat) => String(cat.id) === String(categoryId))
+                if (selected) {
+                    setCategoryName(selected.nombre)
+                    setDishes((selected.platos ?? []).filter((dish) => dish.activo !== false))
+                } else if (categories[0]) {
+                    setCategoryName(categories[0].nombre)
+                    setDishes((categories[0].platos ?? []).filter((dish) => dish.activo !== false))
+                }
+            } catch {
                 setMenuError("No pudimos cargar tu menú.")
+            } finally {
                 setMenuLoading(false)
-                return
             }
-
-            const categories = (data?.categories ?? []) as Category[]
-            const selected = categories.find((cat) => String(cat.id) === String(categoryId))
-            if (selected) {
-                setCategoryName(selected.nombre)
-                setDishes((selected.platos ?? []).filter((dish) => dish.activo !== false))
-            } else if (categories[0]) {
-                setCategoryName(categories[0].nombre)
-                setDishes((categories[0].platos ?? []).filter((dish) => dish.activo !== false))
-            }
-
-            setMenuLoading(false)
         }
 
         loadMenu()
