@@ -4,7 +4,6 @@
 import { motion } from "framer-motion"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
 
 type Dish = {
   id: number | string
@@ -376,35 +375,32 @@ export default function DishDetailPage() {
 
   useEffect(() => {
     const loadDish = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      setMenuLoading(true)
+      setMenuError("")
+      try {
+        const params = menuIdParam ? `?menu=${encodeURIComponent(menuIdParam)}` : ""
+        const response = await fetch(`/api/menu/public${params}`, { cache: "no-store" })
+        if (!response.ok) {
+          setMenuError("No pudimos cargar el plato.")
+          setMenuLoading(false)
+          return
+        }
+        const result = await response.json()
+        const data = result?.menu
+        const categories = (data?.categories ?? []) as Category[]
+        const flattened = categories.flatMap((cat) => (cat.platos ?? []).filter((dish) => dish.activo !== false))
+        const found = flattened.find((item) => String(item.id) === String(dishId))
 
-      const baseQuery = supabase.from("menus").select("categories")
-      const query = menuIdParam
-        ? baseQuery.eq("id", menuIdParam).maybeSingle()
-        : session?.user?.id
-        ? baseQuery.eq("user_id", session.user.id).limit(1).maybeSingle()
-        : baseQuery.limit(1).maybeSingle()
-      const { data, error } = await query
-
-      if (error) {
+        if (found) {
+          setDish(found)
+        } else {
+          setMenuError("No encontramos este plato.")
+        }
+      } catch {
         setMenuError("No pudimos cargar el plato.")
+      } finally {
         setMenuLoading(false)
-        return
       }
-
-      const categories = (data?.categories ?? []) as Category[]
-      const flattened = categories.flatMap((cat) => (cat.platos ?? []).filter((dish) => dish.activo !== false))
-      const found = flattened.find((item) => String(item.id) === String(dishId))
-
-      if (found) {
-        setDish(found)
-      } else {
-        setMenuError("No encontramos este plato.")
-      }
-
-      setMenuLoading(false)
     }
 
     loadDish()
