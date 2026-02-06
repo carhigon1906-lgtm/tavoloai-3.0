@@ -1,10 +1,11 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Edit3, Eye, Layers, Plus, Trash2 } from "lucide-react"
+import { Edit3, Eye, Layers, Plus, Trash2, QrCode as QrCodeIcon } from "lucide-react"
+import QRCode from "react-qr-code"
 import { supabase } from "@/lib/supabaseClient"
 
 type Dish = {
@@ -50,7 +51,8 @@ export default function MenusPage() {
   const [menuToDelete, setMenuToDelete] = useState<MenuRow | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState("")
-
+  const [qrMenu, setQrMenu] = useState<MenuRow | null>(null)
+  const qrRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => {
     const loadMenus = async () => {
       setLoading(true)
@@ -94,6 +96,60 @@ export default function MenusPage() {
     [menus],
   )
 
+  const qrMenuUrl = useMemo(() => {
+    if (!qrMenu) return ""
+    const menuId = encodeURIComponent(String(qrMenu.id))
+    if (typeof window === "undefined") return `/menu?menu=${menuId}`
+    return `${window.location.origin}/menu?menu=${menuId}`
+  }, [qrMenu])
+
+  const downloadQrImage = () => {
+    const container = qrRef.current
+    if (!container || !qrMenu) return
+    const svg = container.querySelector("svg") as SVGSVGElement | null
+    if (!svg) return
+
+    const serializer = new XMLSerializer()
+    let source = serializer.serializeToString(svg)
+    if (!source.match(/^<svg[^>]+xmlns=\"http:\/\/www\.w3\.org\/2000\/svg\"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"')
+    }
+    if (!source.match(/^<svg[^>]+xmlns:xlink=\"http:\/\/www\.w3\.org\/1999\/xlink\"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"')
+    }
+
+    const svgBlob = new Blob([source], { type: "image/svg+xml;charset=utf-8" })
+    const url = URL.createObjectURL(svgBlob)
+    const img = new Image()
+    const size = 512
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas")
+      canvas.width = size
+      canvas.height = size
+      const ctx = canvas.getContext("2d")
+      if (!ctx) {
+        URL.revokeObjectURL(url)
+        return
+      }
+      ctx.fillStyle = "#ffffff"
+      ctx.fillRect(0, 0, size, size)
+      ctx.drawImage(img, 0, 0, size, size)
+      URL.revokeObjectURL(url)
+
+      const pngUrl = canvas.toDataURL("image/png")
+      const link = document.createElement("a")
+      link.href = pngUrl
+      link.download = `menu-qr-${qrMenu.id}.png`
+      link.click()
+    }
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+    }
+
+    img.src = url
+  }
   const toggleMenuActive = async (menuId: number | string) => {
     const current = menus.find((m) => String(m.id) == String(menuId))
     if (!current) return
@@ -114,7 +170,7 @@ export default function MenusPage() {
       data: { session },
     } = await supabase.auth.getSession()
     if (!session) {
-      setDeleteError("Debes iniciar sesión para eliminar el menú.")
+      setDeleteError("Debes iniciar sesiÃ³n para eliminar el menÃº.")
       setIsDeleting(false)
       return
     }
@@ -126,7 +182,7 @@ export default function MenusPage() {
       .eq("user_id", session.user.id)
       .select("id")
     if (error) {
-      setDeleteError(error.message || "No se pudo eliminar el menú. Intenta nuevamente.")
+      setDeleteError(error.message || "No se pudo eliminar el menÃº. Intenta nuevamente.")
       setIsDeleting(false)
       return
     }
@@ -139,12 +195,12 @@ export default function MenusPage() {
       .maybeSingle()
 
     if (checkError) {
-      setDeleteError(checkError.message || "No se pudo verificar la eliminación. Intenta nuevamente.")
+      setDeleteError(checkError.message || "No se pudo verificar la eliminaciÃ³n. Intenta nuevamente.")
       setIsDeleting(false)
       return
     }
     if (check?.id) {
-      setDeleteError("No se pudo eliminar el menú. Verifica tus permisos.")
+      setDeleteError("No se pudo eliminar el menÃº. Verifica tus permisos.")
       setIsDeleting(false)
       return
     }
@@ -256,6 +312,14 @@ export default function MenusPage() {
                           }`}
                         />
                       </button>
+                      <button
+                        type="button"
+                        title="Ver QR"
+                        onClick={() => setQrMenu(m)}
+                        className="h-9 w-9 rounded-xl border border-indigo-300/30 bg-indigo-400/15 text-indigo-100 hover:bg-indigo-400/25 transition"
+                      >
+                        <QrCodeIcon className="h-4 w-4 mx-auto" />
+                      </button>
 
                       <button
                         type="button"
@@ -292,8 +356,78 @@ export default function MenusPage() {
           </div>
         </motion.section>
       </motion.div>
-
       <AnimatePresence>
+        {qrMenu && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6 py-10 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-lg rounded-3xl border border-white/10 bg-[#0b1220] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+              initial={{ y: 24, scale: 0.98, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 16, scale: 0.98, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">QR del menú</h3>
+                  <p className="mt-1 text-sm text-slate-300">Escanéalo o compártelo para abrir este menú.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setQrMenu(null)}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/10"
+                >
+                  Cerrar
+                </button>
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-[220px_1fr] sm:items-center">
+                <div ref={qrRef} className="flex items-center justify-center rounded-2xl border border-white/10 bg-white p-4">
+                  <QRCode value={qrMenuUrl || `/menu?menu=${encodeURIComponent(String(qrMenu.id))}`} size={180} />
+                </div>
+                <div className="space-y-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-slate-200">
+                    {qrMenuUrl || `/menu?menu=${encodeURIComponent(String(qrMenu.id))}`}
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/menu?menu=${encodeURIComponent(String(qrMenu.id))}`)}
+                      className="inline-flex items-center justify-center rounded-2xl border border-cyan-300/70 bg-cyan-400/20 px-4 py-2 text-xs font-semibold text-cyan-50 transition hover:bg-cyan-400/30"
+                    >
+                      Abrir menú
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!qrMenuUrl) return
+                        try {
+                          await navigator.clipboard.writeText(qrMenuUrl)
+                        } catch {
+                          // ignore clipboard errors
+                        }
+                      }}
+                      className="inline-flex items-center justify-center rounded-2xl border border-emerald-300/50 bg-emerald-400/20 px-4 py-2 text-xs font-semibold text-emerald-50 transition hover:bg-emerald-400/30"
+                    >
+                      Copiar link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={downloadQrImage}
+                      className="inline-flex items-center justify-center rounded-2xl border border-indigo-300/60 bg-indigo-400/20 px-4 py-2 text-xs font-semibold text-indigo-50 transition hover:bg-indigo-400/30"
+                    >
+                      Descargar QR
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
         {menuToDelete && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6 py-10 backdrop-blur-sm"
@@ -313,9 +447,9 @@ export default function MenusPage() {
                   <Trash2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Eliminar menú</h3>
+                  <h3 className="text-lg font-semibold text-white">Eliminar menÃº</h3>
                   <p className="mt-1 text-sm text-slate-300">
-                    Estás por borrar <span className="font-semibold text-white">{menuToDelete.nombre}</span>. Esta acción
+                    EstÃ¡s por borrar <span className="font-semibold text-white">{menuToDelete.nombre}</span>. Esta acciÃ³n
                     no se puede deshacer.
                   </p>
                 </div>

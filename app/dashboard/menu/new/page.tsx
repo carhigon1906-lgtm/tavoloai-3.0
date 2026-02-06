@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -6,6 +6,7 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowLeft, Plus, Trash2, Upload, Image as ImageIcon, UtensilsCrossed } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
+import QRCode from "react-qr-code"
 
 type Dish = {
   id: number
@@ -46,6 +47,7 @@ export default function NewMenuPage() {
   const [saveSuccess, setSaveSuccess] = useState<string>("")
   const [isSaving, setIsSaving] = useState<boolean>(false)
   const [isReadOnly, setIsReadOnly] = useState(false)
+  const [showQrModal, setShowQrModal] = useState(false)
   const [uploadingDish, setUploadingDish] = useState<Record<number, boolean>>({})
   const [confirmDishDelete, setConfirmDishDelete] = useState<{
     categoryId: number
@@ -62,6 +64,7 @@ export default function NewMenuPage() {
   const [menuSlug, setMenuSlug] = useState<string>("")
   const [ingredientDrafts, setIngredientDrafts] = useState<Record<number, string>>({})
   const logoInputRef = useRef<HTMLInputElement | null>(null)
+  const qrRef = useRef<HTMLDivElement | null>(null)
 
   const slugify = (s: string) =>
     s
@@ -109,6 +112,59 @@ export default function NewMenuPage() {
     [categories],
   )
 
+  const menuUrl = useMemo(() => {
+    if (!menuId) return ""
+    if (typeof window === "undefined") return `/menu?menu=${encodeURIComponent(menuId)}`
+    return `${window.location.origin}/menu?menu=${encodeURIComponent(menuId)}`
+  }, [menuId])
+  const downloadQrImage = () => {
+    const container = qrRef.current
+    if (!container) return
+    const svg = container.querySelector("svg") as SVGSVGElement | null
+    if (!svg) return
+
+    const serializer = new XMLSerializer()
+    let source = serializer.serializeToString(svg)
+    if (!source.match(/^<svg[^>]+xmlns=\"http:\/\/www\.w3\.org\/2000\/svg\"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"')
+    }
+    if (!source.match(/^<svg[^>]+xmlns:xlink=\"http:\/\/www\.w3\.org\/1999\/xlink\"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"')
+    }
+
+    const svgBlob = new Blob([source], { type: "image/svg+xml;charset=utf-8" })
+    const url = URL.createObjectURL(svgBlob)
+    const img = new Image()
+    const size = 512
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas")
+      canvas.width = size
+      canvas.height = size
+      const ctx = canvas.getContext("2d")
+      if (!ctx) {
+        URL.revokeObjectURL(url)
+        return
+      }
+      ctx.fillStyle = "#ffffff"
+      ctx.fillRect(0, 0, size, size)
+      ctx.drawImage(img, 0, 0, size, size)
+      URL.revokeObjectURL(url)
+
+      const pngUrl = canvas.toDataURL("image/png")
+      const link = document.createElement("a")
+      link.href = pngUrl
+      link.download = `menu-qr-${menuId ?? "menu"}.png`
+      link.click()
+    }
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+    }
+
+    img.src = url
+  }
+
   const onLogoSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -133,7 +189,7 @@ export default function NewMenuPage() {
   }
 
   const addCategory = () => {
-    if (!newCategoryName.trim()) return alert("Ingresa un nombre de categoría.")
+    if (!newCategoryName.trim()) return alert("Ingresa un nombre de categorÃ­a.")
     setCategories((prev) => [
       ...prev,
       { id: Date.now(), nombre: newCategoryName.trim(), platos: [] },
@@ -149,7 +205,7 @@ export default function NewMenuPage() {
     const category = categories.find((cat) => cat.id === categoryId)
     setConfirmCategoryDelete({
       categoryId,
-      categoryName: category?.nombre?.trim() || "esta categoría",
+      categoryName: category?.nombre?.trim() || "esta categorÃ­a",
     })
   }
 
@@ -255,7 +311,7 @@ export default function NewMenuPage() {
       data: { session },
     } = await supabase.auth.getSession()
     if (!session) {
-      setSaveError("Debes iniciar sesión para subir imágenes.")
+      setSaveError("Debes iniciar sesiÃ³n para subir imÃ¡genes.")
       return
     }
 
@@ -316,7 +372,7 @@ export default function NewMenuPage() {
   const saveMenu = async () => {
     if (isReadOnly) return
     if (!menuName.trim() && categories.length === 0 && !logoFile && !logoUrl) {
-      setSaveError("Debes completar el formulario antes de guardar el menú.")
+      setSaveError("Debes completar el formulario antes de guardar el menÃº.")
       return
     }
     if (!menuName.trim()) {
@@ -332,7 +388,7 @@ export default function NewMenuPage() {
         data: { session },
       } = await supabase.auth.getSession()
       if (!session) {
-        setSaveError("Debes iniciar sesión para guardar.")
+        setSaveError("Debes iniciar sesiÃ³n para guardar.")
         return
       }
 
@@ -379,13 +435,14 @@ export default function NewMenuPage() {
       const { data, error } = await supabase.from("menus").insert(payload).select("id").single()
 
       if (error) {
-        setSaveError(error.message || "No se pudo guardar el menú. Intenta nuevamente.")
+        setSaveError(error.message || "No se pudo guardar el menÃº. Intenta nuevamente.")
         return
       }
 
       setMenuId(String(data.id))
       setSaveSuccess("Menu guardado correctamente.")
       setIsReadOnly(true)
+      setShowQrModal(true)
     } finally {
       setIsSaving(false)
     }
@@ -413,9 +470,9 @@ export default function NewMenuPage() {
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Creación de menú</h1>
+              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">CreaciÃ³n de menÃº</h1>
               <p className="mt-1 text-sm text-slate-300 sm:text-base">
-                Sube tu logo en PNG, crea categorías y agrega cada plato con nombre, ingredientes y precio.
+                Sube tu logo en PNG, crea categorÃ­as y agrega cada plato con nombre, ingredientes y precio.
               </p>
             </div>
           </div>
@@ -479,14 +536,14 @@ export default function NewMenuPage() {
             variants={card}
             className="flex h-full min-h-[300px] flex-col rounded-[28px] border border-white/10 bg-white/5 p-7 shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
           >
-            <h2 className="text-xl font-semibold text-white">Agregar categorías</h2>
+            <h2 className="text-xl font-semibold text-white">Agregar categorÃ­as</h2>
             <p className="mt-1 text-sm text-slate-400">Ej. Entradas, Platos fuertes, Bebidas, Postres.</p>
 
             <div className="mt-5 flex flex-col gap-3">
               <input
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="Nombre de la categoría"
+                placeholder="Nombre de la categorÃ­a"
                 disabled={creationLocked}
                 className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
               />
@@ -499,13 +556,13 @@ export default function NewMenuPage() {
                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Plus className="h-4 w-4" />
-                Añadir categoría
+                AÃ±adir categorÃ­a
               </motion.button>
             </div>
 
             <div className="mt-6 space-y-3 text-sm text-slate-300">
               <p className="rounded-2xl border border-white/10 bg-[#0d1424] px-4 py-3">
-                Recuerda: cada categoría puede tener varios platos con ingredientes y precios.
+                Recuerda: cada categorÃ­a puede tener varios platos con ingredientes y precios.
               </p>
             </div>
           </motion.section>
@@ -514,7 +571,7 @@ export default function NewMenuPage() {
         <div className={creationLocked ? "pointer-events-none opacity-60" : ""}>
         <motion.section variants={card} className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-2xl font-semibold text-white">Categorías y platos</h2>
+            <h2 className="text-2xl font-semibold text-white">CategorÃ­as y platos</h2>
             <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-300">
               Completa cada plato antes de publicar
             </span>
@@ -537,7 +594,7 @@ export default function NewMenuPage() {
                       onChange={(e) => updateCategoryName(category.id, e.target.value)}
                       disabled={creationLocked}
                       className="flex-1 min-w-[220px] rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-lg font-semibold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
-                      placeholder="Nombre de la categoría"
+                      placeholder="Nombre de la categorÃ­a"
                     />
                     <div className="flex items-center gap-2">
                       <motion.button
@@ -549,7 +606,7 @@ export default function NewMenuPage() {
                         className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-400/30 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <Plus className="h-4 w-4" />
-                        Añadir plato
+                        AÃ±adir plato
                       </motion.button>
                       <motion.button
                         type="button"
@@ -568,7 +625,7 @@ export default function NewMenuPage() {
                   <div className="mt-5 space-y-4">
                     {category.platos.length === 0 && (
                       <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-6 text-center text-sm text-slate-400">
-                        Esta categoría no tiene platos aún. Agrega el primero.
+                        Esta categorÃ­a no tiene platos aÃºn. Agrega el primero.
                       </div>
                     )}
 
@@ -615,7 +672,7 @@ export default function NewMenuPage() {
                                   aria-label="Quitar ingrediente"
                                   disabled={creationLocked}
                                 >
-                                  ×
+                                  Ã—
                                 </button>
                               </span>
                             ))}
@@ -702,9 +759,9 @@ export default function NewMenuPage() {
         <motion.section variants={card} className="rounded-[26px] border border-white/10 bg-white/5 p-6 text-white">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h3 className="text-xl font-semibold text-white">Guardar menú</h3>
+              <h3 className="text-xl font-semibold text-white">Guardar menÃº</h3>
               <p className="text-sm text-slate-400">
-                Guarda los cambios para que se reflejen en tu menú.
+                Guarda los cambios para que se reflejen en tu menÃº.
               </p>
             </div>
             <motion.button
@@ -715,7 +772,7 @@ export default function NewMenuPage() {
               disabled={isSaving || creationLocked}
               className="rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30 disabled:opacity-50"
             >
-              {isSaving ? "Guardando..." : menuId ? "Guardar cambios" : "Guardar menú"}
+              {isSaving ? "Guardando..." : menuId ? "Guardar cambios" : "Guardar menÃº"}
             </motion.button>
           </div>
           {saveError && (
@@ -729,6 +786,78 @@ export default function NewMenuPage() {
       </motion.div>
 
       <AnimatePresence>
+        {showQrModal && menuId && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6 py-10 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-lg rounded-3xl border border-white/10 bg-[#0b1220] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+              initial={{ y: 24, scale: 0.98, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 16, scale: 0.98, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Tu QR está listo</h3>
+                  <p className="mt-1 text-sm text-slate-300">
+                    Escanéalo o compártelo para abrir el menú recién creado.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowQrModal(false)}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/10"
+                >
+                  Cerrar
+                </button>
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-[220px_1fr] sm:items-center">
+                <div ref={qrRef} className="flex items-center justify-center rounded-2xl border border-white/10 bg-white p-4">
+                  <QRCode value={menuUrl || `/menu?menu=${encodeURIComponent(menuId)}`} size={180} />
+                </div>
+                <div className="space-y-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-slate-200">
+                    {menuUrl || `/menu?menu=${encodeURIComponent(menuId)}`}
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <Link
+                      href={`/menu?menu=${encodeURIComponent(menuId)}`}
+                      className="inline-flex items-center justify-center rounded-2xl border border-cyan-300/70 bg-cyan-400/20 px-4 py-2 text-xs font-semibold text-cyan-50 transition hover:bg-cyan-400/30"
+                    >
+                      Abrir menú
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!menuUrl) return
+                        try {
+                          await navigator.clipboard.writeText(menuUrl)
+                        } catch {
+                          // ignore clipboard errors
+                        }
+                      }}
+                      className="inline-flex items-center justify-center rounded-2xl border border-emerald-300/50 bg-emerald-400/20 px-4 py-2 text-xs font-semibold text-emerald-50 transition hover:bg-emerald-400/30"
+                    >
+                      Copiar link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={downloadQrImage}
+                      className="inline-flex items-center justify-center rounded-2xl border border-indigo-300/60 bg-indigo-400/20 px-4 py-2 text-xs font-semibold text-indigo-50 transition hover:bg-indigo-400/30"
+                    >
+                      Descargar QR
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
         {confirmDishDelete && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6 py-10 backdrop-blur-sm"
@@ -750,8 +879,8 @@ export default function NewMenuPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-white">Eliminar plato</h3>
                   <p className="mt-1 text-sm text-slate-300">
-                    Estás por borrar <span className="font-semibold text-white">{confirmDishDelete.dishName}</span>. Esta
-                    acción no se puede deshacer.
+                    EstÃ¡s por borrar <span className="font-semibold text-white">{confirmDishDelete.dishName}</span>. Esta
+                    acciÃ³n no se puede deshacer.
                   </p>
                 </div>
               </div>
@@ -797,10 +926,10 @@ export default function NewMenuPage() {
                   <Trash2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Eliminar categoría</h3>
+                  <h3 className="text-lg font-semibold text-white">Eliminar categorÃ­a</h3>
                   <p className="mt-1 text-sm text-slate-300">
-                    Estás por borrar <span className="font-semibold text-white">{confirmCategoryDelete.categoryName}</span> y
-                    todos sus platos. Esta acción no se puede deshacer.
+                    EstÃ¡s por borrar <span className="font-semibold text-white">{confirmCategoryDelete.categoryName}</span> y
+                    todos sus platos. Esta acciÃ³n no se puede deshacer.
                   </p>
                 </div>
               </div>
