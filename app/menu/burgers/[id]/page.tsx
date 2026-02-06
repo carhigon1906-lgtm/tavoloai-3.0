@@ -430,7 +430,7 @@ export default function DishDetailPage() {
       return {
         ...slot,
         label,
-        sublabel: label ? "Seleccionado" : "",
+        sublabel: "",
       }
     })
   }, [dish?.ingredientes])
@@ -580,7 +580,6 @@ export default function DishDetailPage() {
                     >
                       <div style={ingredientCardStyle}>
                         <div style={styles.ingredientLabel}>{ingredient.label}</div>
-                        <div style={styles.ingredientSublabel}>{ingredient.sublabel}</div>
                       </div>
                     </motion.div>
                   )
