@@ -83,6 +83,9 @@
 @layer base {
   html, body { height: 100%; }
   body { overflow-x: hidden; }
+  .dashboard-compact {
+    font-size: 0.94rem;
+  }
   .theme {
     --animate-marquee: marquee var(--duration) infinite linear;
     --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
