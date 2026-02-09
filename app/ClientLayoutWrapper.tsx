@@ -29,15 +29,28 @@ export default function ClientLayoutWrapper({ children }: { children: ReactNode 
         })
 
         let frameId: number
+        let resizeObserver: ResizeObserver | null = null
 
         const raf = (time: number) => {
             lenis.raf(time)
             frameId = requestAnimationFrame(raf)
         }
 
+        const handleResize = () => {
+            lenis.resize()
+        }
+
+        if (typeof ResizeObserver !== "undefined") {
+            resizeObserver = new ResizeObserver(handleResize)
+            resizeObserver.observe(document.body)
+        }
+
+        window.addEventListener("resize", handleResize)
         frameId = requestAnimationFrame(raf)
 
         return () => {
+            window.removeEventListener("resize", handleResize)
+            if (resizeObserver) resizeObserver.disconnect()
             cancelAnimationFrame(frameId)
             lenis.destroy()
         }
