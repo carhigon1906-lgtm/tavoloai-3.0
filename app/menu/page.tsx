@@ -87,6 +87,7 @@ export default function HomePage() {
     })
     const [menuLoading, setMenuLoading] = useState(true)
     const [menuError, setMenuError] = useState("")
+    const [cachedMenu, setCachedMenu] = useState<{ name: string; logo_url: string }>({ name: "", logo_url: "" })
 
     const handleCategoryClick = (categoryId: string) => {
         setSelectedCategory(categoryId)
@@ -117,6 +118,24 @@ export default function HomePage() {
     }, [prefersReducedMotion])
 
     useEffect(() => {
+        if (typeof window === "undefined") return
+        const cacheKey = menuIdParam ? `menu-cache:${menuIdParam}` : "menu-cache:last"
+        const raw = window.localStorage.getItem(cacheKey)
+        if (!raw) return
+        try {
+            const parsed = JSON.parse(raw)
+            if (parsed && (parsed.name || parsed.logo_url)) {
+                setCachedMenu({
+                    name: typeof parsed.name === "string" ? parsed.name : "",
+                    logo_url: typeof parsed.logo_url === "string" ? parsed.logo_url : "",
+                })
+            }
+        } catch {
+            // ignore malformed cache
+        }
+    }, [menuIdParam])
+
+    useEffect(() => {
         const loadMenu = async () => {
             setMenuLoading(true)
             setMenuError("")
@@ -131,12 +150,21 @@ export default function HomePage() {
                 const result = await response.json()
                 const data = result?.menu
                 if (data) {
-                    setMenuData({
+                    const nextMenuData = {
                         id: data.id ? String(data.id) : "",
                         logo_url: data.logo_url || "",
                         nombre: data.nombre || "",
                         categories: Array.isArray(data.categories) ? data.categories : [],
-                    })
+                    }
+                    setMenuData(nextMenuData)
+                    if (typeof window !== "undefined") {
+                        const cacheKey = menuIdParam ? `menu-cache:${menuIdParam}` : "menu-cache:last"
+                        const payload = JSON.stringify({
+                            name: nextMenuData.nombre,
+                            logo_url: nextMenuData.logo_url,
+                        })
+                        window.localStorage.setItem(cacheKey, payload)
+                    }
                 }
             } catch {
                 setMenuError("No pudimos cargar tu menú.")
@@ -210,6 +238,9 @@ export default function HomePage() {
         }
     }, [prefersReducedMotion])
 
+    const restaurantName = menuData.nombre || cachedMenu.name || ""
+    const restaurantLogo = menuData.logo_url || cachedMenu.logo_url || ""
+
     return (
         <>
             <AnimatePresence>
@@ -253,9 +284,9 @@ export default function HomePage() {
                                     animate={{ scale: 1, rotate: 0 }}
                                     transition={{ delay: 0.12, duration: 0.45, ease: "easeOut" }}
                                 >
-                                    {!menuLoading && menuData.logo_url ? (
+                                    {restaurantLogo ? (
                                         <motion.img
-                                            src={menuData.logo_url}
+                                            src={restaurantLogo}
                                             alt="Logo del menú"
                                             style={styles.introBadgeImage}
                                             initial={{ scale: 0.92, opacity: 0 }}
@@ -285,7 +316,7 @@ export default function HomePage() {
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.28, duration: 0.45, ease: "easeOut" }}
                             >
-                                {menuData.nombre || "Taboloai"}
+                                {restaurantName || "\u00a0"}
                             </motion.h1>
                             <motion.p
                                 style={styles.introSubtitle}
@@ -322,14 +353,14 @@ export default function HomePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ type: 'spring', stiffness: 120 }}
                 >
-                    {!menuLoading && menuData.logo_url ? (
-                        <img src={menuData.logo_url} alt="Logo del menú" style={styles.brandLogo} />
+                    {restaurantLogo ? (
+                        <img src={restaurantLogo} alt="Logo del menú" style={styles.brandLogo} />
                     ) : !menuLoading ? (
                         <Image src={logoBlanco} alt="Taboloai" style={styles.brandLogo} />
                     ) : (
                         <div style={styles.logoSkeleton} />
                     )}
-                    <span style={styles.brandTagline}>{menuData.nombre || "Menu inteligente para tu carta digital"}</span>
+                    <span style={styles.brandTagline}>{restaurantName || "\u00a0"}</span>
                     <MotionBox
                         style={styles.carouselWrapper}
                         initial={
@@ -511,7 +542,7 @@ export default function HomePage() {
                 >
                     <div style={styles.footerContent}>
                         <div style={styles.orderInfo}>
-                            <span style={styles.orderText}>{menuData.nombre || "Taboloai"}</span>
+                            <span style={styles.orderText}>{restaurantName || "\u00a0"}</span>
                             <span style={styles.orderSubtext}>Crea tu carta inteligente en minutos</span>
                         </div>
                         <motion.div
