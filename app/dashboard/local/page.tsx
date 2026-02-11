@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
-import { Store, Upload, Image as ImageIcon, Save, MapPin, Phone } from "lucide-react"
+import { Store, Upload, Image as ImageIcon, Save, MapPin, Phone, Quote, Clock } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 
 export default function LocalPage() {
@@ -13,6 +13,10 @@ export default function LocalPage() {
   const [businessAddressSaved, setBusinessAddressSaved] = useState("")
   const [businessPhone, setBusinessPhone] = useState("")
   const [businessPhoneSaved, setBusinessPhoneSaved] = useState("")
+  const [businessSlogan, setBusinessSlogan] = useState("")
+  const [businessSloganSaved, setBusinessSloganSaved] = useState("")
+  const [businessHours, setBusinessHours] = useState("")
+  const [businessHoursSaved, setBusinessHoursSaved] = useState("")
   const [nameError, setNameError] = useState("")
   const [nameSuccess, setNameSuccess] = useState("")
   const [isSavingName, setIsSavingName] = useState(false)
@@ -42,6 +46,12 @@ export default function LocalPage() {
       const phone = metadata.business_phone ?? ""
       setBusinessPhone(phone)
       setBusinessPhoneSaved(phone)
+      const slogan = metadata.business_slogan ?? ""
+      setBusinessSlogan(slogan)
+      setBusinessSloganSaved(slogan)
+      const hours = metadata.business_hours ?? ""
+      setBusinessHours(hours)
+      setBusinessHoursSaved(hours)
       setLogoUrl(metadata.business_logo_url ?? "")
       setLogoPreview(metadata.business_logo_url ?? "")
     })
@@ -92,6 +102,8 @@ export default function LocalPage() {
         business: businessName.trim(),
         business_address: businessAddress.trim(),
         business_phone: businessPhone.trim(),
+        business_slogan: businessSlogan.trim(),
+        business_hours: businessHours.trim(),
       },
     })
 
@@ -101,6 +113,8 @@ export default function LocalPage() {
       setBusinessNameSaved(businessName.trim())
       setBusinessAddressSaved(businessAddress.trim())
       setBusinessPhoneSaved(businessPhone.trim())
+      setBusinessSloganSaved(businessSlogan.trim())
+      setBusinessHoursSaved(businessHours.trim())
       setNameSuccess("Datos actualizados.")
 
       const { error: menusError } = await supabase
@@ -290,6 +304,40 @@ export default function LocalPage() {
               />
             </div>
 
+            <div className="space-y-3">
+              <label className="flex items-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-200">
+                <Quote className="h-4 w-4 text-slate-400" />
+                Slogan
+              </label>
+              <input
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 transition-all shadow-sm hover:bg-white/10 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                value={businessSlogan}
+                onChange={(e) => {
+                  setBusinessSlogan(e.target.value)
+                  setNameError("")
+                  setNameSuccess("")
+                }}
+                placeholder="Ej: Sabores que cuentan historias"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <label className="flex items-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-200">
+                <Clock className="h-4 w-4 text-slate-400" />
+                Horario de atención
+              </label>
+              <input
+                className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 transition-all shadow-sm hover:bg-white/10 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+                value={businessHours}
+                onChange={(e) => {
+                  setBusinessHours(e.target.value)
+                  setNameError("")
+                  setNameSuccess("")
+                }}
+                placeholder="Ej: Lun a Sáb 12:00 - 23:00"
+              />
+            </div>
+
             <motion.button
               type="button"
               whileHover={{ scale: 1.01 }}
@@ -299,7 +347,9 @@ export default function LocalPage() {
                 isSavingName ||
                 (businessName.trim() === businessNameSaved.trim() &&
                   businessAddress.trim() === businessAddressSaved.trim() &&
-                  businessPhone.trim() === businessPhoneSaved.trim())
+                  businessPhone.trim() === businessPhoneSaved.trim() &&
+                  businessSlogan.trim() === businessSloganSaved.trim() &&
+                  businessHours.trim() === businessHoursSaved.trim())
               }
               className="flex w-full items-center justify-center gap-3 rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-5 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-400/30 disabled:cursor-not-allowed disabled:opacity-60"
             >
@@ -362,3 +412,7 @@ export default function LocalPage() {
     </div>
   )
 }
+
+
+
+

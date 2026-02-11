@@ -1,11 +1,13 @@
 // @ts-nocheck
 "use client"
 
-import { motion } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import { AlertTriangle, BarChart3, BookOpen, Image, LayoutTemplate, PenLine, Settings } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import QRCode from "react-qr-code"
+import { supabase } from "@/lib/supabaseClient"
 
 const StatsCard = dynamic(() => import("./StatsCard"))
 const MotionLink = motion(Link)
@@ -92,10 +94,26 @@ const qrScanValues = [10, 14, 9, 18, 22, 17, 25]
 const qrScanDays = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"]
 const maxQrScans = Math.max(...qrScanValues)
 
+type MenuRow = {
+  id: number | string
+  nombre: string
+  slug?: string
+  activo?: boolean
+  categories?: unknown[]
+  created_at?: string
+}
+
 export default function DashboardPage() {
   const statsScrollRef = useRef<HTMLDivElement | null>(null)
   const cardsSectionRef = useRef<HTMLElement | null>(null)
   const [activeCard, setActiveCard] = useState<string | null>(null)
+  const [menus, setMenus] = useState<MenuRow[]>([])
+  const [menusLoading, setMenusLoading] = useState(false)
+  const [menusError, setMenusError] = useState("")
+  const [menusLoaded, setMenusLoaded] = useState(false)
+  const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [selectedMenu, setSelectedMenu] = useState<MenuRow | null>(null)
+  const qrRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const container = statsScrollRef.current
@@ -195,6 +213,98 @@ export default function DashboardPage() {
       window.removeEventListener("resize", scheduleUpdate)
     }
   }, [])
+
+  useEffect(() => {
+    const loadMenus = async () => {
+      setMenusLoading(true)
+      setMenusError("")
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!session) {
+        setMenusError("Debes iniciar sesion para ver tus menus.")
+        setMenusLoading(false)
+        return
+      }
+
+      const { data, error } = await supabase
+        .from("menus")
+        .select("id, nombre, slug, activo, categories, created_at")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false })
+
+      if (error) {
+        setMenusError("No pudimos cargar tus menus.")
+        setMenusLoading(false)
+        return
+      }
+
+      const list = Array.isArray(data) ? data : []
+      setMenus(list)
+      setSelectedMenu((prev) => prev ?? list[0] ?? null)
+      setMenusLoaded(true)
+      setMenusLoading(false)
+    }
+
+    if (!qrModalOpen || menusLoaded) return
+    loadMenus()
+  }, [qrModalOpen, menusLoaded])
+
+  const qrMenuUrl = useMemo(() => {
+    if (!selectedMenu) return ""
+    const menuId = encodeURIComponent(String(selectedMenu.id))
+    if (typeof window === "undefined") return `/menu?menu=${menuId}`
+    return `${window.location.origin}/menu?menu=${menuId}`
+  }, [selectedMenu])
+
+  const downloadQrImage = () => {
+    const container = qrRef.current
+    if (!container || !selectedMenu) return
+    const svg = container.querySelector("svg") as SVGSVGElement | null
+    if (!svg) return
+
+    const serializer = new XMLSerializer()
+    let source = serializer.serializeToString(svg)
+    if (!source.match(/^<svg[^>]+xmlns=\"http:\/\/www\.w3\.org\/2000\/svg\"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"')
+    }
+    if (!source.match(/^<svg[^>]+xmlns:xlink=\"http:\/\/www\.w3\.org\/1999\/xlink\"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"')
+    }
+
+    const svgBlob = new Blob([source], { type: "image/svg+xml;charset=utf-8" })
+    const url = URL.createObjectURL(svgBlob)
+    const img = new Image()
+    const size = 512
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas")
+      canvas.width = size
+      canvas.height = size
+      const ctx = canvas.getContext("2d")
+      if (!ctx) {
+        URL.revokeObjectURL(url)
+        return
+      }
+      ctx.fillStyle = "#ffffff"
+      ctx.fillRect(0, 0, size, size)
+      ctx.drawImage(img, 0, 0, size, size)
+      URL.revokeObjectURL(url)
+
+      const pngUrl = canvas.toDataURL("image/png")
+      const link = document.createElement("a")
+      link.href = pngUrl
+      link.download = `menu-qr-${selectedMenu.id}.png`
+      link.click()
+    }
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+    }
+
+    img.src = url
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#070b12] via-[#0a111d] to-[#05070c] text-white pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+28px)]">
@@ -329,6 +439,7 @@ export default function DashboardPage() {
             <button
               type="button"
               className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-slate-200 transition hover:bg-white/10 hover:text-white"
+              onClick={() => setQrModalOpen(true)}
             >
               Descargar QR (Alta Res)
             </button>
@@ -341,6 +452,111 @@ export default function DashboardPage() {
           </div>
         </motion.footer>
       </motion.div>
+      <AnimatePresence>
+        {qrModalOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6 py-10 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-2xl rounded-3xl border border-white/10 bg-[#0b1220] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+              initial={{ y: 24, scale: 0.98, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 16, scale: 0.98, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Descargar QR</h3>
+                  <p className="mt-1 text-sm text-slate-300">Selecciona el menu que quieres descargar en alta resolucion.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setQrModalOpen(false)}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/10"
+                >
+                  Cerrar
+                </button>
+              </div>
+
+              <div className="mt-5">
+                {menusLoading && (
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-300">
+                    Cargando menus...
+                  </div>
+                )}
+                {menusError && !menusLoading && (
+                  <div className="rounded-2xl border border-red-300/30 bg-red-400/10 px-4 py-5 text-center text-sm text-red-200">
+                    {menusError}
+                  </div>
+                )}
+                {!menusLoading && !menusError && menus.length === 0 && (
+                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-400">
+                    No hay menus creados todavia.
+                  </div>
+                )}
+                {!menusLoading && !menusError && menus.length > 0 && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {menus.map((menu) => {
+                      const isSelected = String(selectedMenu?.id) === String(menu.id)
+                      return (
+                        <button
+                          key={menu.id}
+                          type="button"
+                          onClick={() => setSelectedMenu(menu)}
+                          className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
+                            isSelected
+                              ? "border-emerald-300/60 bg-emerald-400/15 text-emerald-50"
+                              : "border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
+                          }`}
+                        >
+                          <div className="font-semibold">{menu.nombre}</div>
+                          <div className="mt-1 text-xs text-slate-400">
+                            {(menu.categories ?? []).length} categorias
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {selectedMenu && (
+                <div className="mt-6 grid gap-4 sm:grid-cols-[220px_1fr] sm:items-center">
+                  <div ref={qrRef} className="flex items-center justify-center rounded-2xl border border-white/10 bg-white p-4">
+                    <QRCode value={qrMenuUrl || `/menu?menu=${encodeURIComponent(String(selectedMenu.id))}`} size={180} />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-slate-200">
+                      {qrMenuUrl || `/menu?menu=${encodeURIComponent(String(selectedMenu.id))}`}
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={downloadQrImage}
+                        className="inline-flex items-center justify-center rounded-2xl border border-indigo-300/60 bg-indigo-400/20 px-4 py-2 text-xs font-semibold text-indigo-50 transition hover:bg-indigo-400/30"
+                      >
+                        Descargar QR (Alta Res)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          window.open(`/menu?menu=${encodeURIComponent(String(selectedMenu.id))}`, "_blank", "noopener")
+                        }
+                        className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/20"
+                      >
+                        Vista previa
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

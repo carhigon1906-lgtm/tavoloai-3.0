@@ -2,6 +2,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { Share2 } from "lucide-react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 
@@ -220,7 +221,7 @@ const styles = {
     backgroundColor: "transparent",
     fontSize: "clamp(0.75rem, 2.6vw, 0.95rem)",
     lineHeight: 1.2,
-    textShadow: "0 0 6px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.9), 0 1px 3px rgba(0, 0, 0, 0.9)",
+    textShadow: "0 0 8px rgba(255, 215, 0, 0.35), 0 0 16px rgba(255, 215, 0, 0.25)",
   },
   ingredientLabel: {
     fontWeight: 700,
@@ -229,7 +230,7 @@ const styles = {
     letterSpacing: "0.6px",
     textTransform: "uppercase" as const,
     lineHeight: 1.1,
-    textShadow: "0 0 6px rgba(0, 0, 0, 1), 0 2px 4px rgba(0, 0, 0, 0.8)",
+    textShadow: "0 0 8px rgba(255, 215, 0, 0.65), 0 0 18px rgba(255, 215, 0, 0.45)",
   },
   ingredientSublabel: {
     fontSize: "clamp(0.7rem, 2.3vw, 0.9rem)",
@@ -237,7 +238,7 @@ const styles = {
     fontWeight: 500,
     letterSpacing: "0.3px",
     lineHeight: 1.1,
-    textShadow: "0 0 6px rgba(0, 0, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.7)",
+    textShadow: "0 0 6px rgba(255, 215, 0, 0.35), 0 0 12px rgba(255, 215, 0, 0.25)",
   },
   tagline: {
     color: "#FFD700",
@@ -258,6 +259,7 @@ const styles = {
     fontStyle: "italic",
     fontWeight: 300,
     letterSpacing: "0.3px",
+    textShadow: "0 0 8px rgba(255, 215, 0, 0.25)",
   },
   price: {
     color: "#FFD700",
@@ -273,7 +275,7 @@ const styles = {
     bottom: 0,
     left: 0,
     right: 0,
-    background: "linear-gradient(135deg, #FFD700 0%, #FFC700 100%)",
+    backgroundColor: "rgba(255, 215, 0, 0.5)",
     padding: "clamp(1.25rem, 5vw, 2rem)",
     display: "flex",
     flexDirection: "row" as const,
@@ -281,7 +283,9 @@ const styles = {
     justifyContent: "space-between",
     gap: "1.5rem",
     zIndex: 100,
-    boxShadow: "0 -6px 30px rgba(0, 0, 0, 0.4)",
+    boxShadow: "0 -8px 22px rgba(255, 215, 0, 0.5), 0 -16px 32px rgba(0, 0, 0, 0.2)",
+    borderTop: "1px solid rgba(255, 215, 0, 0.7)",
+    backdropFilter: "blur(12px)",
   },
   ratingContainer: {
     display: "flex",
@@ -310,8 +314,8 @@ const styles = {
     filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
   },
   shareButton: {
-    background: "rgba(0, 0, 0, 0.15)",
-    border: "2px solid rgba(0, 0, 0, 0.25)",
+    background: "rgba(255, 255, 255, 0.12)",
+    border: "1px solid rgba(255, 255, 255, 0.3)",
     borderRadius: "50%",
     width: "clamp(3.5rem, 15vw, 4.5rem)",
     height: "clamp(3.5rem, 15vw, 4.5rem)",
@@ -320,10 +324,14 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     transition: "all 0.3s ease",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+    boxShadow: "0 8px 18px rgba(0, 0, 0, 0.2), 0 0 18px rgba(255, 215, 0, 0.28)",
+    backdropFilter: "blur(12px)",
   },
   shareIcon: {
-    fontSize: "clamp(1.8rem, 7vw, 2.5rem)",
+    width: "clamp(1.8rem, 7vw, 2.5rem)",
+    height: "clamp(1.8rem, 7vw, 2.5rem)",
+    color: "#fff",
+    filter: "drop-shadow(0 0 10px rgba(255, 215, 0, 0.4))",
   },
   statusCard: {
     margin: "1rem",
@@ -666,7 +674,7 @@ export default function DishDetailPage() {
             whileTap={{ scale: 0.9 }}
             onClick={handleShare}
           >
-            <span style={styles.shareIcon}>📤</span>
+            <Share2 style={styles.shareIcon} />
           </motion.button>
         </motion.footer>
     </div>

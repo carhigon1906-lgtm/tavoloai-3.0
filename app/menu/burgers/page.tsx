@@ -2,6 +2,7 @@
 // @ts-nocheck
 
 import { motion } from "framer-motion"
+import { Search, Share2, SlidersHorizontal } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 
@@ -90,7 +91,8 @@ export default function BurgersPage() {
         container: {
             minHeight: "100vh",
             backgroundColor: "#000",
-            backgroundImage: "url(/placeholder.svg?height=1600&width=800&query=blurred food background dark)",
+            backgroundImage:
+                'linear-gradient(rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0.9)), url("https://images.unsplash.com/photo-1550547660-d9450f859349?w=1200&q=80")',
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundAttachment: "fixed",
@@ -100,7 +102,7 @@ export default function BurgersPage() {
         overlay: {
             position: "absolute" as const,
             inset: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.85)",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
             zIndex: 0,
         },
         content: {
@@ -143,6 +145,7 @@ export default function BurgersPage() {
             fontStyle: "italic",
             textAlign: "center" as const,
             letterSpacing: "1px",
+            textShadow: "0 0 10px rgba(255, 215, 0, 0.45), 0 0 22px rgba(255, 215, 0, 0.35)",
         },
         filterModalOverlay: {
             position: "fixed" as const,
@@ -275,6 +278,7 @@ export default function BurgersPage() {
             color: "#fff",
             fontSize: "0.9rem",
             outline: "none",
+            backdropFilter: "blur(8px)",
         },
         statusCard: {
             margin: "0 1rem 0.75rem",
@@ -302,17 +306,22 @@ export default function BurgersPage() {
             maxWidth: "100%",
         },
         productCard: {
-            backgroundColor: "rgba(20, 20, 20, 0.8)",
+            backgroundImage:
+                "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.72) 100%), linear-gradient(120deg, rgba(255, 215, 0, 0.08), rgba(255, 255, 255, 0.04), rgba(255, 215, 0, 0.08))",
+            backgroundSize: "200% 200%",
+            backgroundPosition: "0% 50%",
+            animation: "cardGlow 6s ease-in-out infinite",
             borderRadius: "16px",
             padding: "clamp(0.9rem, 3.5vw, 1.2rem)",
             display: "flex",
             flexDirection: "column" as const,
             alignItems: "center",
             gap: "clamp(0.5rem, 2vw, 0.75rem)",
-            backdropFilter: "blur(10px)",
+            backdropFilter: "blur(6px)",
             border: "1px solid rgba(255, 215, 0, 0.2)",
             cursor: "pointer",
             transition: "all 0.3s ease",
+            boxShadow: "0 10px 22px rgba(0, 0, 0, 0.4), 0 0 18px rgba(255, 215, 0, 0.25)",
         },
         productImageWrapper: {
             width: "100%",
@@ -335,6 +344,7 @@ export default function BurgersPage() {
             textAlign: "center" as const,
             lineHeight: 1.4,
             minHeight: "2.4em",
+            textShadow: "0 0 8px rgba(255, 215, 0, 0.25)",
         },
         variantInfo: {
             display: "flex",
@@ -389,6 +399,7 @@ export default function BurgersPage() {
             fontSize: "clamp(1.1rem, 4.5vw, 1.5rem)",
             fontWeight: "bold",
             marginTop: "0.5rem",
+            textShadow: "0 0 8px rgba(255, 215, 0, 0.5), 0 0 16px rgba(255, 215, 0, 0.35)",
         },
         emptyState: {
             gridColumn: "1 / -1",
@@ -454,20 +465,22 @@ export default function BurgersPage() {
             bottom: 0,
             left: 0,
             right: 0,
-            backgroundColor: "#FFD700",
+            backgroundColor: "rgba(255, 215, 0, 0.5)",
             padding: "clamp(0.75rem, 3vw, 1rem)",
             display: "flex",
             justifyContent: "space-around",
             alignItems: "center",
             gap: "0.5rem",
             zIndex: 100,
-            boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.3)",
+            boxShadow: "0 -8px 22px rgba(255, 215, 0, 0.5), 0 -16px 32px rgba(0, 0, 0, 0.2)",
+            borderTop: "1px solid rgba(255, 215, 0, 0.7)",
+            backdropFilter: "blur(12px)",
         },
         actionButton: {
-            background: "rgba(0, 0, 0, 0.2)",
-            border: "2px solid rgba(0, 0, 0, 0.3)",
-            borderRadius: "12px",
-            padding: "clamp(0.6rem, 3vw, 0.8rem) clamp(1rem, 4vw, 1.5rem)",
+            background: "rgba(255, 255, 255, 0.12)",
+            border: "1px solid rgba(255, 255, 255, 0.3)",
+            borderRadius: "18px",
+            padding: "clamp(0.65rem, 3vw, 0.9rem) clamp(1rem, 4vw, 1.6rem)",
             cursor: "pointer",
             display: "flex",
             flexDirection: "column" as const,
@@ -476,15 +489,20 @@ export default function BurgersPage() {
             flex: 1,
             maxWidth: "120px",
             transition: "all 0.3s ease",
+            backdropFilter: "blur(12px)",
+            boxShadow:
+                "0 8px 18px rgba(0, 0, 0, 0.2), 0 0 18px rgba(255, 215, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.25)",
         },
         buttonIcon: {
-            fontSize: "clamp(1.2rem, 5vw, 1.5rem)",
-            color: "#000",
+            width: "clamp(1.2rem, 5vw, 1.5rem)",
+            height: "clamp(1.2rem, 5vw, 1.5rem)",
+            color: "#fff",
+            textShadow: "0 0 12px rgba(255, 215, 0, 0.4)",
         },
         buttonText: {
             fontSize: "clamp(0.65rem, 2.5vw, 0.8rem)",
             fontWeight: "bold",
-            color: "#000",
+            color: "rgba(255, 255, 255, 0.9)",
             textTransform: "uppercase" as const,
             letterSpacing: "0.5px",
         },
@@ -492,7 +510,8 @@ export default function BurgersPage() {
 
     return (
         <div style={styles.container}>
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes cardGlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }`}</style>
             <div style={styles.overlay} />
 
                 <div style={styles.content}>
@@ -545,6 +564,7 @@ export default function BurgersPage() {
                                         scale: 1.05,
                                         backgroundColor: "rgba(30, 30, 30, 0.9)",
                                         borderColor: "rgba(255, 215, 0, 0.5)",
+                                        boxShadow: "0 14px 28px rgba(0, 0, 0, 0.45), 0 0 26px rgba(255, 215, 0, 0.5)",
                                     }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() =>
@@ -596,7 +616,7 @@ export default function BurgersPage() {
                         whileTap={{ scale: 0.95 }}
                         onClick={handleSearch}
                     >
-                        <div style={styles.buttonIcon}>🔍</div>
+                        <Search style={styles.buttonIcon} />
                         <span style={styles.buttonText}>Buscar</span>
                     </motion.button>
 
@@ -610,7 +630,7 @@ export default function BurgersPage() {
                         whileTap={{ scale: 0.95 }}
                         onClick={handleFilter}
                     >
-                        <div style={styles.buttonIcon}>🎚️</div>
+                        <SlidersHorizontal style={styles.buttonIcon} />
                         <span style={styles.buttonText}>Filtrar</span>
                     </motion.button>
 
@@ -624,7 +644,7 @@ export default function BurgersPage() {
                         whileTap={{ scale: 0.95 }}
                         onClick={handleShare}
                     >
-                        <div style={styles.buttonIcon}>📤</div>
+                        <Share2 style={styles.buttonIcon} />
                         <span style={styles.buttonText}>Compartir</span>
                     </motion.button>
                 </motion.footer>

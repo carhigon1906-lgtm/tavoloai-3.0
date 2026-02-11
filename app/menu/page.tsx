@@ -346,7 +346,8 @@ export default function HomePage() {
                     pointerEvents: showIntro ? "none" : "auto",
                 }}
             >
-                <style>{`@keyframes logoShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }`}</style>
+                <style>{`@keyframes logoShimmer { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+@keyframes cardGlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }`}</style>
                 <motion.div
                     style={styles.branding}
                     initial={{ opacity: 0, y: -20 }}
@@ -611,9 +612,9 @@ const styles: { [key: string]: React.CSSProperties } = {
         width: '176px',
         height: '176px',
         borderRadius: '42px',
-        background: 'linear-gradient(145deg, rgba(255, 0, 0, 0.55), rgba(60, 0, 0, 0.65))',
-        boxShadow: '0 28px 56px rgba(255, 0, 0, 0.32)',
-        border: '4px solid rgba(255, 255, 255, 0.12)',
+        background: 'transparent',
+        boxShadow: 'none',
+        border: 'none',
         padding: '0.9rem',
         overflow: 'hidden',
     },
@@ -806,7 +807,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     },
     categoryCard: {
         background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.72) 100%)',
-        backdropFilter: 'blur(16px)',
+        backdropFilter: 'blur(6px)',
         border: '1px solid rgba(255, 255, 255, 0.12)',
         borderRadius: '18px',
         padding: 'clamp(1.2rem, 4vw, 1.6rem) clamp(0.9rem, 3vw, 1.1rem)',
@@ -816,13 +817,13 @@ const styles: { [key: string]: React.CSSProperties } = {
         gap: '0.85rem',
         cursor: 'pointer',
         minHeight: '160px',
-        boxShadow: '0 12px 26px rgba(0, 0, 0, 0.35)',
+        boxShadow: '0 12px 26px rgba(0, 0, 0, 0.35), 0 0 18px rgba(255, 215, 0, 0.25)',
         position: 'relative',
         overflow: 'hidden',
     },
     categoryCardSelected: {
         borderColor: '#FFD700',
-        boxShadow: '0 18px 32px rgba(255, 215, 0, 0.22)',
+        boxShadow: '0 18px 32px rgba(255, 215, 0, 0.22), 0 0 26px rgba(255, 215, 0, 0.45)',
         transform: 'translateY(-4px)',
         background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.22) 0%, rgba(0, 0, 0, 0.75) 100%)',
     },
@@ -865,15 +866,20 @@ const styles: { [key: string]: React.CSSProperties } = {
         gap: 'clamp(0.75rem, 3vw, 1.1rem)',
     },
     productCard: {
-        background: 'rgba(0, 0, 0, 0.7)',
+        backgroundImage:
+            'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.72) 100%), linear-gradient(120deg, rgba(255, 215, 0, 0.08), rgba(255, 255, 255, 0.04), rgba(255, 215, 0, 0.08))',
+        backgroundSize: '200% 200%',
+        backgroundPosition: '0% 50%',
+        animation: 'cardGlow 6s ease-in-out infinite',
         borderRadius: '16px',
         border: '1px solid rgba(255, 255, 255, 0.18)',
         padding: '0.75rem',
-        boxShadow: '0 10px 24px rgba(0, 0, 0, 0.45)',
+        boxShadow: '0 10px 24px rgba(0, 0, 0, 0.45), 0 0 18px rgba(255, 215, 0, 0.22)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         gap: '0.5rem',
+        backdropFilter: 'blur(6px)',
     },
     productImageWrapper: {
         width: '100%',
@@ -901,12 +907,14 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontSize: '0.9rem',
         fontWeight: 700,
         color: '#FFD700',
+        textShadow: '0 0 8px rgba(255, 215, 0, 0.5), 0 0 16px rgba(255, 215, 0, 0.35)',
     },
     productIngredients: {
         fontSize: '0.75rem',
         color: 'rgba(255, 255, 255, 0.7)',
         textAlign: 'center',
         lineHeight: 1.4,
+        textShadow: '0 0 8px rgba(255, 215, 0, 0.25)',
     },
     emptyProducts: {
         width: '100%',
@@ -933,9 +941,11 @@ const styles: { [key: string]: React.CSSProperties } = {
         textShadow: '2px 2px 8px rgba(0, 0, 0, 0.8)',
     },
     footer: {
-        backgroundColor: '#FFD700',
+        backgroundColor: 'rgba(255, 215, 0, 0.35)',
         padding: '0.6rem 1.2rem',
-        boxShadow: '0 -3px 16px rgba(0, 0, 0, 0.25)',
+        boxShadow: '0 -8px 22px rgba(255, 215, 0, 0.4), 0 -16px 36px rgba(0, 0, 0, 0.25)',
+        borderTop: '1px solid rgba(255, 215, 0, 0.55)',
+        backdropFilter: 'blur(12px)',
     },
     footerContent: {
         display: 'flex',
@@ -953,13 +963,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     orderText: {
         fontSize: 'clamp(0.9rem, 2.6vw, 1.1rem)',
         fontWeight: 'bold',
-        color: '#000',
+        color: '#f8fafc',
         textTransform: 'uppercase',
         letterSpacing: '0.15rem',
+        textShadow: '0 0 14px rgba(255, 215, 0, 0.45)',
     },
     orderSubtext: {
         fontSize: 'clamp(0.7rem, 2.2vw, 0.85rem)',
-        color: '#111',
+        color: 'rgba(226, 232, 240, 0.8)',
         fontWeight: 600,
         letterSpacing: '0.05rem',
     },
@@ -970,9 +981,10 @@ const styles: { [key: string]: React.CSSProperties } = {
         width: '2.6rem',
         height: '2.6rem',
         borderRadius: '9999px',
-        backgroundColor: '#000',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
         color: '#FFD700',
-        boxShadow: '0 8px 18px rgba(0, 0, 0, 0.2)',
+        boxShadow: '0 0 22px rgba(255, 215, 0, 0.5), 0 10px 20px rgba(0, 0, 0, 0.2)',
+        border: '1px solid rgba(255, 215, 0, 0.5)',
         cursor: 'pointer',
     },
     priceInfo: {
@@ -984,14 +996,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     priceAmount: {
         fontSize: 'clamp(0.95rem, 2.6vw, 1.2rem)',
         fontWeight: 'bold',
-        color: '#000',
+        color: '#f8fafc',
         textAlign: 'right',
         textTransform: 'uppercase',
         letterSpacing: '0.1rem',
+        textShadow: '0 0 14px rgba(255, 215, 0, 0.45)',
     },
     priceText: {
         fontSize: 'clamp(0.7rem, 2vw, 0.85rem)',
-        color: '#000',
+        color: 'rgba(226, 232, 240, 0.8)',
         fontWeight: 600,
         textAlign: 'right',
     },
