@@ -11,7 +11,7 @@ import QRCode from "react-qr-code"
 type Dish = {
   id: number
   nombre: string
-  tagline?: string
+  descripcion?: string
   ingredientes: string
   precio: number
   foto_url?: string
@@ -223,7 +223,7 @@ export default function NewMenuPage() {
               ...cat,
               platos: [
                 ...cat.platos,
-                { id: Date.now(), nombre: "", tagline: "", ingredientes: "", precio: 0, foto_url: "", activo: true },
+                { id: Date.now(), nombre: "", descripcion: "", ingredientes: "", precio: 0, foto_url: "", activo: true },
               ],
             }
           : cat,
@@ -651,9 +651,9 @@ export default function NewMenuPage() {
                           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
                         />
                         <input
-                          value={dish.tagline ?? ""}
-                          onChange={(e) => updateDish(category.id, dish.id, "tagline", e.target.value)}
-                          placeholder="Tagline (ej: BBQ Power!)"
+                          value={dish.descripcion ?? ""}
+                          onChange={(e) => updateDish(category.id, dish.id, "descripcion", e.target.value)}
+                          placeholder="Descripción (ej: Hamburguesa con salsa BBQ)"
                           disabled={creationLocked}
                           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
                         />

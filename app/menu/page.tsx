@@ -87,6 +87,9 @@ export default function HomePage() {
     })
     const [menuLoading, setMenuLoading] = useState(true)
     const [menuError, setMenuError] = useState("")
+
+    const formatEuro = (value: number) =>
+        new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(value)
     const [cachedMenu, setCachedMenu] = useState<{ name: string; logo_url: string }>({ name: "", logo_url: "" })
 
     const handleCategoryClick = (categoryId: string) => {
@@ -500,7 +503,7 @@ export default function HomePage() {
                                         >
                                             <div style={styles.productInfo}>
                                                 <span style={styles.productName}>{product.nombre}</span>
-                                                <span style={styles.productPrice}>${product.precio.toFixed(2)}</span>
+                                                <span style={styles.productPrice}>{formatEuro(product.precio)}</span>
                                                 <span style={styles.productIngredients}>{product.ingredientes}</span>
                                             </div>
                                         </motion.div>

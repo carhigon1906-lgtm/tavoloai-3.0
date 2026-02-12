@@ -38,6 +38,9 @@ export default function BurgersPage() {
 
     const [searchQuery, setSearchQuery] = useState("")
 
+    const formatEuro = (value: number) =>
+        new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(value)
+
     const filteredDishes = useMemo(() => {
         const trimmedQuery = searchQuery.trim().toLowerCase()
         if (!trimmedQuery) return dishes
@@ -588,7 +591,7 @@ export default function BurgersPage() {
                                             <div style={styles.productImagePlaceholder}>Sin foto</div>
                                         )}
                                     </div>
-                                    <p style={styles.price}>${dish.precio.toFixed(2)}</p>
+                                    <p style={styles.price}>{formatEuro(dish.precio)}</p>
                                 </motion.div>
                             ))
                         ) : (

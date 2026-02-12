@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react"
 type Dish = {
   id: number | string
   nombre: string
-  tagline?: string
+  descripcion?: string
   ingredientes: string
   precio: number
   foto_url?: string
@@ -381,6 +381,9 @@ export default function DishDetailPage() {
   const [hoveredStar, setHoveredStar] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
 
+  const formatEuro = (value: number) =>
+    new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(value)
+
   useEffect(() => {
     const loadDish = async () => {
       setMenuLoading(true)
@@ -600,16 +603,7 @@ export default function DishDetailPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.8 }}
               >
-                {dish.tagline || dish.nombre}
-              </motion.p>
-
-              <motion.p
-                style={styles.description}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.9 }}
-              >
-                {dish.ingredientes || "Ingredientes por definir."}
+                {dish.descripcion || dish.tagline || dish.nombre}
               </motion.p>
 
               <motion.div
@@ -618,7 +612,7 @@ export default function DishDetailPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: 1 }}
               >
-                ${dish.precio.toFixed(2)}
+                {formatEuro(dish.precio)}
               </motion.div>
             </motion.div>
           )}

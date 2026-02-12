@@ -11,7 +11,7 @@ import { useSearchParams } from "next/navigation"
 type Dish = {
   id: number
   nombre: string
-  tagline?: string
+  descripcion?: string
   ingredientes: string
   precio: number
   foto_url?: string
@@ -111,7 +111,14 @@ export default function EditMenuPage() {
           const normalized = data.categories.map((cat) => ({
             ...cat,
             platos: Array.isArray(cat.platos)
-              ? cat.platos.map((dish) => ({ ...dish, activo: dish.activo ?? true }))
+              ? cat.platos.map((dish) => {
+                  const { tagline, ...rest } = dish
+                  return {
+                    ...rest,
+                    activo: dish.activo ?? true,
+                    descripcion: dish.descripcion ?? tagline ?? "",
+                  }
+                })
               : [],
           }))
           setCategories(normalized)
@@ -230,7 +237,7 @@ export default function EditMenuPage() {
               ...cat,
               platos: [
                 ...cat.platos,
-                { id: Date.now(), nombre: "", tagline: "", ingredientes: "", precio: 0, foto_url: "", activo: true },
+                { id: Date.now(), nombre: "", descripcion: "", ingredientes: "", precio: 0, foto_url: "", activo: true },
               ],
             }
           : cat,
@@ -649,9 +656,9 @@ export default function EditMenuPage() {
                           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
                         />
                         <input
-                          value={dish.tagline ?? ""}
-                          onChange={(e) => updateDish(category.id, dish.id, "tagline", e.target.value)}
-                          placeholder="Tagline (ej: BBQ Power!)"
+                          value={dish.descripcion ?? ""}
+                          onChange={(e) => updateDish(category.id, dish.id, "descripcion", e.target.value)}
+                          placeholder="Descripción (ej: Hamburguesa con salsa BBQ)"
                           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
                         />
                         <div className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus-within:ring-2 focus-within:ring-emerald-300/40">

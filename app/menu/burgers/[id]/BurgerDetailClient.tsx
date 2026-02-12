@@ -40,7 +40,6 @@ type Ingredient = {
 type Burger = {
     id: string
     name: string
-    tagline: string
     description: string
     price: string
     image: StaticImageData
@@ -51,10 +50,9 @@ const burgers: Burger[] = [
     {
         id: "1",
         name: "Triple BBQ Ribs",
-        tagline: "BBQ Power!",
         description:
             "Tres jugosas carnes bañadas en salsa BBQ ahumada, queso mozzarella fundido y cebolla caramelizada.",
-        price: "$40.000",
+        price: "40,00 €",
         image: tripleBbqBeef,
         ingredients: [
             {
@@ -117,9 +115,8 @@ const burgers: Burger[] = [
     {
         id: "2",
         name: "4 Carnes",
-        tagline: "Cuádruple Sabor!",
         description: "Cuatro capas de carne premium con quesos selectos y vegetales frescos.",
-        price: "$40.000",
+        price: "40,00 €",
         image: fourMeatRegular,
         ingredients: [
             {
@@ -171,9 +168,8 @@ const burgers: Burger[] = [
     {
         id: "3",
         name: "Onion Rings",
-        tagline: "Crujiente Delicia!",
         description: "Carne 100% res con aros de cebolla dorados y crujientes.",
-        price: "$26.000",
+        price: "26,00 €",
         image: burgerOnionRegular,
         ingredients: [
             {
@@ -214,9 +210,8 @@ const burgers: Burger[] = [
     {
         id: "4",
         name: "Crispy Bacon",
-        tagline: "Bacon Perfecto!",
         description: "Carne premium coronada con bacon extra crujiente y queso fundido.",
-        price: "$28.000",
+        price: "28,00 €",
         image: crispyBaconRegular,
         ingredients: [
             {
@@ -390,15 +385,6 @@ const styles = {
         letterSpacing: "0.3px",
         lineHeight: 1.1,
         textShadow: "0 0 6px rgba(0, 0, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.7)",
-    },
-    tagline: {
-        color: "#FFD700",
-        fontSize: "clamp(1.5rem, 6vw, 2.2rem)",
-        fontWeight: "bold",
-        fontStyle: "italic",
-        textAlign: "center" as const,
-        marginTop: "-1rem",
-        textShadow: "0 2px 10px rgba(255, 215, 0, 0.5)",
     },
     description: {
         color: "#e8e8e8",
@@ -664,15 +650,6 @@ export default function BurgerDetailClient({ burgerId }: BurgerDetailClientProps
                             )
                         })}
                     </motion.div>
-
-                    <motion.p
-                        style={styles.tagline}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.8 }}
-                    >
-                        {currentBurger.tagline}
-                    </motion.p>
 
                     <motion.p
                         style={styles.description}
