@@ -579,7 +579,9 @@ export default function BurgersPage() {
                                     }
                                 >
                                     <h3 style={styles.productName}>{dish.nombre}</h3>
-                                    <p style={styles.productIngredients}>{dish.ingredientes}</p>
+                                    <p style={styles.productIngredients}>
+                                        {dish.descripcion || dish.tagline || "Descripción por definir"}
+                                    </p>
                                     <div style={styles.productImageWrapper}>
                                         {dish.foto_url ? (
                                             <img
