@@ -254,7 +254,7 @@ const burgers: Burger[] = [
 const styles = {
     container: {
         minHeight: "100vh",
-        backgroundColor: "#000",
+        backgroundColor: "#061323",
         backgroundImage: "url(/placeholder.svg?height=1600&width=800&query=blurred food background dark)",
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -265,7 +265,7 @@ const styles = {
     overlay: {
         position: "absolute" as const,
         inset: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.88)",
+        backgroundColor: "rgba(6, 19, 35, 0.88)",
         zIndex: 0,
     },
     content: {
@@ -296,7 +296,7 @@ const styles = {
         height: "0",
         borderTop: "15px solid transparent",
         borderBottom: "15px solid transparent",
-        borderRight: "20px solid #FFD700",
+        borderRight: "20px solid #C39C57",
     },
     mainContent: {
         padding: "clamp(1rem, 4vw, 2rem)",
@@ -306,14 +306,14 @@ const styles = {
         gap: "clamp(1.5rem, 4vw, 2rem)",
     },
     title: {
-        color: "#fff",
+        color: "#EED6A8",
         fontSize: "clamp(2.5rem, 10vw, 4rem)",
         fontWeight: "bold",
         fontStyle: "italic",
         textAlign: "center" as const,
         fontFamily: "'Brush Script MT', cursive",
         marginBottom: "0.5rem",
-        textShadow: "0 4px 20px rgba(255, 215, 0, 0.5)",
+        textShadow: "0 4px 20px rgba(195, 156, 87, 0.5)",
     },
     burgerImageContainer: {
         position: "relative" as const,
@@ -338,13 +338,13 @@ const styles = {
         width: "80%",
         height: "auto",
         objectFit: "contain" as const,
-        filter: "drop-shadow(0 10px 30px rgba(255, 215, 0, 0.4))",
+        filter: "drop-shadow(0 10px 30px rgba(195, 156, 87, 0.4))",
         position: "relative" as const,
         zIndex: 2,
     },
     ingredient: {
         position: "absolute" as const,
-        color: "#fff",
+        color: "#EED6A8",
         fontStyle: "italic",
         textAlign: "center" as const,
         display: "flex",
@@ -363,31 +363,31 @@ const styles = {
         gap: "0.2rem",
         padding: "0.2rem 0.35rem",
         borderRadius: "8px",
-        boxShadow: "0 0 0 12px rgba(0, 0, 0, 0)",
+        boxShadow: "0 0 0 12px rgba(6, 19, 35, 0)",
         backgroundColor: "transparent",
         fontSize: "clamp(0.75rem, 2.6vw, 0.95rem)",
         lineHeight: 1.2,
-        textShadow: "0 0 6px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.9), 0 1px 3px rgba(0, 0, 0, 0.9)",
+        textShadow: "0 0 6px rgba(6, 19, 35, 0.9), 0 0 10px rgba(6, 19, 35, 0.9), 0 1px 3px rgba(6, 19, 35, 0.9)",
     },
     ingredientLabel: {
         fontWeight: 700,
-        color: "#FFD700",
+        color: "#C39C57",
         fontSize: "clamp(0.85rem, 2.8vw, 1.1rem)",
         letterSpacing: "0.6px",
         textTransform: "uppercase" as const,
         lineHeight: 1.1,
-        textShadow: "0 0 6px rgba(0, 0, 0, 1), 0 2px 4px rgba(0, 0, 0, 0.8)",
+        textShadow: "0 0 6px rgba(6, 19, 35, 1), 0 2px 4px rgba(6, 19, 35, 0.8)",
     },
     ingredientSublabel: {
         fontSize: "clamp(0.7rem, 2.3vw, 0.9rem)",
-        color: "#fff",
+        color: "#EED6A8",
         fontWeight: 500,
         letterSpacing: "0.3px",
         lineHeight: 1.1,
-        textShadow: "0 0 6px rgba(0, 0, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.7)",
+        textShadow: "0 0 6px rgba(6, 19, 35, 0.9), 0 2px 4px rgba(6, 19, 35, 0.7)",
     },
     description: {
-        color: "#e8e8e8",
+        color: "#EED6A8",
         fontSize: "clamp(1rem, 4vw, 1.25rem)",
         lineHeight: "1.7",
         textAlign: "center" as const,
@@ -398,12 +398,12 @@ const styles = {
         letterSpacing: "0.3px",
     },
     price: {
-        color: "#FFD700",
+        color: "#C39C57",
         fontSize: "clamp(3rem, 12vw, 4.5rem)",
         fontWeight: 900,
         textAlign: "center" as const,
         marginTop: "1.5rem",
-        textShadow: "0 4px 20px rgba(255, 215, 0, 0.6)",
+        textShadow: "0 4px 20px rgba(195, 156, 87, 0.6)",
         letterSpacing: "2px",
     },
     footer: {
@@ -411,7 +411,7 @@ const styles = {
         bottom: 0,
         left: 0,
         right: 0,
-        background: "linear-gradient(135deg, #FFD700 0%, #FFC700 100%)",
+        background: "linear-gradient(135deg, #C39C57 0%, #FFC700 100%)",
         padding: "clamp(1.25rem, 5vw, 2rem)",
         display: "flex",
         flexDirection: "row" as const,
@@ -419,7 +419,7 @@ const styles = {
         justifyContent: "space-between",
         gap: "1.5rem",
         zIndex: 100,
-        boxShadow: "0 -6px 30px rgba(0, 0, 0, 0.4)",
+        boxShadow: "0 -6px 30px rgba(6, 19, 35, 0.4)",
     },
     ratingContainer: {
         display: "flex",
@@ -431,7 +431,7 @@ const styles = {
     ratingLabel: {
         fontSize: "clamp(0.85rem, 3.5vw, 1rem)",
         fontWeight: 700,
-        color: "#000",
+        color: "#061323",
         textTransform: "uppercase" as const,
         letterSpacing: "1px",
     },
@@ -445,11 +445,11 @@ const styles = {
         cursor: "pointer",
         transition: "all 0.2s ease",
         userSelect: "none" as const,
-        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+        filter: "drop-shadow(0 2px 4px rgba(6, 19, 35, 0.3))",
     },
     shareButton: {
-        background: "rgba(0, 0, 0, 0.15)",
-        border: "2px solid rgba(0, 0, 0, 0.25)",
+        background: "rgba(6, 19, 35, 0.15)",
+        border: "2px solid rgba(6, 19, 35, 0.25)",
         borderRadius: "50%",
         width: "clamp(3.5rem, 15vw, 4.5rem)",
         height: "clamp(3.5rem, 15vw, 4.5rem)",
@@ -458,7 +458,7 @@ const styles = {
         alignItems: "center",
         justifyContent: "center",
         transition: "all 0.3s ease",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+        boxShadow: "0 4px 12px rgba(6, 19, 35, 0.2)",
     },
     shareIcon: {
         fontSize: "clamp(1.8rem, 7vw, 2.5rem)",
@@ -596,7 +596,7 @@ export default function BurgerDetailClient({ burgerId }: BurgerDetailClientProps
                                     <motion.path
                                         key={`${ingredient.label}-${index}`}
                                         d={`M ${lineStart.x} ${lineStart.y} Q ${controlX} ${controlY} ${lineEnd.x} ${lineEnd.y}`}
-                                        stroke="rgba(255, 215, 0, 0.7)"
+                                        stroke="rgba(195, 156, 87, 0.7)"
                                         strokeWidth="2"
                                         strokeDasharray={ingredient.lineDashed ? "8 4" : undefined}
                                         fill="none"
@@ -693,9 +693,9 @@ export default function BurgerDetailClient({ burgerId }: BurgerDetailClientProps
                                     starIndex <= rating
                                         ? {
                                             filter: [
-                                                "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                                                "drop-shadow(0 0 15px rgba(255, 215, 0, 0.8))",
-                                                "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                                                "drop-shadow(0 2px 4px rgba(6, 19, 35, 0.3))",
+                                                "drop-shadow(0 0 15px rgba(195, 156, 87, 0.8))",
+                                                "drop-shadow(0 2px 4px rgba(6, 19, 35, 0.3))",
                                             ],
                                         }
                                         : {}
@@ -715,7 +715,7 @@ export default function BurgerDetailClient({ burgerId }: BurgerDetailClientProps
                     style={styles.shareButton}
                     whileHover={{
                         scale: 1.1,
-                        backgroundColor: "rgba(0, 0, 0, 0.25)",
+                        backgroundColor: "rgba(6, 19, 35, 0.25)",
                         rotate: [0, -5, 5, 0],
                     }}
                     whileTap={{ scale: 0.9 }}
@@ -727,3 +727,4 @@ export default function BurgerDetailClient({ burgerId }: BurgerDetailClientProps
         </div>
     )
 }
+

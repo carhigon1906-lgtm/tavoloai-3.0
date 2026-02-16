@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 // @ts-nocheck
 
 import { motion } from "framer-motion"
@@ -93,9 +93,9 @@ export default function BurgersPage() {
     const styles = {
         container: {
             minHeight: "100vh",
-            backgroundColor: "#000",
+            backgroundColor: "#061323",
             backgroundImage:
-                'linear-gradient(rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0.9)), url("https://images.unsplash.com/photo-1550547660-d9450f859349?w=1200&q=80")',
+                'linear-gradient(rgba(6, 19, 35, 0.88), rgba(6, 19, 35, 0.9)), url("https://images.unsplash.com/photo-1550547660-d9450f859349?w=1200&q=80")',
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundAttachment: "fixed",
@@ -105,7 +105,7 @@ export default function BurgersPage() {
         overlay: {
             position: "absolute" as const,
             inset: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backgroundColor: "rgba(6, 19, 35, 0.5)",
             zIndex: 0,
         },
         content: {
@@ -138,22 +138,22 @@ export default function BurgersPage() {
             height: "0",
             borderTop: "15px solid transparent",
             borderBottom: "15px solid transparent",
-            borderRight: "20px solid #FFD700",
+            borderRight: "20px solid #C39C57",
             marginRight: "5px",
         },
         title: {
-            color: "#fff",
+            color: "#EED6A8",
             fontSize: "clamp(1.2rem, 5vw, 1.8rem)",
             fontWeight: "bold",
             fontStyle: "italic",
             textAlign: "center" as const,
             letterSpacing: "1px",
-            textShadow: "0 0 10px rgba(255, 215, 0, 0.45), 0 0 22px rgba(255, 215, 0, 0.35)",
+            textShadow: "0 0 10px rgba(195, 156, 87, 0.45), 0 0 22px rgba(195, 156, 87, 0.35)",
         },
         filterModalOverlay: {
             position: "fixed" as const,
             inset: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            backgroundColor: "rgba(6, 19, 35, 0.7)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -162,11 +162,11 @@ export default function BurgersPage() {
         },
         filterModalCard: {
             width: "min(420px, 100%)",
-            backgroundColor: "rgba(15, 15, 15, 0.97)",
+            backgroundColor: "rgba(29, 48, 42, 0.97)",
             borderRadius: "18px",
             padding: "1.25rem 1.5rem",
-            boxShadow: "0 22px 45px rgba(0, 0, 0, 0.6)",
-            border: "1px solid rgba(255, 255, 255, 0.18)",
+            boxShadow: "0 22px 45px rgba(6, 19, 35, 0.6)",
+            border: "1px solid rgba(238, 214, 168, 0.18)",
         },
         filterModalHeader: {
             display: "flex",
@@ -175,7 +175,7 @@ export default function BurgersPage() {
             marginBottom: "0.75rem",
         },
         filterModalTitle: {
-            color: "#fff",
+            color: "#EED6A8",
             fontSize: "0.95rem",
             fontWeight: 700,
             letterSpacing: "0.08em",
@@ -184,7 +184,7 @@ export default function BurgersPage() {
         filterModalClose: {
             background: "transparent",
             border: "none",
-            color: "rgba(255,255,255,0.7)",
+            color: "rgba(238,214,168,0.7)",
             fontSize: "0.85rem",
             cursor: "pointer",
         },
@@ -199,8 +199,8 @@ export default function BurgersPage() {
             borderRadius: "9999px",
             border: "none",
             background:
-                "linear-gradient(120deg, rgba(255, 215, 0, 0.95), rgba(255, 153, 0, 0.95))",
-            color: "#000",
+                "linear-gradient(120deg, rgba(195, 156, 87, 0.95), rgba(195, 156, 87, 0.95))",
+            color: "#061323",
             fontWeight: 700,
             fontSize: "0.8rem",
             letterSpacing: "0.08em",
@@ -221,18 +221,18 @@ export default function BurgersPage() {
             gap: "0.5rem",
             padding: "0.65rem 1rem",
             borderRadius: "9999px",
-            background: "rgba(0, 0, 0, 0.55)",
-            border: "1px solid rgba(255, 255, 255, 0.18)",
-            color: "#fff",
+            background: "rgba(6, 19, 35, 0.55)",
+            border: "1px solid rgba(238, 214, 168, 0.18)",
+            color: "#EED6A8",
             cursor: "pointer",
             textAlign: "left" as const,
             minWidth: "180px",
-            boxShadow: "0 12px 28px rgba(0, 0, 0, 0.35)",
+            boxShadow: "0 12px 28px rgba(6, 19, 35, 0.35)",
         },
         filterChipActive: {
-            background: "linear-gradient(120deg, rgba(255, 215, 0, 0.2), rgba(255, 76, 76, 0.45))",
-            borderColor: "#FFD700",
-            boxShadow: "0 18px 34px rgba(255, 215, 0, 0.22)",
+            background: "linear-gradient(120deg, rgba(195, 156, 87, 0.2), rgba(195, 156, 87, 0.45))",
+            borderColor: "#C39C57",
+            boxShadow: "0 18px 34px rgba(195, 156, 87, 0.22)",
         },
         filterChipIcon: {
             fontSize: "1.25rem",
@@ -250,21 +250,21 @@ export default function BurgersPage() {
         },
         filterChipHelper: {
             fontSize: "0.7rem",
-            color: "rgba(255, 255, 255, 0.7)",
+            color: "rgba(238, 214, 168, 0.7)",
         },
         filterReset: {
             padding: "0.6rem 1rem",
             borderRadius: "9999px",
-            border: "1px solid rgba(255, 255, 255, 0.25)",
-            background: "rgba(255,255,255,0.08)",
-            color: "#fff",
+            border: "1px solid rgba(238, 214, 168, 0.25)",
+            background: "rgba(238,214,168,0.08)",
+            color: "#EED6A8",
             fontWeight: 600,
             letterSpacing: "0.05em",
             cursor: "pointer",
         },
         filterSummary: {
             fontSize: "0.8rem",
-            color: "rgba(255, 255, 255, 0.75)",
+            color: "rgba(238, 214, 168, 0.75)",
             textAlign: "center" as const,
             marginBottom: "0.5rem",
         },
@@ -276,9 +276,9 @@ export default function BurgersPage() {
             width: "100%",
             padding: "0.6rem 0.9rem",
             borderRadius: "9999px",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
-            color: "#fff",
+            border: "1px solid rgba(238, 214, 168, 0.2)",
+            backgroundColor: "rgba(6, 19, 35, 0.6)",
+            color: "#EED6A8",
             fontSize: "0.9rem",
             outline: "none",
             backdropFilter: "blur(8px)",
@@ -287,9 +287,9 @@ export default function BurgersPage() {
             margin: "0 1rem 0.75rem",
             padding: "0.75rem 1rem",
             borderRadius: "14px",
-            border: "1px dashed rgba(255, 255, 255, 0.2)",
-            background: "rgba(0, 0, 0, 0.55)",
-            color: "rgba(255, 255, 255, 0.7)",
+            border: "1px dashed rgba(238, 214, 168, 0.2)",
+            background: "rgba(6, 19, 35, 0.55)",
+            color: "rgba(238, 214, 168, 0.7)",
             textAlign: "center" as const,
         },
         statusError: {
@@ -310,7 +310,7 @@ export default function BurgersPage() {
         },
         productCard: {
             backgroundImage:
-                "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.72) 100%), linear-gradient(120deg, rgba(255, 215, 0, 0.08), rgba(255, 255, 255, 0.04), rgba(255, 215, 0, 0.08))",
+                "linear-gradient(135deg, rgba(238, 214, 168, 0.08) 0%, rgba(6, 19, 35, 0.72) 100%), linear-gradient(120deg, rgba(195, 156, 87, 0.08), rgba(238, 214, 168, 0.04), rgba(195, 156, 87, 0.08))",
             backgroundSize: "200% 200%",
             backgroundPosition: "0% 50%",
             animation: "cardGlow 6s ease-in-out infinite",
@@ -321,10 +321,10 @@ export default function BurgersPage() {
             alignItems: "center",
             gap: "clamp(0.5rem, 2vw, 0.75rem)",
             backdropFilter: "blur(6px)",
-            border: "1px solid rgba(255, 215, 0, 0.2)",
+            border: "1px solid rgba(195, 156, 87, 0.2)",
             cursor: "pointer",
             transition: "all 0.3s ease",
-            boxShadow: "0 10px 22px rgba(0, 0, 0, 0.4), 0 0 18px rgba(255, 215, 0, 0.25)",
+            boxShadow: "0 10px 22px rgba(6, 19, 35, 0.4), 0 0 18px rgba(195, 156, 87, 0.25)",
         },
         productImageWrapper: {
             width: "100%",
@@ -334,7 +334,7 @@ export default function BurgersPage() {
             padding: "0.35rem 0 0.1rem",
         },
         productName: {
-            color: "#fff",
+            color: "#EED6A8",
             fontSize: "clamp(1rem, 4vw, 1.3rem)",
             fontWeight: "bold",
             fontStyle: "italic",
@@ -343,17 +343,17 @@ export default function BurgersPage() {
         },
         productIngredients: {
             fontSize: "clamp(0.7rem, 2.6vw, 0.85rem)",
-            color: "rgba(255, 255, 255, 0.7)",
+            color: "rgba(238, 214, 168, 0.7)",
             textAlign: "center" as const,
             lineHeight: 1.4,
             minHeight: "2.4em",
-            textShadow: "0 0 8px rgba(255, 215, 0, 0.25)",
+            textShadow: "0 0 8px rgba(195, 156, 87, 0.25)",
         },
         variantInfo: {
             display: "flex",
             gap: "0.5rem",
             fontSize: "clamp(0.65rem, 2.5vw, 0.8rem)",
-            color: "#ddd",
+            color: "#EED6A8",
             fontStyle: "italic",
             marginBottom: "0.5rem",
         },
@@ -369,10 +369,10 @@ export default function BurgersPage() {
             gap: "0.25rem",
             padding: "0.3rem 0.65rem",
             borderRadius: "9999px",
-            background: "rgba(255, 255, 255, 0.08)",
-            border: "1px solid rgba(255, 255, 255, 0.15)",
+            background: "rgba(238, 214, 168, 0.08)",
+            border: "1px solid rgba(238, 214, 168, 0.15)",
             fontSize: "0.7rem",
-            color: "#FFD700",
+            color: "#C39C57",
             letterSpacing: "0.04em",
         },
         productImage: {
@@ -382,46 +382,46 @@ export default function BurgersPage() {
             aspectRatio: "1",
             objectFit: "contain" as const,
             borderRadius: "12px",
-            filter: "drop-shadow(0 18px 28px rgba(0, 0, 0, 0.45))",
+            filter: "drop-shadow(0 18px 28px rgba(6, 19, 35, 0.45))",
         },
         productImagePlaceholder: {
             width: "min(52vw, 180px)",
             aspectRatio: "1",
             borderRadius: "14px",
-            border: "1px dashed rgba(255, 255, 255, 0.2)",
-            background: "linear-gradient(140deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.35))",
+            border: "1px dashed rgba(238, 214, 168, 0.2)",
+            background: "linear-gradient(140deg, rgba(238, 214, 168, 0.06), rgba(6, 19, 35, 0.35))",
             display: "grid",
             placeItems: "center",
-            color: "rgba(255, 255, 255, 0.5)",
+            color: "rgba(238, 214, 168, 0.5)",
             fontSize: "0.75rem",
             textTransform: "uppercase" as const,
             letterSpacing: "0.08em",
         },
         price: {
-            color: "#FFD700",
+            color: "#C39C57",
             fontSize: "clamp(1.1rem, 4.5vw, 1.5rem)",
             fontWeight: "bold",
             marginTop: "0.5rem",
-            textShadow: "0 0 8px rgba(255, 215, 0, 0.5), 0 0 16px rgba(255, 215, 0, 0.35)",
+            textShadow: "0 0 8px rgba(195, 156, 87, 0.5), 0 0 16px rgba(195, 156, 87, 0.35)",
         },
         emptyState: {
             gridColumn: "1 / -1",
-            background: "rgba(0, 0, 0, 0.55)",
+            background: "rgba(6, 19, 35, 0.55)",
             borderRadius: "16px",
             padding: "2rem",
             textAlign: "center" as const,
-            border: "1px solid rgba(255, 255, 255, 0.1)",
+            border: "1px solid rgba(238, 214, 168, 0.1)",
         },
         emptyTitle: {
             fontSize: "1.1rem",
             fontWeight: 700,
-            color: "#FFD700",
+            color: "#C39C57",
             letterSpacing: "0.05em",
         },
         emptySubtitle: {
             marginTop: "0.5rem",
             fontSize: "0.85rem",
-            color: "rgba(255, 255, 255, 0.75)",
+            color: "rgba(238, 214, 168, 0.75)",
         },
         loadingWrap: {
             position: "fixed" as const,
@@ -431,7 +431,7 @@ export default function BurgersPage() {
             height: "100vh",
             zIndex: 200,
             display: "block",
-            backgroundColor: "rgba(0, 0, 0, 0.35)",
+            backgroundColor: "rgba(6, 19, 35, 0.35)",
             backdropFilter: "blur(24px)",
             WebkitBackdropFilter: "blur(24px)",
         },
@@ -440,16 +440,16 @@ export default function BurgersPage() {
             height: "36px",
             borderRadius: "9999px",
             background:
-                "conic-gradient(from 90deg, rgba(255,255,255,0.15), rgba(255,255,255,0.95), rgba(255,255,255,0.15))",
-            WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0)",
-            mask: "radial-gradient(farthest-side, transparent calc(100% - 3px), #000 0)",
+                "conic-gradient(from 90deg, rgba(238,214,168,0.15), rgba(238,214,168,0.95), rgba(238,214,168,0.15))",
+            WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 3px), #061323 0)",
+            mask: "radial-gradient(farthest-side, transparent calc(100% - 3px), #061323 0)",
             animation: "spin 0.85s linear infinite",
-            boxShadow: "0 0 14px rgba(255, 255, 255, 0.25)",
+            boxShadow: "0 0 14px rgba(238, 214, 168, 0.25)",
         },
         loadingLabel: {
             marginTop: "0.7rem",
             fontSize: "0.75rem",
-            color: "rgba(255, 255, 255, 0.8)",
+            color: "rgba(238, 214, 168, 0.8)",
             letterSpacing: "0.12em",
             textTransform: "uppercase" as const,
         },
@@ -468,20 +468,20 @@ export default function BurgersPage() {
             bottom: 0,
             left: 0,
             right: 0,
-            backgroundColor: "rgba(255, 215, 0, 0.5)",
+            backgroundColor: "rgba(195, 156, 87, 0.5)",
             padding: "clamp(0.75rem, 3vw, 1rem)",
             display: "flex",
             justifyContent: "space-around",
             alignItems: "center",
             gap: "0.5rem",
             zIndex: 100,
-            boxShadow: "0 -8px 22px rgba(255, 215, 0, 0.5), 0 -16px 32px rgba(0, 0, 0, 0.2)",
-            borderTop: "1px solid rgba(255, 215, 0, 0.7)",
+            boxShadow: "0 -8px 22px rgba(195, 156, 87, 0.5), 0 -16px 32px rgba(6, 19, 35, 0.2)",
+            borderTop: "1px solid rgba(195, 156, 87, 0.7)",
             backdropFilter: "blur(12px)",
         },
         actionButton: {
-            background: "rgba(255, 255, 255, 0.12)",
-            border: "1px solid rgba(255, 255, 255, 0.3)",
+            background: "rgba(238, 214, 168, 0.12)",
+            border: "1px solid rgba(238, 214, 168, 0.3)",
             borderRadius: "18px",
             padding: "clamp(0.65rem, 3vw, 0.9rem) clamp(1rem, 4vw, 1.6rem)",
             cursor: "pointer",
@@ -494,18 +494,18 @@ export default function BurgersPage() {
             transition: "all 0.3s ease",
             backdropFilter: "blur(12px)",
             boxShadow:
-                "0 8px 18px rgba(0, 0, 0, 0.2), 0 0 18px rgba(255, 215, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.25)",
+                "0 8px 18px rgba(6, 19, 35, 0.2), 0 0 18px rgba(195, 156, 87, 0.28), inset 0 1px 0 rgba(238, 214, 168, 0.25)",
         },
         buttonIcon: {
             width: "clamp(1.2rem, 5vw, 1.5rem)",
             height: "clamp(1.2rem, 5vw, 1.5rem)",
-            color: "#fff",
-            textShadow: "0 0 12px rgba(255, 215, 0, 0.4)",
+            color: "#EED6A8",
+            textShadow: "0 0 12px rgba(195, 156, 87, 0.4)",
         },
         buttonText: {
             fontSize: "clamp(0.65rem, 2.5vw, 0.8rem)",
             fontWeight: "bold",
-            color: "rgba(255, 255, 255, 0.9)",
+            color: "rgba(238, 214, 168, 0.9)",
             textTransform: "uppercase" as const,
             letterSpacing: "0.5px",
         },
@@ -565,9 +565,9 @@ export default function BurgersPage() {
                                     }}
                                     whileHover={{
                                         scale: 1.05,
-                                        backgroundColor: "rgba(30, 30, 30, 0.9)",
-                                        borderColor: "rgba(255, 215, 0, 0.5)",
-                                        boxShadow: "0 14px 28px rgba(0, 0, 0, 0.45), 0 0 26px rgba(255, 215, 0, 0.5)",
+                                        backgroundColor: "rgba(29, 48, 42, 0.9)",
+                                        borderColor: "rgba(195, 156, 87, 0.5)",
+                                        boxShadow: "0 14px 28px rgba(6, 19, 35, 0.45), 0 0 26px rgba(195, 156, 87, 0.5)",
                                     }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() =>
@@ -615,8 +615,8 @@ export default function BurgersPage() {
                         style={styles.actionButton}
                         whileHover={{
                             scale: 1.05,
-                            backgroundColor: "rgba(0, 0, 0, 0.3)",
-                            borderColor: "rgba(0, 0, 0, 0.5)",
+                            backgroundColor: "rgba(6, 19, 35, 0.3)",
+                            borderColor: "rgba(6, 19, 35, 0.5)",
                         }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleSearch}
@@ -629,8 +629,8 @@ export default function BurgersPage() {
                         style={styles.actionButton}
                         whileHover={{
                             scale: 1.05,
-                            backgroundColor: "rgba(0, 0, 0, 0.3)",
-                            borderColor: "rgba(0, 0, 0, 0.5)",
+                            backgroundColor: "rgba(6, 19, 35, 0.3)",
+                            borderColor: "rgba(6, 19, 35, 0.5)",
                         }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleFilter}
@@ -643,8 +643,8 @@ export default function BurgersPage() {
                         style={styles.actionButton}
                         whileHover={{
                             scale: 1.05,
-                            backgroundColor: "rgba(0, 0, 0, 0.3)",
-                            borderColor: "rgba(0, 0, 0, 0.5)",
+                            backgroundColor: "rgba(6, 19, 35, 0.3)",
+                            borderColor: "rgba(6, 19, 35, 0.5)",
                         }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleShare}
@@ -664,6 +664,7 @@ export default function BurgersPage() {
         </div>
     )
 }
+
 
 
 

@@ -22,3 +22,4 @@ Notes:
    - Server code imports `lib/db.ts` for raw SQL (`supabasePool` / `query` helper).
    - Client/server components can import `supabase` from `lib/supabaseClient` to use Supabase Auth (email/password, OAuth) as wired in `components/auth/AuthModal.tsx`.
     
+

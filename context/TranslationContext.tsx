@@ -252,7 +252,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       subtitle: "Sin contratos. Cancela cuando quieras.",
       billingMonthlyLabel: "Plan mensual",
       billingYearlyLabel: "Plan anual",
-      priceLabel: "29 €",
+      priceLabel: "29 â‚¬",
       priceSuffix: "/mes",
       features: [
         "Menús ilimitados",
@@ -449,7 +449,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       subtitle: "No contracts. Cancel anytime.",
       billingMonthlyLabel: "Monthly plan",
       billingYearlyLabel: "Annual plan",
-      priceLabel: "29 €",
+      priceLabel: "29 â‚¬",
       priceSuffix: "/month",
       features: [
         "Unlimited menus",
@@ -610,7 +610,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       subtitle: "Senza contratti. Puoi annullare quando vuoi.",
       billingMonthlyLabel: "Piano mensile",
       billingYearlyLabel: "Piano annuale",
-      priceLabel: "29 €",
+      priceLabel: "29 â‚¬",
       priceSuffix: "/mese",
       features: [
         "Menu illimitati",
@@ -757,4 +757,5 @@ export const SUPPORTED_LANGUAGES: Array<{ code: LanguageCode; label: string }> =
   { code: "en", label: "English" },
   { code: "it", label: "Italiano" },
 ]
+
 

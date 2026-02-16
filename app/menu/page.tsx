@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 "use client"
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
@@ -50,6 +50,7 @@ type Dish = {
 type Category = {
     id: number | string
     nombre: string
+    icono?: string
     platos: Dish[]
 }
 
@@ -57,10 +58,10 @@ const iconForCategory = (name: string) => {
     const n = name.toLowerCase()
     if (n.includes("burger")) return "🍔"
     if (n.includes("pizza")) return "🍕"
-    if (n.includes("artesan")) return "🥖"
-    if (n.includes("smooth")) return "🍹"
+    if (n.includes("artesan")) return "🥨"
+    if (n.includes("smooth")) return "🥤"
     if (n.includes("soda") || n.includes("bebida")) return "🥤"
-    if (n.includes("special") || n.includes("especial")) return "🍽️"
+    if (n.includes("special") || n.includes("especial")) return "⭐"
     return "🍽️"
 }
 
@@ -221,7 +222,7 @@ export default function HomePage() {
                 return {
                     id: String(cat.id),
                     name: cat.nombre.toUpperCase(),
-                    icon: iconForCategory(cat.nombre),
+                    icon: cat.icono?.trim() ? cat.icono : iconForCategory(cat.nombre),
                     platos,
                 }
             })
@@ -458,7 +459,7 @@ export default function HomePage() {
                                         ? undefined
                                         : {
                                             scale: 1.04,
-                                            boxShadow: '0 18px 32px rgba(255, 215, 0, 0.18)',
+                                            boxShadow: '0 18px 32px rgba(195, 156, 87, 0.18)',
                                         }
                                 }
                                 whileTap={{ scale: 0.97 }}
@@ -572,7 +573,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        backgroundColor: '#050505',
+        backgroundColor: '#061323',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -582,7 +583,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         position: 'absolute',
         inset: 0,
         background:
-            'radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.08), rgba(10, 10, 10, 0.95) 60%), linear-gradient(145deg, rgba(255, 0, 0, 0.12), rgba(255, 0, 0, 0))',
+            'radial-gradient(circle at 22% 18%, rgba(238, 214, 168, 0.08), rgba(6, 19, 35, 0.95) 60%), linear-gradient(145deg, rgba(195, 156, 87, 0.12), rgba(195, 156, 87, 0))',
         filter: 'contrast(1.08)',
     },
     introContent: {
@@ -605,7 +606,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         width: '168px',
         height: '168px',
         borderRadius: '9999px',
-        background: 'radial-gradient(circle, rgba(255, 76, 76, 0.45) 0%, rgba(255, 76, 76, 0) 72%)',
+        background: 'radial-gradient(circle, rgba(195, 156, 87, 0.45) 0%, rgba(195, 156, 87, 0) 72%)',
         filter: 'blur(0.75px)',
     },
     introBadge: {
@@ -625,14 +626,14 @@ const styles: { [key: string]: React.CSSProperties } = {
         width: '100%',
         height: '100%',
         objectFit: 'contain',
-        filter: 'drop-shadow(0 16px 28px rgba(0, 0, 0, 0.45))',
+        filter: 'drop-shadow(0 16px 28px rgba(6, 19, 35, 0.45))',
     },
     introBadgeSkeleton: {
         width: '100%',
         height: '100%',
         borderRadius: '28px',
         background:
-            'linear-gradient(120deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08))',
+            'linear-gradient(120deg, rgba(238, 214, 168, 0.08), rgba(238, 214, 168, 0.22), rgba(238, 214, 168, 0.08))',
         backgroundSize: '200% 100%',
         animation: 'logoShimmer 1.2s ease-in-out infinite',
     },
@@ -641,36 +642,36 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontWeight: 800,
         letterSpacing: '0.24em',
         textTransform: 'uppercase',
-        color: '#fff',
-        textShadow: '0 10px 32px rgba(0, 0, 0, 0.6)',
+        color: '#EED6A8',
+        textShadow: '0 10px 32px rgba(6, 19, 35, 0.6)',
     },
     introSubtitle: {
         fontSize: 'clamp(1rem, 3.4vw, 1.35rem)',
         fontWeight: 600,
         textTransform: 'uppercase',
         letterSpacing: '0.18em',
-        color: 'rgba(255, 255, 255, 0.82)',
-        textShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
+        color: 'rgba(238, 214, 168, 0.82)',
+        textShadow: '0 8px 24px rgba(6, 19, 35, 0.45)',
     },
     introAccentBar: {
         width: 'min(160px, 34vw)',
         height: '4px',
-        background: 'linear-gradient(90deg, rgba(255, 76, 76, 0) 0%, rgba(255, 76, 76, 0.9) 45%, rgba(255, 76, 76, 0.1) 100%)',
+        background: 'linear-gradient(90deg, rgba(195, 156, 87, 0) 0%, rgba(195, 156, 87, 0.9) 45%, rgba(195, 156, 87, 0.1) 100%)',
         transformOrigin: 'center',
         borderRadius: '9999px',
     },
     container: {
         minHeight: '100vh',
-        backgroundColor: '#000',
+        backgroundColor: '#061323',
         backgroundImage:
-            'linear-gradient(rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0.9)), url("https://images.unsplash.com/photo-1550547660-d9450f859349?w=1200&q=80")',
+            'linear-gradient(rgba(6, 19, 35, 0.88), rgba(6, 19, 35, 0.9)), url("https://images.unsplash.com/photo-1550547660-d9450f859349?w=1200&q=80")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
         backgroundRepeat: 'no-repeat',
         display: 'flex',
         flexDirection: 'column',
-        color: '#fff',
+        color: '#EED6A8',
         fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif',
     },
     branding: {
@@ -691,21 +692,21 @@ const styles: { [key: string]: React.CSSProperties } = {
         width: 'min(140px, 42vw)',
         height: 'auto',
         objectFit: 'contain',
-        filter: 'drop-shadow(0 10px 24px rgba(0, 0, 0, 0.55))',
+        filter: 'drop-shadow(0 10px 24px rgba(6, 19, 35, 0.55))',
     },
     logoSkeleton: {
         width: 'min(140px, 42vw)',
         height: 'min(140px, 42vw)',
         borderRadius: '18px',
         background:
-            'linear-gradient(120deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06))',
+            'linear-gradient(120deg, rgba(238, 214, 168, 0.06), rgba(238, 214, 168, 0.16), rgba(238, 214, 168, 0.06))',
         backgroundSize: '200% 100%',
         animation: 'logoShimmer 1.2s ease-in-out infinite',
-        boxShadow: '0 12px 26px rgba(0, 0, 0, 0.35)',
+        boxShadow: '0 12px 26px rgba(6, 19, 35, 0.35)',
     },
     brandTagline: {
         fontSize: 'clamp(0.9rem, 3vw, 1.2rem)',
-        color: '#FFD700',
+        color: '#C39C57',
         fontWeight: 500,
         letterSpacing: '0.12rem',
         textTransform: 'uppercase',
@@ -733,11 +734,11 @@ const styles: { [key: string]: React.CSSProperties } = {
         width: '10px',
         height: '10px',
         borderRadius: '9999px',
-        backgroundColor: 'rgba(255, 255, 255, 0.25)',
+        backgroundColor: 'rgba(238, 214, 168, 0.25)',
         transition: 'background-color 0.3s ease',
     },
     carouselDotActive: {
-        backgroundColor: '#FFD700',
+        backgroundColor: '#C39C57',
     },
     main: {
         flex: 1,
@@ -751,8 +752,8 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontWeight: 'bold',
         textAlign: 'center',
         margin: '0 0 0.5rem',
-        color: '#FFD700',
-        textShadow: '2px 2px 8px rgba(0, 0, 0, 0.8)',
+        color: '#C39C57',
+        textShadow: '2px 2px 8px rgba(6, 19, 35, 0.8)',
     },
     subtitle: {
         fontSize: 'clamp(1rem, 3vw, 1.3rem)',
@@ -760,7 +761,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         textAlign: 'center',
         margin: '0 0 2rem',
         fontStyle: 'italic',
-        textShadow: '1px 1px 4px rgba(0, 0, 0, 0.8)',
+        textShadow: '1px 1px 4px rgba(6, 19, 35, 0.8)',
     },
     searchWrapper: {
         width: '100%',
@@ -772,9 +773,9 @@ const styles: { [key: string]: React.CSSProperties } = {
         maxWidth: '820px',
         padding: '0.9rem 1.2rem',
         borderRadius: '16px',
-        border: '1px dashed rgba(255, 255, 255, 0.25)',
-        backgroundColor: 'rgba(0, 0, 0, 0.55)',
-        color: 'rgba(255, 255, 255, 0.7)',
+        border: '1px dashed rgba(238, 214, 168, 0.25)',
+        backgroundColor: 'rgba(6, 19, 35, 0.55)',
+        color: 'rgba(238, 214, 168, 0.7)',
         textAlign: 'center',
         marginBottom: '1rem',
     },
@@ -793,12 +794,12 @@ const styles: { [key: string]: React.CSSProperties } = {
         width: '100%',
         padding: '0.7rem 1rem',
         borderRadius: '9999px',
-        border: '1px solid rgba(255, 255, 255, 0.25)',
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        color: '#fff',
+        border: '1px solid rgba(238, 214, 168, 0.25)',
+        backgroundColor: 'rgba(6, 19, 35, 0.6)',
+        color: '#EED6A8',
         fontSize: '0.95rem',
         outline: 'none',
-        boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.4)',
+        boxShadow: '0 0 0 1px rgba(6, 19, 35, 0.4)',
     },
     grid: {
         display: 'grid',
@@ -809,9 +810,9 @@ const styles: { [key: string]: React.CSSProperties } = {
         marginBottom: '2rem',
     },
     categoryCard: {
-        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.72) 100%)',
+        background: 'linear-gradient(135deg, rgba(238, 214, 168, 0.08) 0%, rgba(6, 19, 35, 0.72) 100%)',
         backdropFilter: 'blur(6px)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
+        border: '1px solid rgba(238, 214, 168, 0.12)',
         borderRadius: '18px',
         padding: 'clamp(1.2rem, 4vw, 1.6rem) clamp(0.9rem, 3vw, 1.1rem)',
         display: 'flex',
@@ -820,15 +821,15 @@ const styles: { [key: string]: React.CSSProperties } = {
         gap: '0.85rem',
         cursor: 'pointer',
         minHeight: '160px',
-        boxShadow: '0 12px 26px rgba(0, 0, 0, 0.35), 0 0 18px rgba(255, 215, 0, 0.25)',
+        boxShadow: '0 12px 26px rgba(6, 19, 35, 0.35), 0 0 18px rgba(195, 156, 87, 0.25)',
         position: 'relative',
         overflow: 'hidden',
     },
     categoryCardSelected: {
-        borderColor: '#FFD700',
-        boxShadow: '0 18px 32px rgba(255, 215, 0, 0.22), 0 0 26px rgba(255, 215, 0, 0.45)',
+        borderColor: '#C39C57',
+        boxShadow: '0 18px 32px rgba(195, 156, 87, 0.22), 0 0 26px rgba(195, 156, 87, 0.45)',
         transform: 'translateY(-4px)',
-        background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.22) 0%, rgba(0, 0, 0, 0.75) 100%)',
+        background: 'linear-gradient(135deg, rgba(195, 156, 87, 0.22) 0%, rgba(6, 19, 35, 0.75) 100%)',
     },
     iconContainer: {
         display: 'flex',
@@ -837,13 +838,13 @@ const styles: { [key: string]: React.CSSProperties } = {
         width: '3.5rem',
         height: '3.5rem',
         borderRadius: '9999px',
-        background: 'rgba(0, 0, 0, 0.55)',
-        border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 6px 18px rgba(0, 0, 0, 0.4)',
+        background: 'rgba(6, 19, 35, 0.55)',
+        border: '1px solid rgba(238, 214, 168, 0.12)',
+        boxShadow: '0 6px 18px rgba(6, 19, 35, 0.4)',
         fontSize: '1.9rem',
     },
     icon: {
-        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+        filter: 'drop-shadow(0 2px 4px rgba(6,19,35,0.5))',
     },
     categoryName: {
         fontSize: 'clamp(0.9rem, 2.5vw, 1.05rem)',
@@ -870,14 +871,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     },
     productCard: {
         backgroundImage:
-            'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.72) 100%), linear-gradient(120deg, rgba(255, 215, 0, 0.08), rgba(255, 255, 255, 0.04), rgba(255, 215, 0, 0.08))',
+            'linear-gradient(135deg, rgba(238, 214, 168, 0.08) 0%, rgba(6, 19, 35, 0.72) 100%), linear-gradient(120deg, rgba(195, 156, 87, 0.08), rgba(238, 214, 168, 0.04), rgba(195, 156, 87, 0.08))',
         backgroundSize: '200% 200%',
         backgroundPosition: '0% 50%',
         animation: 'cardGlow 6s ease-in-out infinite',
         borderRadius: '16px',
-        border: '1px solid rgba(255, 255, 255, 0.18)',
+        border: '1px solid rgba(238, 214, 168, 0.18)',
         padding: '0.75rem',
-        boxShadow: '0 10px 24px rgba(0, 0, 0, 0.45), 0 0 18px rgba(255, 215, 0, 0.22)',
+        boxShadow: '0 10px 24px rgba(6, 19, 35, 0.45), 0 0 18px rgba(195, 156, 87, 0.22)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -909,24 +910,24 @@ const styles: { [key: string]: React.CSSProperties } = {
     productPrice: {
         fontSize: '0.9rem',
         fontWeight: 700,
-        color: '#FFD700',
-        textShadow: '0 0 8px rgba(255, 215, 0, 0.5), 0 0 16px rgba(255, 215, 0, 0.35)',
+        color: '#C39C57',
+        textShadow: '0 0 8px rgba(195, 156, 87, 0.5), 0 0 16px rgba(195, 156, 87, 0.35)',
     },
     productIngredients: {
         fontSize: '0.75rem',
-        color: 'rgba(255, 255, 255, 0.7)',
+        color: 'rgba(238, 214, 168, 0.7)',
         textAlign: 'center',
         lineHeight: 1.4,
-        textShadow: '0 0 8px rgba(255, 215, 0, 0.25)',
+        textShadow: '0 0 8px rgba(195, 156, 87, 0.25)',
     },
     emptyProducts: {
         width: '100%',
         padding: '1rem',
         borderRadius: '16px',
         textAlign: 'center',
-        background: 'rgba(0, 0, 0, 0.6)',
-        border: '1px dashed rgba(255, 255, 255, 0.2)',
-        color: 'rgba(255, 255, 255, 0.6)',
+        background: 'rgba(6, 19, 35, 0.6)',
+        border: '1px dashed rgba(238, 214, 168, 0.2)',
+        color: 'rgba(238, 214, 168, 0.6)',
         fontSize: '0.9rem',
     },
     motivationText: {
@@ -936,18 +937,18 @@ const styles: { [key: string]: React.CSSProperties } = {
         marginTop: 'auto',
     },
     motivationYellow: {
-        color: '#FFD700',
-        textShadow: '2px 2px 8px rgba(255, 215, 0, 0.5)',
+        color: '#C39C57',
+        textShadow: '2px 2px 8px rgba(195, 156, 87, 0.5)',
     },
     motivationWhite: {
-        color: '#fff',
-        textShadow: '2px 2px 8px rgba(0, 0, 0, 0.8)',
+        color: '#EED6A8',
+        textShadow: '2px 2px 8px rgba(6, 19, 35, 0.8)',
     },
     footer: {
-        backgroundColor: 'rgba(255, 215, 0, 0.35)',
+        backgroundColor: 'rgba(195, 156, 87, 0.35)',
         padding: '0.6rem 1.2rem',
-        boxShadow: '0 -8px 22px rgba(255, 215, 0, 0.4), 0 -16px 36px rgba(0, 0, 0, 0.25)',
-        borderTop: '1px solid rgba(255, 215, 0, 0.55)',
+        boxShadow: '0 -8px 22px rgba(195, 156, 87, 0.4), 0 -16px 36px rgba(6, 19, 35, 0.25)',
+        borderTop: '1px solid rgba(195, 156, 87, 0.55)',
         backdropFilter: 'blur(12px)',
     },
     footerContent: {
@@ -966,10 +967,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     orderText: {
         fontSize: 'clamp(0.9rem, 2.6vw, 1.1rem)',
         fontWeight: 'bold',
-        color: '#f8fafc',
+        color: '#EED6A8',
         textTransform: 'uppercase',
         letterSpacing: '0.15rem',
-        textShadow: '0 0 14px rgba(255, 215, 0, 0.45)',
+        textShadow: '0 0 14px rgba(195, 156, 87, 0.45)',
     },
     orderSubtext: {
         fontSize: 'clamp(0.7rem, 2.2vw, 0.85rem)',
@@ -984,10 +985,10 @@ const styles: { [key: string]: React.CSSProperties } = {
         width: '2.6rem',
         height: '2.6rem',
         borderRadius: '9999px',
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-        color: '#FFD700',
-        boxShadow: '0 0 22px rgba(255, 215, 0, 0.5), 0 10px 20px rgba(0, 0, 0, 0.2)',
-        border: '1px solid rgba(255, 215, 0, 0.5)',
+        backgroundColor: 'rgba(6, 19, 35, 0.4)',
+        color: '#C39C57',
+        boxShadow: '0 0 22px rgba(195, 156, 87, 0.5), 0 10px 20px rgba(6, 19, 35, 0.2)',
+        border: '1px solid rgba(195, 156, 87, 0.5)',
         cursor: 'pointer',
     },
     priceInfo: {
@@ -999,11 +1000,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     priceAmount: {
         fontSize: 'clamp(0.95rem, 2.6vw, 1.2rem)',
         fontWeight: 'bold',
-        color: '#f8fafc',
+        color: '#EED6A8',
         textAlign: 'right',
         textTransform: 'uppercase',
         letterSpacing: '0.1rem',
-        textShadow: '0 0 14px rgba(255, 215, 0, 0.45)',
+        textShadow: '0 0 14px rgba(195, 156, 87, 0.45)',
     },
     priceText: {
         fontSize: 'clamp(0.7rem, 2vw, 0.85rem)',
@@ -1012,4 +1013,5 @@ const styles: { [key: string]: React.CSSProperties } = {
         textAlign: 'right',
     },
 }
+
 

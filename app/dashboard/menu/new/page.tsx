@@ -21,6 +21,7 @@ type Dish = {
 type Category = {
   id: number
   nombre: string
+  icono?: string
   platos: Dish[]
 }
 
@@ -33,6 +34,8 @@ const card = {
   hidden: { opacity: 0, y: 18, scale: 0.98 },
   visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 280, damping: 26 } },
 }
+
+const CATEGORY_ICON_OPTIONS = ["🍔", "🍕", "🌮", "🥗", "🍣", "🥤", "☕", "🍰", "🍽️", "⭐"]
 
 const initialCategories: Category[] = []
 
@@ -60,6 +63,7 @@ export default function NewMenuPage() {
   } | null>(null)
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [newCategoryName, setNewCategoryName] = useState<string>("")
+  const [newCategoryIcon, setNewCategoryIcon] = useState<string>("🍽️")
   const [menuName, setMenuName] = useState<string>("")
   const [menuSlug, setMenuSlug] = useState<string>("")
   const [ingredientDrafts, setIngredientDrafts] = useState<Record<number, string>>({})
@@ -192,9 +196,10 @@ export default function NewMenuPage() {
     if (!newCategoryName.trim()) return alert("Ingresa un nombre de categoría.")
     setCategories((prev) => [
       ...prev,
-      { id: Date.now(), nombre: newCategoryName.trim(), platos: [] },
+      { id: Date.now(), nombre: newCategoryName.trim(), icono: newCategoryIcon.trim() || "🍽️", platos: [] },
     ])
     setNewCategoryName("")
+    setNewCategoryIcon("🍽️")
   }
 
   const removeCategory = (id: number) => {
@@ -257,6 +262,10 @@ export default function NewMenuPage() {
 
   const updateCategoryName = (id: number, value: string) => {
     setCategories((prev) => prev.map((cat) => (cat.id === id ? { ...cat, nombre: value } : cat)))
+  }
+
+  const updateCategoryIcon = (id: number, value: string) => {
+    setCategories((prev) => prev.map((cat) => (cat.id === id ? { ...cat, icono: value } : cat)))
   }
 
   const updateDish = (categoryId: number, dishId: number, field: keyof Dish, value: string | number) => {
@@ -547,6 +556,27 @@ export default function NewMenuPage() {
                 disabled={creationLocked}
                 className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
               />
+              <div className="grid gap-3 sm:grid-cols-[140px_1fr]">
+                <select
+                  value={newCategoryIcon}
+                  onChange={(e) => setNewCategoryIcon(e.target.value)}
+                  disabled={creationLocked}
+                  className="w-full rounded-2xl border border-white/20 bg-white/5 px-3 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {CATEGORY_ICON_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option} Icono
+                    </option>
+                  ))}
+                </select>
+                <input
+                  value={newCategoryIcon}
+                  onChange={(e) => setNewCategoryIcon(e.target.value)}
+                  placeholder="Emoji personalizado (ej: 🍔)"
+                  disabled={creationLocked}
+                  className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </div>
               <motion.button
                 type="button"
                 whileHover={{ scale: 1.02 }}
@@ -589,13 +619,22 @@ export default function NewMenuPage() {
                   className="rounded-[26px] border border-white/10 bg-[#0b1426] p-6 shadow-[0_25px_60px_rgba(0,0,0,0.5)]"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-4">
-                    <input
-                      value={category.nombre}
-                      onChange={(e) => updateCategoryName(category.id, e.target.value)}
-                      disabled={creationLocked}
-                      className="flex-1 min-w-[220px] rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-lg font-semibold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
-                      placeholder="Nombre de la categoría"
-                    />
+                    <div className="flex flex-1 min-w-[220px] items-center gap-3">
+                      <input
+                        value={category.icono ?? ""}
+                        onChange={(e) => updateCategoryIcon(category.id, e.target.value)}
+                        disabled={creationLocked}
+                        placeholder="🍽️"
+                        className="w-16 rounded-2xl border border-white/20 bg-white/5 px-3 py-3 text-center text-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
+                      />
+                      <input
+                        value={category.nombre}
+                        onChange={(e) => updateCategoryName(category.id, e.target.value)}
+                        disabled={creationLocked}
+                        className="flex-1 rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-lg font-semibold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50 disabled:cursor-not-allowed disabled:opacity-60"
+                        placeholder="Nombre de la categoría"
+                      />
+                    </div>
                     <div className="flex items-center gap-2">
                       <motion.button
                         type="button"
