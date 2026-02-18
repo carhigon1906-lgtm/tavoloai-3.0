@@ -2,7 +2,7 @@
 // @ts-nocheck
 
 import { motion } from "framer-motion"
-import { Search, Share2, SlidersHorizontal } from "lucide-react"
+import { Search, Share2, SlidersHorizontal, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 
@@ -39,19 +39,78 @@ export default function BurgersPage() {
     const [menuError, setMenuError] = useState("")
 
     const [searchQuery, setSearchQuery] = useState("")
+    const [filterOpen, setFilterOpen] = useState(false)
+    const [selectedIngredients, setSelectedIngredients] = useState<string[]>([])
+    const [selectedAllergies, setSelectedAllergies] = useState<string[]>([])
 
     const formatEuro = (value: number) =>
         new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(value)
 
-    const filteredDishes = useMemo(() => {
-        const trimmedQuery = searchQuery.trim().toLowerCase()
-        if (!trimmedQuery) return dishes
-        return dishes.filter((dish) => {
-            if (dish.nombre.toLowerCase().includes(trimmedQuery)) return true
-            if (dish.ingredientes?.toLowerCase().includes(trimmedQuery)) return true
-            return false
+    const normalizeText = (value: string) =>
+        value
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/\p{Diacritic}/gu, "")
+            .trim()
+
+    const ingredientOptions = useMemo(() => {
+        const map = new Map<string, string>()
+        dishes.forEach((dish) => {
+            const raw = dish.ingredientes ?? ""
+            raw
+                .split(/[,\n;]+/)
+                .map((item) => item.trim())
+                .filter(Boolean)
+                .forEach((item) => {
+                    const key = normalizeText(item)
+                    if (!map.has(key)) map.set(key, item)
+                })
         })
-    }, [dishes, searchQuery])
+        return Array.from(map.entries())
+            .map(([key, label]) => ({ key, label }))
+            .sort((a, b) => a.label.localeCompare(b.label))
+    }, [dishes])
+
+    const ALLERGY_OPTIONS = [
+        { key: "ajo", label: "Ajo", terms: ["ajo", "garlic"] },
+        { key: "cebolla", label: "Cebolla", terms: ["cebolla", "onion"] },
+        { key: "lacteos", label: "Lácteos", terms: ["queso", "leche", "crema", "mantequilla", "yogur"] },
+        { key: "gluten", label: "Gluten", terms: ["pan", "harina", "trigo", "pasta"] },
+        { key: "huevo", label: "Huevo", terms: ["huevo", "mayonesa"] },
+        { key: "mariscos", label: "Mariscos", terms: ["camaron", "camarón", "marisco", "shrimp"] },
+        { key: "frutos-secos", label: "Frutos secos", terms: ["nuez", "almendra", "mani", "maní", "cacahuate"] },
+        { key: "soya", label: "Soya", terms: ["soya", "soja"] },
+    ]
+
+    const filteredDishes = useMemo(() => {
+        const trimmedQuery = normalizeText(searchQuery)
+        const activeIngredients = selectedIngredients
+        const activeAllergies = selectedAllergies
+        return dishes.filter((dish) => {
+            const name = normalizeText(dish.nombre || "")
+            const ingredientsText = normalizeText(dish.ingredientes || "")
+
+            if (trimmedQuery) {
+                if (!name.includes(trimmedQuery) && !ingredientsText.includes(trimmedQuery)) return false
+            }
+
+            if (activeIngredients.length > 0) {
+                const blockedByIngredient = activeIngredients.some((ing) => ingredientsText.includes(ing))
+                if (blockedByIngredient) return false
+            }
+
+            if (activeAllergies.length > 0) {
+                const blocked = activeAllergies.some((key) => {
+                    const allergy = ALLERGY_OPTIONS.find((item) => item.key === key)
+                    if (!allergy) return false
+                    return allergy.terms.some((term) => ingredientsText.includes(normalizeText(term)))
+                })
+                if (blocked) return false
+            }
+
+            return true
+        })
+    }, [dishes, searchQuery, selectedIngredients, selectedAllergies])
 
     const hasResults = filteredDishes.length > 0
 
@@ -89,8 +148,25 @@ export default function BurgersPage() {
     }, [categoryId, menuIdParam])
 
     const handleSearch = () => {}
-    const handleFilter = () => {}
+    const handleFilter = () => setFilterOpen(true)
     const handleShare = () => {}
+
+    const toggleIngredient = (key: string) => {
+        setSelectedIngredients((prev) =>
+            prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key],
+        )
+    }
+
+    const toggleAllergy = (key: string) => {
+        setSelectedAllergies((prev) =>
+            prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key],
+        )
+    }
+
+    const resetFilters = () => {
+        setSelectedIngredients([])
+        setSelectedAllergies([])
+    }
 
     const styles = {
         container: {
@@ -157,28 +233,43 @@ export default function BurgersPage() {
             inset: 0,
             backgroundColor: "rgba(6, 19, 35, 0.7)",
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-end",
             justifyContent: "center",
             zIndex: 150,
-            padding: "1.25rem",
+            padding: "0.5rem 0.5rem 140px",
         },
         filterModalCard: {
-            width: "min(420px, 100%)",
-            backgroundColor: "rgba(29, 48, 42, 0.97)",
-            borderRadius: "18px",
-            padding: "1.25rem 1.5rem",
-            boxShadow: "0 22px 45px rgba(6, 19, 35, 0.6)",
-            border: "1px solid rgba(238, 214, 168, 0.18)",
+            width: "min(520px, 96vw)",
+            maxHeight: "calc(100vh - 140px)",
+            backgroundColor: "rgba(18, 26, 38, 0.98)",
+            borderRadius: "24px",
+            padding: "0.75rem 0.9rem 0",
+            boxShadow: "0 24px 55px rgba(6, 19, 35, 0.6)",
+            border: "1px solid rgba(238, 214, 168, 0.12)",
+            overflow: "hidden" as const,
+            WebkitOverflowScrolling: "touch" as const,
+        },
+        filterHandle: {
+            width: "44px",
+            height: "5px",
+            borderRadius: "9999px",
+            background: "rgba(238, 214, 168, 0.4)",
+            margin: "0 auto 0.6rem",
+        },
+        filterBody: {
+            padding: "0 0.2rem 0.9rem",
+            maxHeight: "calc(100vh - 260px)",
+            overflowY: "auto" as const,
         },
         filterModalHeader: {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "0.75rem",
+            marginBottom: "0.35rem",
         },
         filterModalTitle: {
             color: "#EED6A8",
-            fontSize: "0.95rem",
+            fontSize: "0.8rem",
             fontWeight: 700,
             letterSpacing: "0.08em",
             textTransform: "uppercase" as const,
@@ -187,7 +278,7 @@ export default function BurgersPage() {
             background: "transparent",
             border: "none",
             color: "rgba(238,214,168,0.7)",
-            fontSize: "0.85rem",
+            fontSize: "1.25rem",
             cursor: "pointer",
         },
         filterModalActions: {
@@ -211,24 +302,24 @@ export default function BurgersPage() {
         },
         filterBar: {
             display: "flex",
-            flexDirection: "column" as const,
-            gap: "0.6rem",
-            alignItems: "stretch",
-            justifyContent: "center",
-            marginTop: "0.5rem",
+            flexWrap: "wrap" as const,
+            gap: "0.45rem",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            marginTop: "0.4rem",
         },
         filterChip: {
             display: "flex",
             alignItems: "center",
-            gap: "0.5rem",
-            padding: "0.65rem 1rem",
+            gap: "0.4rem",
+            padding: "0.45rem 0.7rem",
             borderRadius: "9999px",
-            background: "rgba(6, 19, 35, 0.55)",
-            border: "1px solid rgba(238, 214, 168, 0.18)",
+            background: "rgba(6, 19, 35, 0.6)",
+            border: "1px solid rgba(238, 214, 168, 0.14)",
             color: "#EED6A8",
             cursor: "pointer",
             textAlign: "left" as const,
-            minWidth: "180px",
+            minWidth: "0",
             boxShadow: "0 12px 28px rgba(6, 19, 35, 0.35)",
         },
         filterChipActive: {
@@ -246,29 +337,35 @@ export default function BurgersPage() {
             lineHeight: 1.1,
         },
         filterChipLabel: {
-            fontSize: "0.85rem",
+            fontSize: "0.74rem",
             fontWeight: 600,
             letterSpacing: "0.05em",
+            wordBreak: "break-word" as const,
         },
         filterChipHelper: {
-            fontSize: "0.7rem",
+            fontSize: "0.6rem",
             color: "rgba(238, 214, 168, 0.7)",
         },
         filterReset: {
             padding: "0.6rem 1rem",
             borderRadius: "9999px",
             border: "1px solid rgba(238, 214, 168, 0.25)",
-            background: "rgba(238,214,168,0.08)",
+            background: "rgba(238,214,168,0.06)",
             color: "#EED6A8",
             fontWeight: 600,
             letterSpacing: "0.05em",
             cursor: "pointer",
         },
         filterSummary: {
-            fontSize: "0.8rem",
+            fontSize: "0.72rem",
             color: "rgba(238, 214, 168, 0.75)",
             textAlign: "center" as const,
             marginBottom: "0.5rem",
+        },
+        filterDivider: {
+            height: "1px",
+            background: "rgba(238, 214, 168, 0.1)",
+            margin: "0.65rem 0 0.45rem",
         },
         searchBar: {
             padding: "0 1rem",
@@ -317,11 +414,11 @@ export default function BurgersPage() {
             backgroundPosition: "0% 50%",
             animation: "cardGlow 6s ease-in-out infinite",
             borderRadius: "16px",
-            padding: "clamp(0.9rem, 3.5vw, 1.2rem)",
+            padding: "clamp(0.7rem, 2.8vw, 1rem)",
             display: "flex",
             flexDirection: "column" as const,
             alignItems: "center",
-            gap: "clamp(0.5rem, 2vw, 0.75rem)",
+            gap: "clamp(0.4rem, 1.8vw, 0.65rem)",
             backdropFilter: "blur(6px)",
             border: "1px solid rgba(195, 156, 87, 0.2)",
             cursor: "pointer",
@@ -337,14 +434,14 @@ export default function BurgersPage() {
         },
         productName: {
             color: "#EED6A8",
-            fontSize: "clamp(1rem, 4vw, 1.3rem)",
+            fontSize: "clamp(0.9rem, 3.6vw, 1.15rem)",
             fontWeight: "bold",
             fontStyle: "italic",
             textAlign: "center" as const,
             marginBottom: "0.25rem",
         },
         productIngredients: {
-            fontSize: "clamp(0.7rem, 2.6vw, 0.85rem)",
+            fontSize: "clamp(0.65rem, 2.3vw, 0.8rem)",
             color: "rgba(238, 214, 168, 0.7)",
             textAlign: "center" as const,
             lineHeight: 1.4,
@@ -379,7 +476,7 @@ export default function BurgersPage() {
         },
         productImage: {
             width: "100%",
-            maxWidth: "180px",
+            maxWidth: "150px",
             height: "auto",
             aspectRatio: "1",
             objectFit: "contain" as const,
@@ -387,7 +484,7 @@ export default function BurgersPage() {
             filter: "drop-shadow(0 18px 28px rgba(6, 19, 35, 0.45))",
         },
         productImagePlaceholder: {
-            width: "min(52vw, 180px)",
+            width: "min(48vw, 150px)",
             aspectRatio: "1",
             borderRadius: "14px",
             border: "1px dashed rgba(238, 214, 168, 0.2)",
@@ -401,7 +498,7 @@ export default function BurgersPage() {
         },
         price: {
             color: "#C39C57",
-            fontSize: "clamp(1.1rem, 4.5vw, 1.5rem)",
+            fontSize: "clamp(1rem, 4.2vw, 1.35rem)",
             fontWeight: "bold",
             marginTop: "0.5rem",
             textShadow: "0 0 8px rgba(195, 156, 87, 0.5), 0 0 16px rgba(195, 156, 87, 0.35)",
@@ -552,6 +649,82 @@ export default function BurgersPage() {
                             style={styles.searchInput}
                         />
                     </div>
+
+                    {filterOpen && (
+                        <div style={styles.filterModalOverlay} onClick={() => setFilterOpen(false)}>
+                            <div style={styles.filterModalCard} onClick={(event) => event.stopPropagation()}>
+                                <div style={styles.filterHandle} />
+                                <div style={styles.filterModalHeader}>
+                                    <span style={styles.filterModalTitle}>Filtros</span>
+                                    <button style={styles.filterModalClose} onClick={() => setFilterOpen(false)} aria-label="Cerrar filtros">
+                                        <X size={24} />
+                                    </button>
+                                </div>
+
+                                <div style={styles.filterBody}>
+                                    <div style={{ ...styles.filterSummary, textAlign: "left" }}>Ingredientes (excluir)</div>
+                                    <div style={styles.filterBar}>
+                                        {ingredientOptions.length === 0 && (
+                                            <div style={styles.filterSummary}>No hay ingredientes para filtrar.</div>
+                                        )}
+                                        {ingredientOptions.map((item) => {
+                                            const active = selectedIngredients.includes(item.key)
+                                            return (
+                                                <button
+                                                    key={item.key}
+                                                    type="button"
+                                                    style={{
+                                                        ...styles.filterChip,
+                                                        ...(active ? styles.filterChipActive : {}),
+                                                    }}
+                                                    onClick={() => toggleIngredient(item.key)}
+                                                >
+                                                    <span style={styles.filterChipIcon}>🥗</span>
+                                                    <span style={styles.filterChipCopy}>
+                                                        <span style={styles.filterChipLabel}>{item.label}</span>
+                                                    </span>
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+
+                                    <div style={styles.filterDivider} />
+
+                                    <div style={{ ...styles.filterSummary, textAlign: "left" }}>Alergias</div>
+                                    <div style={styles.filterBar}>
+                                        {ALLERGY_OPTIONS.map((item) => {
+                                            const active = selectedAllergies.includes(item.key)
+                                            return (
+                                                <button
+                                                    key={item.key}
+                                                    type="button"
+                                                    style={{
+                                                        ...styles.filterChip,
+                                                        ...(active ? styles.filterChipActive : {}),
+                                                    }}
+                                                    onClick={() => toggleAllergy(item.key)}
+                                                >
+                                                    <span style={styles.filterChipIcon}>⚠️</span>
+                                                    <span style={styles.filterChipCopy}>
+                                                        <span style={styles.filterChipLabel}>{item.label}</span>
+                                                    </span>
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div style={styles.filterModalActions}>
+                                    <button type="button" style={styles.filterReset} onClick={resetFilters}>
+                                        Limpiar
+                                    </button>
+                                    <button type="button" style={styles.filterModalApply} onClick={() => setFilterOpen(false)}>
+                                        Aplicar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div style={styles.productsGrid}>
                         {hasResults ? (
