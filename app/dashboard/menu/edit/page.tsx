@@ -554,7 +554,7 @@ export default function EditMenuPage() {
             variants={card}
             className="flex h-full min-h-[300px] flex-col rounded-[28px] border border-white/10 bg-white/5 p-7 shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
           >
-            <h2 className="text-xl font-semibold text-white">Agregar categoría
+            <h2 className="text-xl font-semibold text-white">Agregar categoría</h2>
             <p className="mt-1 text-sm text-slate-400">Ej. Entradas, Platos fuertes, Bebidas, Postres.</p>
 
             <div className="mt-5 flex flex-col gap-3">

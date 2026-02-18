@@ -15,6 +15,8 @@ type Dish = {
     id: number | string
     nombre: string
     ingredientes: string
+    descripcion?: string
+    tagline?: string
     precio: number
     foto_url?: string
     activo?: boolean
