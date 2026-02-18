@@ -591,7 +591,8 @@ export default function EditMenuPage() {
                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30"
               >
                 <Plus className="h-4 w-4" />
-                Añadir categoría</motion.button>
+                Añadir categoría
+              </motion.button>
             </div>
 
             <div className="mt-6 space-y-3 text-sm text-slate-300">
@@ -664,13 +665,21 @@ export default function EditMenuPage() {
                   <div className="mt-5 space-y-4">
                     {category.platos.length === 0 && (
                       <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-6 text-center text-sm text-slate-400">
-                        esta categoría"grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 md:grid-cols-[1.4fr_0.6fr_1fr_1.4fr_auto]"
+                        Esta categor�a no tiene platos a�n. Agrega el primero.
+                      </div>
+                    )}
+
+                    {category.platos.map((dish) => (
+                      <div
+                        key={dish.id}
+                        className="grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 md:grid-cols-[1.4fr_0.6fr_1fr_1.4fr_auto]"
                       >
                         <input
                           value={dish.nombre}
                           onChange={(e) => updateDish(category.id, dish.id, "nombre", e.target.value)}
                           placeholder="Nombre del plato"
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
+                          disabled={editLocked}
+                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
                         />
                         <input
                           type="number"
@@ -678,13 +687,15 @@ export default function EditMenuPage() {
                           value={dish.precio || ""}
                           onChange={(e) => updateDish(category.id, dish.id, "precio", Number.parseFloat(e.target.value) || 0)}
                           placeholder="Precio"
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
+                          disabled={editLocked}
+                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
                         />
                         <input
                           value={dish.descripcion ?? ""}
                           onChange={(e) => updateDish(category.id, dish.id, "descripcion", e.target.value)}
-                          placeholder="DescripciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n (ej: Hamburguesa con salsa BBQ)"
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
+                          placeholder="Descripci�n (ej: Hamburguesa con salsa BBQ)"
+                          disabled={editLocked}
+                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
                         />
                         <div className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus-within:ring-2 focus-within:ring-emerald-300/40">
                           <div className="flex flex-wrap items-center gap-2">
@@ -699,8 +710,9 @@ export default function EditMenuPage() {
                                   onClick={() => removeIngredient(category.id, dish.id, parseIngredients(dish.ingredientes), idx)}
                                   className="text-emerald-200/80 transition hover:text-white"
                                   aria-label="Quitar ingrediente"
+                                  disabled={editLocked}
                                 >
-                                  ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â
+                                  �
                                 </button>
                               </span>
                             ))}
@@ -734,7 +746,8 @@ export default function EditMenuPage() {
                                 )
                               }
                               placeholder="Ingredientes"
-                              className="min-w-[120px] flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
+                              disabled={editLocked}
+                              className="min-w-[120px] flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none disabled:cursor-not-allowed disabled:opacity-60"
                             />
                           </div>
                         </div>
@@ -745,6 +758,7 @@ export default function EditMenuPage() {
                               accept="image/png,image/jpeg,image/webp"
                               className="hidden"
                               onChange={onDishPhotoSelected(category.id, dish.id)}
+                              disabled={editLocked}
                             />
                             <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                             <span className="relative text-slate-200">
@@ -767,7 +781,8 @@ export default function EditMenuPage() {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => requestRemoveDish(category.id, dish.id)}
-                          className="group relative inline-flex h-9 w-fit items-center justify-center justify-self-start overflow-hidden rounded-xl border border-red-300/40 bg-gradient-to-r from-red-500/35 via-red-400/20 to-red-500/35 px-2.5 text-xs font-semibold text-red-100 shadow-[0_0_18px_rgba(248,113,113,0.45)] transition-transform duration-150 ease-out hover:border-red-300/80 hover:text-white hover:shadow-[0_0_30px_rgba(239,68,68,0.95)] active:scale-95 active:shadow-[0_0_14px_rgba(248,113,113,0.35)]"
+                          disabled={editLocked}
+                          className="group relative inline-flex h-9 w-fit items-center justify-center justify-self-start overflow-hidden rounded-xl border border-red-300/40 bg-gradient-to-r from-red-500/35 via-red-400/20 to-red-500/35 px-2.5 text-xs font-semibold text-red-100 shadow-[0_0_18px_rgba(248,113,113,0.45)] transition-transform duration-150 ease-out hover:border-red-300/80 hover:text-white hover:shadow-[0_0_30px_rgba(239,68,68,0.95)] active:scale-95 active:shadow-[0_0_14px_rgba(248,113,113,0.35)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-red-300/35 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                           <Trash2 className="relative h-4 w-4" />
@@ -775,6 +790,7 @@ export default function EditMenuPage() {
                       </div>
                     ))}
                   </div>
+
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -875,7 +891,7 @@ export default function EditMenuPage() {
                   <Trash2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Eliminar categoría
+                  <h3 className="text-lg font-semibold text-white">Eliminar categoría</h3>
                   <p className="mt-1 text-sm text-slate-300">
                     EstÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡s por borrar <span className="font-semibold text-white">{confirmCategoryDelete.categoryName}</span> y
                     todos sus platos. Esta acciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³n no se puede deshacer.
@@ -909,6 +925,9 @@ export default function EditMenuPage() {
     </div>
   )
 }
+
+
+
 
 
 
