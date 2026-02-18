@@ -305,7 +305,7 @@ export default function BurgersPage() {
         },
         productsGrid: {
             display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(220px, 100%), 1fr))",
             gap: "clamp(0.5rem, 2vw, 1rem)",
             padding: "clamp(0.5rem, 3vw, 1rem)",
             maxWidth: "100%",
