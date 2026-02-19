@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-const path = require("path")
-
 const nextConfig = {
   reactStrictMode: true,
   images: {
@@ -13,8 +11,8 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
-      "onnxruntime-web": path.resolve(__dirname, "node_modules/onnxruntime-web/dist/ort.min.js"),
-      "onnxruntime-web/webgpu": path.resolve(__dirname, "node_modules/onnxruntime-web/dist/ort.webgpu.min.js"),
+      "onnxruntime-web": require.resolve("onnxruntime-web"),
+      "onnxruntime-web/webgpu": require.resolve("onnxruntime-web/webgpu"),
     };
     config.experiments = { ...(config.experiments || {}), asyncWebAssembly: true, topLevelAwait: true };
     config.module.rules.push({ test: /\.wasm$/, type: "webassembly/async" });
