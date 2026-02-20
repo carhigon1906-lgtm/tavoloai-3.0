@@ -21,6 +21,12 @@ export default function ClientLayoutWrapper({ children }: { children: ReactNode 
 
     useEffect(() => {
         if (typeof window === "undefined") return
+        const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
+        const platform = navigator.platform ?? ""
+        const userAgent = navigator.userAgent ?? ""
+        const isAppleDesktop = platform.toUpperCase().includes("MAC")
+        const isAppleLike = isAppleDesktop || /Mac OS X|iPhone|iPad|iPod/i.test(userAgent)
+        if (prefersReducedMotion || isAppleLike) return
 
         const lenis = new Lenis({
             duration: 0.7,      // scroll suave pero sin sensación de lag

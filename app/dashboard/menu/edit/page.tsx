@@ -916,6 +916,18 @@ export default function EditMenuPage() {
                               {dish.foto_url ? "Reemplazar foto" : "Subir foto"}
                             </span>
                           </label>
+                          <label className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-r from-sky-400/20 via-white/5 to-sky-400/20 px-3 py-2 text-xs text-slate-100 shadow-[0_0_18px_rgba(56,189,248,0.22)] transition-transform duration-150 ease-out hover:border-sky-300/50 hover:text-white hover:shadow-[0_0_24px_rgba(56,189,248,0.35)] active:scale-95 active:shadow-[0_0_14px_rgba(56,189,248,0.25)] md:hidden">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              className="hidden"
+                              onChange={onDishPhotoSelected(category.id, dish.id)}
+                              disabled={editLocked}
+                            />
+                            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-sky-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                            <span className="relative text-slate-100">Tomar foto</span>
+                          </label>
                           {uploadingDish[dish.id] && (
                             <span className="text-xs text-emerald-300">Subiendo...</span>
                           )}
