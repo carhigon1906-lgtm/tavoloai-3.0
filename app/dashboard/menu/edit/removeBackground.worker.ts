@@ -27,7 +27,6 @@ const configureOrt = () => {
   ort.env.wasm.simd = true
   ort.env.wasm.numThreads = 1
   ort.env.wasm.proxy = false
-  ort.env.wasm.useJsep = false
 }
 
 const getSession = () => {
@@ -55,7 +54,8 @@ self.onmessage = async (event: MessageEvent<{ bitmap: ImageBitmap }>) => {
 
     const result = await remove(canvas as unknown as HTMLCanvasElement, {
       session,
-      onProgress: (progress) => {
+      onProgress: (info: any) => {
+        const progress = typeof info === "number" ? info : info?.progress ?? 0
         const pct = Math.max(5, Math.min(95, Math.round(progress * 100)))
         post({ type: "progress", value: pct })
       },
