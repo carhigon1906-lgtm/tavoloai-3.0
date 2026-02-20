@@ -27,7 +27,6 @@ const configureOrt = () => {
   ort.env.wasm.simd = true
   ort.env.wasm.numThreads = 1
   ort.env.wasm.proxy = false
-  ort.env.wasm.useThreads = false
   ort.env.wasm.useJsep = false
 }
 
