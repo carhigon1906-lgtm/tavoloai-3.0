@@ -1036,31 +1036,38 @@ export default function EditMenuPage() {
           </motion.div>
         )}
         {Object.values(removingBackground).some(Boolean) && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6 py-10 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
             <motion.div
-              className="w-full max-w-sm rounded-[28px] border border-white/10 bg-[#0e1626] p-6 text-white shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
-              initial={{ y: 24, scale: 0.98, opacity: 0 }}
-              animate={{ y: 0, scale: 1, opacity: 1 }}
-              exit={{ y: 16, scale: 0.98, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6 py-10 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
             >
-              <div className="flex flex-col items-center gap-4">
-                <div className="h-1 w-12 rounded-full bg-white/20" />
-                <div className="text-sm font-semibold text-emerald-200">Procesando foto</div>
-                <div className="flex w-full flex-col items-center gap-3">
-                  <div className="relative h-52 w-52 overflow-hidden rounded-[24px] border border-white/10 bg-white/5">
-                    {(processingPreview || processedPreview) && (
-                      <img src={processingPreview || processedPreview} alt="" className="h-full w-full object-cover" />
-                    )}
-                    {processedPreview && (
-                      <img
-                        src={processedPreview}
-                        alt="Vista previa sin fondo"
+              <motion.div
+                className="relative w-full max-w-xl overflow-hidden rounded-[32px] border border-white/10 bg-[#0b1526]/95 p-7 text-white shadow-[0_40px_120px_rgba(0,0,0,0.65)]"
+                initial={{ y: 24, scale: 0.98, opacity: 0 }}
+                animate={{ y: 0, scale: 1, opacity: 1 }}
+                exit={{ y: 16, scale: 0.98, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 220, damping: 22 }}
+              >
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.12),transparent_55%)]" />
+                <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-emerald-400/10 blur-2xl" />
+                <div className="flex flex-col items-center gap-4">
+                  <div className="h-1 w-12 rounded-full bg-white/20" />
+                  <div className="text-sm font-semibold text-emerald-200">Procesando foto</div>
+                  <div className="flex w-full flex-col items-center gap-3">
+                    <div className="relative h-72 w-72 overflow-hidden rounded-[26px] border border-white/10 bg-white/5 shadow-[0_25px_60px_rgba(0,0,0,0.45)] sm:h-80 sm:w-80">
+                      <div className="pointer-events-none absolute inset-0 rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.16),transparent_55%)]" />
+                      {(processingPreview || processedPreview) && (
+                        <img
+                          src={processingPreview || processedPreview}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                      {processedPreview && (
+                        <img
+                          src={processedPreview}
+                          alt="Vista previa sin fondo"
                         className="absolute inset-0 h-full w-full object-contain transition-all duration-[1200ms] ease-out"
                         style={{
                           clipPath: showProcessedPreview ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
