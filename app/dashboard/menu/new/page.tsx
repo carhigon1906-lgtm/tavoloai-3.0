@@ -227,8 +227,8 @@ export default function NewMenuPage() {
           ? {
               ...cat,
               platos: [
-                ...cat.platos,
                 { id: Date.now(), nombre: "", descripcion: "", ingredientes: "", precio: 0, foto_url: "", activo: true },
+                ...cat.platos,
               ],
             }
           : cat,

@@ -14,15 +14,17 @@ const nextConfig = {
   experimental: {
     esmExternals: "loose",
   },
-  transpilePackages: ["@imgly/background-removal", "onnxruntime-web"],
+  transpilePackages: ["@bunnio/rembg-web", "onnxruntime-web"],
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
+      "onnxruntime-node": false,
       "onnxruntime-web$": ortMin,
       "onnxruntime-web/webgpu$": ortWebgpuMin,
     };
     config.experiments = { ...(config.experiments || {}), asyncWebAssembly: true, topLevelAwait: true };
     config.module.rules.push({ test: /\.wasm$/, type: "webassembly/async" });
+    config.module.rules.push({ test: /\.node$/, type: "asset/resource" });
     return config;
   },
 };

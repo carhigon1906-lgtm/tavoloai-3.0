@@ -58,7 +58,13 @@ export default function EditMenuPage() {
   const [removingBackground, setRemovingBackground] = useState<Record<number, boolean>>({})
   const [processingPreview, setProcessingPreview] = useState<string>("")
   const [processedPreview, setProcessedPreview] = useState<string>("")
+  const [showProcessedPreview, setShowProcessedPreview] = useState(false)
   const [processingProgress, setProcessingProgress] = useState(0)
+  
+  const [processingError, setProcessingError] = useState<string>("")
+  const [pendingDishUploads, setPendingDishUploads] = useState<
+    Record<number, { file: File; previousUrl: string }>
+  >({})
   const [confirmDishDelete, setConfirmDishDelete] = useState<{
     categoryId: number
     dishId: number
@@ -73,6 +79,23 @@ export default function EditMenuPage() {
   const [newCategoryIcon, setNewCategoryIcon] = useState<string>("🍽️")
   const [ingredientDrafts, setIngredientDrafts] = useState<Record<number, string>>({})
   const logoInputRef = useRef<HTMLInputElement | null>(null)
+  const rembgSessionRef = useRef<Promise<unknown> | null>(null)
+  
+
+  useEffect(() => {
+    if (!processedPreview) {
+      setShowProcessedPreview(false)
+      return
+    }
+    setShowProcessedPreview(false)
+    const raf = requestAnimationFrame(() => setShowProcessedPreview(true))
+    return () => cancelAnimationFrame(raf)
+  }, [processedPreview])
+
+  useEffect(() => {
+    if (!processedPreview) return
+    // Keep modal open so timings can be read/copied
+  }, [processedPreview])
 
   useEffect(() => {
     const loadMenu = async () => {
@@ -242,8 +265,8 @@ export default function EditMenuPage() {
           ? {
               ...cat,
               platos: [
-                ...cat.platos,
                 { id: Date.now(), nombre: "", descripcion: "", ingredientes: "", precio: 0, foto_url: "", activo: true },
+                ...cat.platos,
               ],
             }
           : cat,
@@ -311,13 +334,57 @@ export default function EditMenuPage() {
     return new File([blob], file.name, { type: "image/jpeg" })
   }
 
+  const animateProgressTo = (target: number, durationMs: number) =>
+    new Promise<void>((resolve) => {
+      const startTime = performance.now()
+      let startValue = 0
+      setProcessingProgress((prev) => {
+        startValue = prev
+        return prev
+      })
+      const tick = () => {
+        const elapsed = performance.now() - startTime
+        const t = Math.min(1, elapsed / durationMs)
+        const ease = t * t * (3 - 2 * t)
+        const value = Math.round(startValue + (target - startValue) * ease)
+        setProcessingProgress(value)
+        if (t < 1) {
+          requestAnimationFrame(tick)
+        } else {
+          resolve()
+        }
+      }
+      requestAnimationFrame(tick)
+    })
+
+  const getRemovalMaxSize = () => 640
+
+  const getRembgSession = async () => {
+    if (!rembgSessionRef.current) {
+      const ort = await import("onnxruntime-web")
+      ort.env.wasm.wasmPaths = "/onnxruntime/"
+      ort.env.wasm.simd = true
+      ort.env.wasm.numThreads = 1
+      ort.env.wasm.proxy = false
+      ort.env.wasm.useThreads = false
+      ort.env.wasm.useJsep = false
+
+      const { newSession, rembgConfig } = await import("@bunnio/rembg-web")
+      rembgConfig.setBaseUrl("/models")
+      rembgSessionRef.current = newSession("u2netp")
+    }
+    return rembgSessionRef.current
+  }
+
   const removeDishPhotoBackground = async (file: File) => {
-    const { removeBackground } = await import("@imgly/background-removal")
-    const optimizedFile = await downscaleImage(file, 1024)
-    const result = await removeBackground(optimizedFile, { output: { format: "image/png" } })
-    const blob = result instanceof Blob ? result : new Blob([result as ArrayBuffer], { type: "image/png" })
     const baseName = file.name.replace(/\.[^/.]+$/, "")
-    return new File([blob], `${baseName}.png`, { type: "image/png" })
+    const maxSize = getRemovalMaxSize()
+    const scaledFile = await downscaleImage(file, maxSize)
+
+    const { remove } = await import("@bunnio/rembg-web")
+    const session = await getRembgSession()
+    const result = await remove(scaledFile, { session })
+    return new File([result], `${baseName}.png`, { type: "image/png" })
   }
 
   const onDishPhotoSelected = (categoryId: number, dishId: number) => async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -352,31 +419,42 @@ export default function EditMenuPage() {
     const previewUrl = URL.createObjectURL(file)
     setProcessingPreview(previewUrl)
     setProcessedPreview("")
-    setProcessingProgress(5)
+    setProcessingProgress(0)
+    setProcessingError("")
 
     let progressTimer: number | null = null
-    progressTimer = window.setInterval(() => {
-      setProcessingProgress((prev) => (prev >= 90 ? prev : prev + 3))
-    }, 400)
+    const progressStart = performance.now()
+    const durationMs = 4000
+    const tickProgress = () => {
+      const elapsed = performance.now() - progressStart
+      const t = Math.min(1, elapsed / durationMs)
+      const ease = 0.5 - Math.cos(Math.PI * t) / 2
+      const nextValue = Math.round(100 * ease)
+      setProcessingProgress((prev) => (nextValue > prev ? nextValue : prev))
+      if (t < 1) {
+        progressTimer = requestAnimationFrame(tickProgress)
+      }
+    }
+    progressTimer = requestAnimationFrame(tickProgress)
 
     let processedFile: File
     try {
       // allow UI to paint before heavy processing
       await new Promise((resolve) => setTimeout(resolve, 50))
       processedFile = await removeDishPhotoBackground(file)
-    } catch {
-      setSaveError("No se pudo eliminar el fondo de la imagen.")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No se pudo eliminar el fondo de la imagen."
+      setSaveError(message)
+      setProcessingError(message)
       setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
-      setRemovingBackground((prev) => ({ ...prev, [dishId]: false }))
       URL.revokeObjectURL(previewUrl)
       setProcessingPreview("")
       setProcessedPreview("")
-      if (progressTimer) window.clearInterval(progressTimer)
+      if (progressTimer) cancelAnimationFrame(progressTimer)
       setProcessingProgress(0)
       return
     }
-    if (progressTimer) window.clearInterval(progressTimer)
-    setProcessingProgress(100)
+    // keep simulated 4s progress independent of processing completion
     URL.revokeObjectURL(previewUrl)
     setProcessingPreview("")
 
@@ -388,57 +466,7 @@ export default function EditMenuPage() {
     }
     previewReader.readAsDataURL(processedFile)
 
-    const filePath = `${session.user.id}/dish-${dishId}-${Date.now()}.png`
-    const formData = new FormData()
-    formData.append("file", processedFile)
-    formData.append("path", filePath)
-    formData.append("bucket", "menu-assets")
-
-    const response = await fetch("/api/menu/upload-dish-photo", {
-      method: "POST",
-      body: formData,
-    })
-
-    if (!response.ok) {
-      setSaveError("No se pudo subir la foto del plato. Revisa el bucket en Supabase.")
-      setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
-      setRemovingBackground((prev) => ({ ...prev, [dishId]: false }))
-      setProcessedPreview("")
-      setProcessingProgress(0)
-      return
-    }
-
-    const result = await response.json()
-    if (!result?.publicUrl) {
-      setSaveError("No se pudo obtener la URL de la foto del plato.")
-      setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
-      setRemovingBackground((prev) => ({ ...prev, [dishId]: false }))
-      setProcessedPreview("")
-      setProcessingProgress(0)
-      return
-    }
-
-    updateDish(categoryId, dishId, "foto_url", result.publicUrl)
-    setRemovingBackground((prev) => ({ ...prev, [dishId]: false }))
-    setProcessedPreview("")
-    setProcessingProgress(0)
-    if (previousPhotoUrl && previousPhotoUrl !== result.publicUrl) {
-      const url = new URL(previousPhotoUrl)
-      const marker = "/storage/v1/object/public/"
-      const idx = url.pathname.indexOf(marker)
-      if (idx !== -1) {
-        const remainder = url.pathname.slice(idx + marker.length)
-        const [bucket, ...pathParts] = remainder.split("/")
-        const path = pathParts.join("/")
-        if (bucket && path) {
-          await fetch("/api/menu/delete-logo", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ bucket, path }),
-          })
-        }
-      }
-    }
+    setPendingDishUploads((prev) => ({ ...prev, [dishId]: { file: processedFile, previousUrl: previousPhotoUrl } }))
     setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
   }
 
@@ -502,12 +530,62 @@ export default function EditMenuPage() {
         setLogoFile(null)
       }
 
+      let updatedCategories = categories
+      const pendingEntries = Object.entries(pendingDishUploads)
+      for (const [dishIdText, entry] of pendingEntries) {
+        const dishId = Number(dishIdText)
+        const filePath = `${session.user.id}/dish-${dishId}-${Date.now()}.png`
+        const formData = new FormData()
+        formData.append("file", entry.file)
+        formData.append("path", filePath)
+        formData.append("bucket", "menu-assets")
+
+        const response = await fetch("/api/menu/upload-dish-photo", {
+          method: "POST",
+          body: formData,
+        })
+
+        if (!response.ok) {
+          setSaveError("No se pudo subir una foto del plato. Revisa el bucket en Supabase.")
+          return
+        }
+
+        const result = await response.json()
+        if (!result?.publicUrl) {
+          setSaveError("No se pudo obtener la URL de una foto del plato.")
+          return
+        }
+
+        updatedCategories = updatedCategories.map((cat) => ({
+          ...cat,
+          platos: cat.platos.map((dish) => (dish.id === dishId ? { ...dish, foto_url: result.publicUrl } : dish)),
+        }))
+
+        if (entry.previousUrl && entry.previousUrl !== result.publicUrl) {
+          const url = new URL(entry.previousUrl)
+          const marker = "/storage/v1/object/public/"
+          const idx = url.pathname.indexOf(marker)
+          if (idx !== -1) {
+            const remainder = url.pathname.slice(idx + marker.length)
+            const [bucket, ...pathParts] = remainder.split("/")
+            const path = pathParts.join("/")
+            if (bucket && path) {
+              await fetch("/api/menu/delete-logo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ bucket, path }),
+              })
+            }
+          }
+        }
+      }
+
       const payload = {
         user_id: session.user.id,
         nombre: menuName.trim() || "Menú sin nombre",
         slug: slugify(menuName),
         logo_url: finalLogoUrl,
-        categories,
+        categories: updatedCategories,
         updated_at: new Date().toISOString(),
       }
 
@@ -519,6 +597,10 @@ export default function EditMenuPage() {
       }
 
       setMenuId(String(data.id))
+      if (pendingEntries.length) {
+        setCategories(updatedCategories)
+        setPendingDishUploads({})
+      }
       setSaveSuccess("Menú guardado correctamente.")
     } finally {
       setIsSaving(false)
@@ -959,25 +1041,38 @@ export default function EditMenuPage() {
                 <div className="h-1 w-12 rounded-full bg-white/20" />
                 <div className="text-sm font-semibold text-emerald-200">Procesando foto</div>
                 <div className="flex w-full flex-col items-center gap-3">
-                  <div className="w-32 h-32 overflow-hidden rounded-2xl border border-white/10 bg-white/5">
-                    <img
-                      src={processedPreview || processingPreview}
-                      alt="Vista previa"
-                      className={`h-full w-full ${processedPreview ? "object-contain" : "object-cover"}`}
-                    />
+                  <div className="relative h-52 w-52 overflow-hidden rounded-[24px] border border-white/10 bg-white/5">
+                    {(processingPreview || processedPreview) && (
+                      <img src={processingPreview || processedPreview} alt="" className="h-full w-full object-cover" />
+                    )}
+                    {processedPreview && (
+                      <img
+                        src={processedPreview}
+                        alt="Vista previa sin fondo"
+                        className="absolute inset-0 h-full w-full object-contain transition-all duration-[1200ms] ease-out"
+                        style={{
+                          clipPath: showProcessedPreview ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
+                          transform: showProcessedPreview ? "translateX(0)" : "translateX(-10%)",
+                          opacity: showProcessedPreview ? 1 : 0.4,
+                          filter: "drop-shadow(0 0 18px rgba(56, 189, 248, 0.7)) drop-shadow(0 0 28px rgba(52, 211, 153, 0.55))",
+                        }}
+                      />
+                    )}
                   </div>
                   <div className="w-full">
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+                    <div className="relative h-3 w-full overflow-hidden rounded-full border border-white/15 bg-white/10 backdrop-blur-md shadow-[inset_0_0_10px_rgba(255,255,255,0.12)]">
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.4),transparent_55%)] opacity-50" />
                       <div
-                        className="h-full rounded-full bg-emerald-300/80 transition-all duration-300 ease-out"
+                        className="progress-sheen h-full rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-emerald-200 shadow-[0_0_14px_rgba(52,211,153,0.8)] transition-[width] duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)]"
                         style={{ width: `${processingProgress}%` }}
                       />
+                      <div className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_0_1px_6px_rgba(255,255,255,0.35)]" />
                     </div>
                     <div className="mt-2 text-center text-[11px] text-slate-400">
                       {processedPreview ? "Listo" : "Eliminando fondo..."}
                     </div>
                   </div>
-                  {processedPreview && (
+                  {(processedPreview || processingError) && (
                     <button
                       type="button"
                       onClick={() => setRemovingBackground({})}
@@ -987,9 +1082,30 @@ export default function EditMenuPage() {
                     </button>
                   )}
                 </div>
-                <p className="text-center text-xs text-slate-300">
-                  Eliminando fondo y optimizando la imagen.
-                </p>
+                <p className="text-center text-xs text-slate-300">Eliminando fondo y optimizando la imagen.</p>
+{processingError && (
+                  <div className="mt-3 w-full rounded-lg border border-red-400/30 bg-red-500/10 p-2 text-[10px] text-red-200">
+                    <div className="font-semibold text-red-100">Error del worker</div>
+                    <pre className="mt-1 whitespace-pre-wrap text-[10px] leading-snug">{processingError}</pre>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(processingError)}
+                      className="mt-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold text-white transition hover:bg-white/10"
+                    >
+                      Copiar error
+                    </button>
+                  </div>
+                )}
+<style>{`
+                  @keyframes progressSheen {
+                    0% { background-position: 0% 50%; }
+                    100% { background-position: 200% 50%; }
+                  }
+                  .progress-sheen {
+                    background-size: 200% 100%;
+                    animation: progressSheen 2.2s linear infinite;
+                  }
+                `}</style>
               </div>
             </motion.div>
           </motion.div>
@@ -1047,6 +1163,7 @@ export default function EditMenuPage() {
     </div>
   )
 }
+
 
 
 
