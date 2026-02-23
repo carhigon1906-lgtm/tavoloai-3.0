@@ -1068,13 +1068,15 @@ export default function EditMenuPage() {
                         <img
                           src={processedPreview}
                           alt="Vista previa sin fondo"
-                        className="absolute inset-0 h-full w-full object-contain transition-all duration-[1200ms] ease-out"
-                        style={{
-                          clipPath: showProcessedPreview ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
-                          transform: showProcessedPreview ? "translateX(0)" : "translateX(-10%)",
-                          opacity: showProcessedPreview ? 1 : 0.4,
-                          filter: "drop-shadow(0 0 18px rgba(56, 189, 248, 0.7)) drop-shadow(0 0 28px rgba(52, 211, 153, 0.55))",
-                        }}
+                          className="absolute inset-0 h-full w-full object-contain transition-all ease-out"
+                          style={{
+                            clipPath: showProcessedPreview ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
+                            transform: showProcessedPreview ? "translateX(0)" : "translateX(-10%)",
+                            opacity: showProcessedPreview ? 1 : 0.4,
+                            filter:
+                              "drop-shadow(0 0 18px rgba(56, 189, 248, 0.7)) drop-shadow(0 0 28px rgba(52, 211, 153, 0.55))",
+                            transitionDuration: "1200ms",
+                          }}
                       />
                     )}
                   </div>
@@ -1082,8 +1084,11 @@ export default function EditMenuPage() {
                     <div className="relative h-3 w-full overflow-hidden rounded-full border border-white/15 bg-white/10 backdrop-blur-md shadow-[inset_0_0_10px_rgba(255,255,255,0.12)]">
                       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.4),transparent_55%)] opacity-50" />
                       <div
-                        className="progress-sheen h-full rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-emerald-200 shadow-[0_0_14px_rgba(52,211,153,0.8)] transition-[width] duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)]"
-                        style={{ width: `${processingProgress}%` }}
+                        className="progress-sheen h-full rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-emerald-200 shadow-[0_0_14px_rgba(52,211,153,0.8)] transition-[width] duration-500"
+                        style={{
+                          width: `${processingProgress}%`,
+                          transitionTimingFunction: "cubic-bezier(0.22,0.61,0.36,1)",
+                        }}
                       />
                       <div className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_0_1px_6px_rgba(255,255,255,0.35)]" />
                     </div>

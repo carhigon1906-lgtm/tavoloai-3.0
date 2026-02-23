@@ -11,6 +11,28 @@ const nextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "tavoloai.it" }],
+        destination: "https://www.tavoloai.it/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "tavolo.ai" }],
+        destination: "https://www.tavoloai.it/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.tavolo.ai" }],
+        destination: "https://www.tavoloai.it/:path*",
+        permanent: true,
+      },
+    ];
+  },
   experimental: {
     esmExternals: "loose",
   },

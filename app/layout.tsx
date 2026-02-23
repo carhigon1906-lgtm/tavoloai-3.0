@@ -1,4 +1,4 @@
-import "@/styles/globals.css"
+﻿import "@/styles/globals.css"
 import { Inter } from "next/font/google"
 import dynamic from "next/dynamic"
 import type { Metadata, Viewport } from "next"
@@ -7,7 +7,7 @@ import type { ReactNode } from "react"
 const ClientLayoutWrapper = dynamic(() => import("./ClientLayoutWrapper"))
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tavoloai.com"),
+  metadataBase: new URL("https://www.tavoloai.it"),
   title: "TavoloAI - El menú inteligente que vende más",
   description:
     "Actualiza precios, mejora fotos y lanza promos en segundos con IA. El menú digital que trabaja por ti las 24 horas.",
