@@ -38,6 +38,13 @@ const nextConfig = {
   },
   transpilePackages: ["@bunnio/rembg-web", "onnxruntime-web"],
   webpack: (config) => {
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      {
+        module: /onnxruntime-web[\\\/]dist[\\\/]ort\.min\.js$/,
+        message: /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
+      },
+    ];
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       "onnxruntime-node": false,
