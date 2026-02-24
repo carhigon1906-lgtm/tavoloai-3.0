@@ -387,6 +387,37 @@ export default function EditMenuPage() {
     return new File([result], `${baseName}.png`, { type: "image/png" })
   }
 
+  const enhanceDishPhotoWithClaid = async (file: File) => {
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const response = await fetch("/api/media/claid-enhance", {
+      method: "POST",
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}))
+      const message = payload?.error || "No se pudo mejorar la imagen."
+      throw new Error(message)
+    }
+
+    const payload = await response.json()
+    const tmpUrl = payload?.tmpUrl
+    if (!tmpUrl || typeof tmpUrl !== "string") {
+      throw new Error("Respuesta inválida del servicio de mejora.")
+    }
+
+    const enhancedResponse = await fetch(tmpUrl)
+    if (!enhancedResponse.ok) {
+      throw new Error("No se pudo descargar la imagen mejorada.")
+    }
+    const blob = await enhancedResponse.blob()
+    const baseName = file.name.replace(/\.[^/.]+$/, "")
+    const fileName = `${baseName}-ai.png`
+    return { file: new File([blob], fileName, { type: blob.type || "image/png" }), previewUrl: tmpUrl }
+  }
+
   const onDishPhotoSelected = (categoryId: number, dishId: number) => async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -438,12 +469,16 @@ export default function EditMenuPage() {
     progressTimer = requestAnimationFrame(tickProgress)
 
     let processedFile: File
+    let processedPreviewUrl = ""
     try {
       // allow UI to paint before heavy processing
       await new Promise((resolve) => setTimeout(resolve, 50))
-      processedFile = await removeDishPhotoBackground(file)
+      const backgroundRemoved = await removeDishPhotoBackground(file)
+      const enhanced = await enhanceDishPhotoWithClaid(backgroundRemoved)
+      processedFile = enhanced.file
+      processedPreviewUrl = enhanced.previewUrl
     } catch (error) {
-      const message = error instanceof Error ? error.message : "No se pudo eliminar el fondo de la imagen."
+      const message = error instanceof Error ? error.message : "No se pudo procesar la imagen."
       setSaveError(message)
       setProcessingError(message)
       setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
@@ -458,13 +493,18 @@ export default function EditMenuPage() {
     URL.revokeObjectURL(previewUrl)
     setProcessingPreview("")
 
-    const previewReader = new FileReader()
-    previewReader.onload = () => {
-      const resultUrl = String(previewReader.result || "")
-      updateDish(categoryId, dishId, "foto_url", resultUrl)
-      setProcessedPreview(resultUrl)
+    if (processedPreviewUrl) {
+      updateDish(categoryId, dishId, "foto_url", processedPreviewUrl)
+      setProcessedPreview(processedPreviewUrl)
+    } else {
+      const previewReader = new FileReader()
+      previewReader.onload = () => {
+        const resultUrl = String(previewReader.result || "")
+        updateDish(categoryId, dishId, "foto_url", resultUrl)
+        setProcessedPreview(resultUrl)
+      }
+      previewReader.readAsDataURL(processedFile)
     }
-    previewReader.readAsDataURL(processedFile)
 
     setPendingDishUploads((prev) => ({ ...prev, [dishId]: { file: processedFile, previousUrl: previousPhotoUrl } }))
     setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
@@ -1093,7 +1133,7 @@ export default function EditMenuPage() {
                       <div className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_0_1px_6px_rgba(255,255,255,0.35)]" />
                     </div>
                     <div className="mt-2 text-center text-[11px] text-slate-400">
-                      {processedPreview ? "Listo" : "Eliminando fondo..."}
+                      {processedPreview ? "Listo" : "Eliminando fondo y mejorando..."}
                     </div>
                   </div>
                   {(processedPreview || processingError) && (
@@ -1106,7 +1146,7 @@ export default function EditMenuPage() {
                     </button>
                   )}
                 </div>
-                <p className="text-center text-xs text-slate-300">Eliminando fondo y optimizando la imagen.</p>
+                <p className="text-center text-xs text-slate-300">Eliminando fondo y mejorando con IA.</p>
 {processingError && (
                   <div className="mt-3 w-full rounded-lg border border-red-400/30 bg-red-500/10 p-2 text-[10px] text-red-200">
                     <div className="font-semibold text-red-100">Error del worker</div>
