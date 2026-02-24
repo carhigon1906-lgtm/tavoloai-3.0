@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+﻿import { NextResponse } from "next/server"
 
 export const runtime = "nodejs"
 
@@ -49,8 +49,22 @@ export async function POST(request: Request) {
 
   const body = await response.json().catch(() => null)
   if (!response.ok) {
+    const requestId = response.headers.get("x-request-id") || response.headers.get("x-requestid") || ""
     const message = body?.detail || body?.error || "Error al procesar la imagen con Claid."
-    return NextResponse.json({ error: message }, { status: response.status })
+    console.error("[Claid] Error", {
+      status: response.status,
+      requestId,
+      message,
+      body,
+    })
+    return NextResponse.json(
+      {
+        error: message,
+        status: response.status,
+        requestId,
+      },
+      { status: response.status },
+    )
   }
 
   const tmpUrl = body?.data?.output?.tmp_url
@@ -60,3 +74,4 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ tmpUrl })
 }
+
