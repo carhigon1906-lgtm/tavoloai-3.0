@@ -399,7 +399,15 @@ export default function EditMenuPage() {
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}))
       const message = payload?.error || "No se pudo mejorar la imagen."
-      throw new Error(message)
+      const status = payload?.status
+      const requestId = payload?.requestId
+      const details = [
+        status ? `status ${status}` : "",
+        requestId ? `request ${requestId}` : "",
+      ]
+        .filter(Boolean)
+        .join(" · ")
+      throw new Error(details ? `${message} (${details})` : message)
     }
 
     const payload = await response.json()
