@@ -128,7 +128,7 @@ export default function MediaLabPage() {
           )}
 
           {!loading && !error && hasImages && (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {images.map((img) => (
                 <button
                   key={img.url}
@@ -136,14 +136,14 @@ export default function MediaLabPage() {
                   onClick={() => setSelected(img)}
                   className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-left transition hover:-translate-y-1 hover:border-white/30"
                 >
-                  <div className="aspect-[4/3] w-full overflow-hidden">
+                  <div className="aspect-[16/10] w-full overflow-hidden">
                     <img
                       src={img.url}
                       alt={img.label}
                       className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                     />
                   </div>
-                  <div className="p-4 text-sm text-slate-300">{img.label}</div>
+                  <div className="px-4 py-3 text-xs text-slate-300">{img.label}</div>
                 </button>
               ))}
             </div>
