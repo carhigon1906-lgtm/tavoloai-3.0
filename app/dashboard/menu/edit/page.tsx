@@ -60,6 +60,12 @@ export default function EditMenuPage() {
   const [processedPreview, setProcessedPreview] = useState<string>("")
   const [showProcessedPreview, setShowProcessedPreview] = useState(false)
   const [processingProgress, setProcessingProgress] = useState(0)
+  const [processingDishId, setProcessingDishId] = useState<number | null>(null)
+  const [processingCategoryId, setProcessingCategoryId] = useState<number | null>(null)
+  const [processingPreviousUrl, setProcessingPreviousUrl] = useState<string>("")
+  const [backgroundRemovedFile, setBackgroundRemovedFile] = useState<File | null>(null)
+  const [enhancingWithAi, setEnhancingWithAi] = useState(false)
+  const [aiEnhanced, setAiEnhanced] = useState(false)
   
   const [processingError, setProcessingError] = useState<string>("")
   const [pendingDishUploads, setPendingDishUploads] = useState<
@@ -426,6 +432,34 @@ export default function EditMenuPage() {
     return { file: new File([blob], fileName, { type: blob.type || "image/png" }), previewUrl: tmpUrl }
   }
 
+  const handleEnhanceWithAi = async () => {
+    if (!backgroundRemovedFile || processingDishId == null || processingCategoryId == null) return
+    setEnhancingWithAi(true)
+    setProcessingError("")
+    setProcessingProgress(0)
+    try {
+      const progressPromise = animateProgressTo(92, 3200)
+      const enhanced = await enhanceDishPhotoWithClaid(backgroundRemovedFile)
+      await progressPromise
+      setProcessingProgress(100)
+      setProcessedPreview(enhanced.previewUrl)
+      setAiEnhanced(true)
+      updateDish(processingCategoryId, processingDishId, "foto_url", enhanced.previewUrl)
+      setPendingDishUploads((prev) => ({
+        ...prev,
+        [processingDishId]: {
+          file: enhanced.file,
+          previousUrl: processingPreviousUrl,
+        },
+      }))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No se pudo mejorar la imagen."
+      setProcessingError(message)
+    } finally {
+      setEnhancingWithAi(false)
+    }
+  }
+
   const onDishPhotoSelected = (categoryId: number, dishId: number) => async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -454,6 +488,12 @@ export default function EditMenuPage() {
     setUploadingDish((prev) => ({ ...prev, [dishId]: true }))
     setRemovingBackground((prev) => ({ ...prev, [dishId]: true }))
     setSaveError("")
+    setProcessingDishId(dishId)
+    setProcessingCategoryId(categoryId)
+    setProcessingPreviousUrl(previousPhotoUrl)
+    setBackgroundRemovedFile(null)
+    setEnhancingWithAi(false)
+    setAiEnhanced(false)
 
     const previewUrl = URL.createObjectURL(file)
     setProcessingPreview(previewUrl)
@@ -482,9 +522,12 @@ export default function EditMenuPage() {
       // allow UI to paint before heavy processing
       await new Promise((resolve) => setTimeout(resolve, 50))
       const backgroundRemoved = await removeDishPhotoBackground(file)
-      const enhanced = await enhanceDishPhotoWithClaid(backgroundRemoved)
-      processedFile = enhanced.file
-      processedPreviewUrl = enhanced.previewUrl
+      processedFile = backgroundRemoved
+      const previewReader = new FileReader()
+      processedPreviewUrl = await new Promise<string>((resolve) => {
+        previewReader.onload = () => resolve(String(previewReader.result || ""))
+        previewReader.readAsDataURL(backgroundRemoved)
+      })
     } catch (error) {
       const message = error instanceof Error ? error.message : "No se pudo procesar la imagen."
       setSaveError(message)
@@ -501,18 +544,9 @@ export default function EditMenuPage() {
     URL.revokeObjectURL(previewUrl)
     setProcessingPreview("")
 
-    if (processedPreviewUrl) {
-      updateDish(categoryId, dishId, "foto_url", processedPreviewUrl)
-      setProcessedPreview(processedPreviewUrl)
-    } else {
-      const previewReader = new FileReader()
-      previewReader.onload = () => {
-        const resultUrl = String(previewReader.result || "")
-        updateDish(categoryId, dishId, "foto_url", resultUrl)
-        setProcessedPreview(resultUrl)
-      }
-      previewReader.readAsDataURL(processedFile)
-    }
+    updateDish(categoryId, dishId, "foto_url", processedPreviewUrl)
+    setProcessedPreview(processedPreviewUrl)
+    setBackgroundRemovedFile(processedFile)
 
     setPendingDishUploads((prev) => ({ ...prev, [dishId]: { file: processedFile, previousUrl: previousPhotoUrl } }))
     setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
@@ -1141,20 +1175,43 @@ export default function EditMenuPage() {
                       <div className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_0_1px_6px_rgba(255,255,255,0.35)]" />
                     </div>
                     <div className="mt-2 text-center text-[11px] text-slate-400">
-                      {processedPreview ? "Listo" : "Eliminando fondo y mejorando..."}
+                      {enhancingWithAi
+                        ? "Mejorando con IA..."
+                        : processedPreview
+                          ? aiEnhanced
+                            ? "Listo"
+                            : "Fondo eliminado"
+                          : "Eliminando fondo..."}
                     </div>
                   </div>
                   {(processedPreview || processingError) && (
-                    <button
-                      type="button"
-                      onClick={() => setRemovingBackground({})}
-                      className="mt-1 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
-                    >
-                      Cerrar
-                    </button>
+                    <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
+                      {processedPreview && !enhancingWithAi && (
+                        <button
+                          type="button"
+                          onClick={handleEnhanceWithAi}
+                          disabled={aiEnhanced}
+                          className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-emerald-300/40 bg-gradient-to-r from-emerald-500/30 via-white/5 to-emerald-500/30 px-4 py-2 text-xs font-semibold text-emerald-100 shadow-[0_0_18px_rgba(52,211,153,0.4)] transition hover:border-emerald-300/80 hover:text-white hover:shadow-[0_0_26px_rgba(52,211,153,0.7)] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                          <span className="relative">{aiEnhanced ? "Mejorada con IA" : "Mejorar con IA"}</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setRemovingBackground({})}
+                        className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
                   )}
                 </div>
-                <p className="text-center text-xs text-slate-300">Eliminando fondo y mejorando con IA.</p>
+                <p className="text-center text-xs text-slate-300">
+                  {enhancingWithAi
+                    ? "Aplicando mejora con IA sobre la imagen sin fondo."
+                    : "Eliminando fondo para dejar la imagen lista para mejorar."}
+                </p>
 {processingError && (
                   <div className="mt-3 w-full rounded-lg border border-red-400/30 bg-red-500/10 p-2 text-[10px] text-red-200">
                     <div className="font-semibold text-red-100">Error del worker</div>

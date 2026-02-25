@@ -28,6 +28,8 @@ export default function MediaLabPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [selected, setSelected] = useState<MediaImage | null>(null)
+  const [enhancing, setEnhancing] = useState(false)
+  const [enhanceError, setEnhanceError] = useState("")
 
   useEffect(() => {
     const loadImages = async () => {
@@ -85,6 +87,54 @@ export default function MediaLabPage() {
   }, [])
 
   const hasImages = useMemo(() => images.length > 0, [images.length])
+
+  const enhanceWithClaid = async () => {
+    if (!selected) return
+    setEnhancing(true)
+    setEnhanceError("")
+
+    try {
+      const sourceResponse = await fetch(selected.url)
+      if (!sourceResponse.ok) {
+        throw new Error("No se pudo descargar la imagen.")
+      }
+      const sourceBlob = await sourceResponse.blob()
+      const fileName = `media-${Date.now()}.png`
+      const file = new File([sourceBlob], fileName, { type: sourceBlob.type || "image/png" })
+
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const response = await fetch("/api/media/claid-enhance", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        const message = payload?.error || "No se pudo mejorar la imagen."
+        const status = payload?.status
+        const requestId = payload?.requestId
+        const details = [status ? `status ${status}` : "", requestId ? `request ${requestId}` : ""]
+          .filter(Boolean)
+          .join(" · ")
+        throw new Error(details ? `${message} (${details})` : message)
+      }
+
+      const payload = await response.json()
+      const tmpUrl = payload?.tmpUrl
+      if (!tmpUrl || typeof tmpUrl !== "string") {
+        throw new Error("Respuesta inválida del servicio de mejora.")
+      }
+
+      setSelected((prev) => (prev ? { ...prev, url: tmpUrl } : prev))
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "No se pudo mejorar la imagen."
+      setEnhanceError(message)
+    } finally {
+      setEnhancing(false)
+    }
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#03040a] via-[#0a0b1f] to-[#020208] text-white">
@@ -162,17 +212,33 @@ export default function MediaLabPage() {
           <div className="relative z-10 max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-[#0b0f1f] shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
               <p className="text-sm font-semibold text-white">{selected.label}</p>
-              <button
-                type="button"
-                className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-200 transition hover:bg-white/10"
-                onClick={() => setSelected(null)}
-              >
-                Cerrar
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={enhanceWithClaid}
+                  disabled={enhancing}
+                  className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-emerald-300/40 bg-gradient-to-r from-emerald-500/30 via-white/5 to-emerald-500/30 px-4 py-1.5 text-xs font-semibold text-emerald-100 shadow-[0_0_18px_rgba(52,211,153,0.4)] transition hover:border-emerald-300/80 hover:text-white hover:shadow-[0_0_26px_rgba(52,211,153,0.7)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                  <span className="relative">{enhancing ? "Mejorando..." : "Mejorar con IA"}</span>
+                </button>
+                <button
+                  type="button"
+                  className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-200 transition hover:bg-white/10"
+                  onClick={() => setSelected(null)}
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
             <div className="max-h-[80vh] overflow-auto bg-black">
               <img src={selected.url} alt={selected.label} className="h-full w-full object-contain" />
             </div>
+            {enhanceError && (
+              <div className="border-t border-rose-400/30 bg-rose-500/10 px-6 py-3 text-xs text-rose-100">
+                {enhanceError}
+              </div>
+            )}
           </div>
         </div>
       )}

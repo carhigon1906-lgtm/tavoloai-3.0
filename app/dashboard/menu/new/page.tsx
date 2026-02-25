@@ -52,6 +52,19 @@ export default function NewMenuPage() {
   const [isReadOnly, setIsReadOnly] = useState(false)
   const [showQrModal, setShowQrModal] = useState(false)
   const [uploadingDish, setUploadingDish] = useState<Record<number, boolean>>({})
+  const [removingBackground, setRemovingBackground] = useState<Record<number, boolean>>({})
+  const [processingPreview, setProcessingPreview] = useState<string>("")
+  const [processedPreview, setProcessedPreview] = useState<string>("")
+  const [showProcessedPreview, setShowProcessedPreview] = useState(false)
+  const [processingProgress, setProcessingProgress] = useState(0)
+  const [processingDishId, setProcessingDishId] = useState<number | null>(null)
+  const [processingCategoryId, setProcessingCategoryId] = useState<number | null>(null)
+  const [processingPreviousUrl, setProcessingPreviousUrl] = useState<string>("")
+  const [processingUploadedUrl, setProcessingUploadedUrl] = useState<string>("")
+  const [backgroundRemovedFile, setBackgroundRemovedFile] = useState<File | null>(null)
+  const [enhancingWithAi, setEnhancingWithAi] = useState(false)
+  const [aiEnhanced, setAiEnhanced] = useState(false)
+  const [processingError, setProcessingError] = useState<string>("")
   const [confirmDishDelete, setConfirmDishDelete] = useState<{
     categoryId: number
     dishId: number
@@ -69,6 +82,7 @@ export default function NewMenuPage() {
   const [ingredientDrafts, setIngredientDrafts] = useState<Record<number, string>>({})
   const logoInputRef = useRef<HTMLInputElement | null>(null)
   const qrRef = useRef<HTMLDivElement | null>(null)
+  const rembgSessionRef = useRef<Promise<unknown> | null>(null)
 
   const slugify = (s: string) =>
     s
@@ -81,6 +95,16 @@ export default function NewMenuPage() {
   useEffect(() => {
     setMenuSlug(slugify(menuName))
   }, [menuName])
+
+  useEffect(() => {
+    if (!processedPreview) {
+      setShowProcessedPreview(false)
+      return
+    }
+    setShowProcessedPreview(false)
+    const raf = requestAnimationFrame(() => setShowProcessedPreview(true))
+    return () => cancelAnimationFrame(raf)
+  }, [processedPreview])
 
   const parseIngredients = (value: string) =>
     value
@@ -293,47 +317,154 @@ export default function NewMenuPage() {
     setSaveError("")
     setSaveSuccess("")
     setUploadingDish({})
+    setRemovingBackground({})
+    setProcessingPreview("")
+    setProcessedPreview("")
+    setProcessingProgress(0)
+    setProcessingDishId(null)
+    setProcessingCategoryId(null)
+    setProcessingPreviousUrl("")
+    setProcessingUploadedUrl("")
+    setBackgroundRemovedFile(null)
+    setEnhancingWithAi(false)
+    setAiEnhanced(false)
+    setProcessingError("")
     setCategories(initialCategories)
     setNewCategoryName("")
     setIsReadOnly(false)
   }
 
-  const onDishPhotoSelected = (categoryId: number, dishId: number) => async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const downscaleImage = async (file: File, maxSize = 768) => {
+    const bitmap = await createImageBitmap(file)
+    const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height))
+    const width = Math.round(bitmap.width * scale)
+    const height = Math.round(bitmap.height * scale)
+    const canvas = document.createElement("canvas")
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return file
+    ctx.drawImage(bitmap, 0, 0, width, height)
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob((result) => resolve(result), "image/jpeg", 0.85))
+    if (!blob) return file
+    return new File([blob], file.name, { type: "image/jpeg" })
+  }
 
-    const previousPhotoUrl =
-      categories.find((cat) => cat.id === categoryId)?.platos.find((dish) => dish.id === dishId)?.foto_url ?? ""
+  const animateProgressTo = (target: number, durationMs: number) =>
+    new Promise<void>((resolve) => {
+      const startTime = performance.now()
+      let startValue = 0
+      setProcessingProgress((prev) => {
+        startValue = prev
+        return prev
+      })
+      const tick = () => {
+        const elapsed = performance.now() - startTime
+        const t = Math.min(1, elapsed / durationMs)
+        const ease = t * t * (3 - 2 * t)
+        const value = Math.round(startValue + (target - startValue) * ease)
+        setProcessingProgress(value)
+        if (t < 1) {
+          requestAnimationFrame(tick)
+        } else {
+          resolve()
+        }
+      }
+      requestAnimationFrame(tick)
+    })
 
-    const allowedTypes: Record<string, string> = {
-      "image/png": "png",
-      "image/jpeg": "jpg",
-      "image/webp": "webp",
+  const getRemovalMaxSize = () => 640
+
+  const getRembgSession = async () => {
+    if (!rembgSessionRef.current) {
+      const ort = await import("onnxruntime-web")
+      ort.env.wasm.wasmPaths = "/onnxruntime/"
+      ort.env.wasm.simd = true
+      ort.env.wasm.numThreads = 1
+      ort.env.wasm.proxy = false
+      ort.env.wasm.useThreads = false
+      ort.env.wasm.useJsep = false
+
+      const { newSession, rembgConfig } = await import("@bunnio/rembg-web")
+      rembgConfig.setBaseUrl("/models")
+      rembgSessionRef.current = newSession("u2netp")
     }
-    const extension = allowedTypes[file.type]
-    if (!extension) {
-      setSaveError("La foto del plato debe ser PNG, JPG o WEBP.")
-      return
+    return rembgSessionRef.current
+  }
+
+  const removeDishPhotoBackground = async (file: File) => {
+    const baseName = file.name.replace(/\.[^/.]+$/, "")
+    const maxSize = getRemovalMaxSize()
+    const scaledFile = await downscaleImage(file, maxSize)
+
+    const { remove } = await import("@bunnio/rembg-web")
+    const session = await getRembgSession()
+    const result = await remove(scaledFile, { session })
+    return new File([result], `${baseName}.png`, { type: "image/png" })
+  }
+
+  const enhanceDishPhotoWithClaid = async (file: File) => {
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const response = await fetch("/api/media/claid-enhance", {
+      method: "POST",
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}))
+      const message = payload?.error || "No se pudo mejorar la imagen."
+      const status = payload?.status
+      const requestId = payload?.requestId
+      const details = [status ? `status ${status}` : "", requestId ? `request ${requestId}` : ""]
+        .filter(Boolean)
+        .join(" · ")
+      throw new Error(details ? `${message} (${details})` : message)
     }
 
+    const payload = await response.json()
+    const tmpUrl = payload?.tmpUrl
+    if (!tmpUrl || typeof tmpUrl !== "string") {
+      throw new Error("Respuesta inválida del servicio de mejora.")
+    }
+
+    const enhancedResponse = await fetch(tmpUrl)
+    if (!enhancedResponse.ok) {
+      throw new Error("No se pudo descargar la imagen mejorada.")
+    }
+    const blob = await enhancedResponse.blob()
+    const baseName = file.name.replace(/\.[^/.]+$/, "")
+    const fileName = `${baseName}-ai.png`
+    return { file: new File([blob], fileName, { type: blob.type || "image/png" }), previewUrl: tmpUrl }
+  }
+
+  const deletePreviousPhoto = async (previousPhotoUrl: string) => {
+    if (!previousPhotoUrl) return
+    const url = new URL(previousPhotoUrl)
+    const marker = "/storage/v1/object/public/"
+    const idx = url.pathname.indexOf(marker)
+    if (idx === -1) return
+    const remainder = url.pathname.slice(idx + marker.length)
+    const [bucket, ...pathParts] = remainder.split("/")
+    const path = pathParts.join("/")
+    if (!bucket || !path) return
+    await fetch("/api/menu/delete-logo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bucket, path }),
+    })
+  }
+
+  const uploadDishPhoto = async (file: File, dishId: number, previousUrl: string) => {
     const {
       data: { session },
     } = await supabase.auth.getSession()
     if (!session) {
-      setSaveError("Debes iniciar sesión para subir imágenes.")
-      return
+      throw new Error("Debes iniciar sesión para subir imágenes.")
     }
 
-    setUploadingDish((prev) => ({ ...prev, [dishId]: true }))
-    setSaveError("")
-
-    const previewReader = new FileReader()
-    previewReader.onload = () => {
-      updateDish(categoryId, dishId, "foto_url", String(previewReader.result || ""))
-    }
-    previewReader.readAsDataURL(file)
-
-    const filePath = `${session.user.id}/dish-${dishId}-${Date.now()}.${extension}`
+    const filePath = `${session.user.id}/dish-${dishId}-${Date.now()}.png`
     const formData = new FormData()
     formData.append("file", file)
     formData.append("path", filePath)
@@ -345,37 +476,126 @@ export default function NewMenuPage() {
     })
 
     if (!response.ok) {
-      setSaveError("No se pudo subir la foto del plato. Revisa el bucket en Supabase.")
-      setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
-      return
+      throw new Error("No se pudo subir la foto del plato. Revisa el bucket en Supabase.")
     }
 
     const result = await response.json()
     if (!result?.publicUrl) {
-      setSaveError("No se pudo obtener la URL de la foto del plato.")
-      setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
+      throw new Error("No se pudo obtener la URL de la foto del plato.")
+    }
+
+    if (previousUrl && previousUrl !== result.publicUrl) {
+      await deletePreviousPhoto(previousUrl)
+    }
+
+    return result.publicUrl as string
+  }
+
+  const handleEnhanceWithAi = async () => {
+    if (!backgroundRemovedFile || processingDishId == null || processingCategoryId == null) return
+    setEnhancingWithAi(true)
+    setProcessingError("")
+    setProcessingProgress(0)
+
+    try {
+      const progressPromise = animateProgressTo(92, 3200)
+      const enhanced = await enhanceDishPhotoWithClaid(backgroundRemovedFile)
+      await progressPromise
+      setProcessingProgress(100)
+      setProcessedPreview(enhanced.previewUrl)
+      setAiEnhanced(true)
+
+      const publicUrl = await uploadDishPhoto(enhanced.file, processingDishId, processingUploadedUrl || processingPreviousUrl)
+      setProcessingUploadedUrl(publicUrl)
+      updateDish(processingCategoryId, processingDishId, "foto_url", publicUrl)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No se pudo mejorar la imagen."
+      setProcessingError(message)
+      setSaveError(message)
+    } finally {
+      setEnhancingWithAi(false)
+    }
+  }
+
+  const onDishPhotoSelected = (categoryId: number, dishId: number) => async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const previousPhotoUrl =
+      categories.find((cat) => cat.id === categoryId)?.platos.find((dish) => dish.id === dishId)?.foto_url ?? ""
+
+    const allowedTypes: Record<string, boolean> = {
+      "image/png": true,
+      "image/jpeg": true,
+      "image/webp": true,
+    }
+    if (!allowedTypes[file.type]) {
+      setSaveError("La foto del plato debe ser PNG, JPG o WEBP.")
       return
     }
 
-    updateDish(categoryId, dishId, "foto_url", result.publicUrl)
-    if (previousPhotoUrl && previousPhotoUrl !== result.publicUrl) {
-      const url = new URL(previousPhotoUrl)
-      const marker = "/storage/v1/object/public/"
-      const idx = url.pathname.indexOf(marker)
-      if (idx !== -1) {
-        const remainder = url.pathname.slice(idx + marker.length)
-        const [bucket, ...pathParts] = remainder.split("/")
-        const path = pathParts.join("/")
-        if (bucket && path) {
-          await fetch("/api/menu/delete-logo", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ bucket, path }),
-          })
-        }
+    setUploadingDish((prev) => ({ ...prev, [dishId]: true }))
+    setRemovingBackground((prev) => ({ ...prev, [dishId]: true }))
+    setSaveError("")
+    setProcessingError("")
+    setProcessingDishId(dishId)
+    setProcessingCategoryId(categoryId)
+    setProcessingPreviousUrl(previousPhotoUrl)
+    setProcessingUploadedUrl("")
+    setBackgroundRemovedFile(null)
+    setEnhancingWithAi(false)
+    setAiEnhanced(false)
+
+    const previewUrl = URL.createObjectURL(file)
+    setProcessingPreview(previewUrl)
+    setProcessedPreview("")
+    setProcessingProgress(0)
+
+    let progressTimer: number | null = null
+    const progressStart = performance.now()
+    const durationMs = 4000
+    const tickProgress = () => {
+      const elapsed = performance.now() - progressStart
+      const t = Math.min(1, elapsed / durationMs)
+      const ease = 0.5 - Math.cos(Math.PI * t) / 2
+      const nextValue = Math.round(100 * ease)
+      setProcessingProgress((prev) => (nextValue > prev ? nextValue : prev))
+      if (t < 1) {
+        progressTimer = requestAnimationFrame(tickProgress)
       }
     }
-    setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
+    progressTimer = requestAnimationFrame(tickProgress)
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      const backgroundRemoved = await removeDishPhotoBackground(file)
+      const previewReader = new FileReader()
+      const processedPreviewUrl = await new Promise<string>((resolve) => {
+        previewReader.onload = () => resolve(String(previewReader.result || ""))
+        previewReader.readAsDataURL(backgroundRemoved)
+      })
+
+      URL.revokeObjectURL(previewUrl)
+      setProcessingPreview("")
+      setProcessedPreview(processedPreviewUrl)
+      setBackgroundRemovedFile(backgroundRemoved)
+      updateDish(categoryId, dishId, "foto_url", processedPreviewUrl)
+
+      const publicUrl = await uploadDishPhoto(backgroundRemoved, dishId, previousPhotoUrl)
+      setProcessingUploadedUrl(publicUrl)
+      updateDish(categoryId, dishId, "foto_url", publicUrl)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No se pudo procesar la imagen."
+      setSaveError(message)
+      setProcessingError(message)
+      URL.revokeObjectURL(previewUrl)
+      setProcessingPreview("")
+      setProcessedPreview("")
+      setProcessingProgress(0)
+    } finally {
+      if (progressTimer) cancelAnimationFrame(progressTimer)
+      setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
+    }
   }
 
   const saveMenu = async () => {
@@ -906,6 +1126,124 @@ export default function NewMenuPage() {
                   </div>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+        {Object.values(removingBackground).some(Boolean) && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6 py-10 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="relative w-full max-w-xl overflow-hidden rounded-[32px] border border-white/10 bg-[#0b1526]/95 p-7 text-white shadow-[0_40px_120px_rgba(0,0,0,0.65)]"
+              initial={{ y: 24, scale: 0.98, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 16, scale: 0.98, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+            >
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.12),transparent_55%)]" />
+              <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-emerald-400/10 blur-2xl" />
+              <div className="flex flex-col items-center gap-4">
+                <div className="h-1 w-12 rounded-full bg-white/20" />
+                <div className="text-sm font-semibold text-emerald-200">Procesando foto</div>
+                <div className="flex w-full flex-col items-center gap-3">
+                  <div className="relative h-72 w-72 overflow-hidden rounded-[26px] border border-white/10 bg-white/5 shadow-[0_25px_60px_rgba(0,0,0,0.45)] sm:h-80 sm:w-80">
+                    <div className="pointer-events-none absolute inset-0 rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.16),transparent_55%)]" />
+                    {(processingPreview || processedPreview) && (
+                      <img src={processingPreview || processedPreview} alt="" className="h-full w-full object-cover" />
+                    )}
+                    {processedPreview && (
+                      <img
+                        src={processedPreview}
+                        alt="Vista previa sin fondo"
+                        className="absolute inset-0 h-full w-full object-contain transition-all ease-out"
+                        style={{
+                          clipPath: showProcessedPreview ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
+                          transform: showProcessedPreview ? "translateX(0)" : "translateX(-10%)",
+                          opacity: showProcessedPreview ? 1 : 0.4,
+                          filter:
+                            "drop-shadow(0 0 18px rgba(56, 189, 248, 0.7)) drop-shadow(0 0 28px rgba(52, 211, 153, 0.55))",
+                          transitionDuration: "1200ms",
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div className="w-full">
+                    <div className="relative h-3 w-full overflow-hidden rounded-full border border-white/15 bg-white/10 backdrop-blur-md shadow-[inset_0_0_10px_rgba(255,255,255,0.12)]">
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.4),transparent_55%)] opacity-50" />
+                      <div
+                        className="progress-sheen h-full rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-emerald-200 shadow-[0_0_14px_rgba(52,211,153,0.8)] transition-[width] duration-500"
+                        style={{
+                          width: `${processingProgress}%`,
+                          transitionTimingFunction: "cubic-bezier(0.22,0.61,0.36,1)",
+                        }}
+                      />
+                      <div className="pointer-events-none absolute inset-0 rounded-full shadow-[inset_0_1px_6px_rgba(255,255,255,0.35)]" />
+                    </div>
+                    <div className="mt-2 text-center text-[11px] text-slate-400">
+                      {enhancingWithAi
+                        ? "Mejorando con IA..."
+                        : processedPreview
+                          ? aiEnhanced
+                            ? "Listo"
+                            : "Fondo eliminado"
+                          : "Eliminando fondo..."}
+                    </div>
+                  </div>
+                  {(processedPreview || processingError) && (
+                    <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
+                      {processedPreview && !enhancingWithAi && (
+                        <button
+                          type="button"
+                          onClick={handleEnhanceWithAi}
+                          disabled={aiEnhanced}
+                          className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-emerald-300/40 bg-gradient-to-r from-emerald-500/30 via-white/5 to-emerald-500/30 px-4 py-2 text-xs font-semibold text-emerald-100 shadow-[0_0_18px_rgba(52,211,153,0.4)] transition hover:border-emerald-300/80 hover:text-white hover:shadow-[0_0_26px_rgba(52,211,153,0.7)] disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                          <span className="relative">{aiEnhanced ? "Mejorada con IA" : "Mejorar con IA"}</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setRemovingBackground({})}
+                        className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-center text-xs text-slate-300">
+                  {enhancingWithAi
+                    ? "Aplicando mejora con IA sobre la imagen sin fondo."
+                    : "Eliminando fondo para dejar la imagen lista para mejorar."}
+                </p>
+                {processingError && (
+                  <div className="mt-3 w-full rounded-lg border border-red-400/30 bg-red-500/10 p-2 text-[10px] text-red-200">
+                    <div className="font-semibold text-red-100">Error del worker</div>
+                    <pre className="mt-1 whitespace-pre-wrap text-[10px] leading-snug">{processingError}</pre>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(processingError)}
+                      className="mt-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold text-white transition hover:bg-white/10"
+                    >
+                      Copiar error
+                    </button>
+                  </div>
+                )}
+              </div>
+              <style>{`
+                  @keyframes progressSheen {
+                    0% { background-position: 0% 50%; }
+                    100% { background-position: 200% 50%; }
+                  }
+                  .progress-sheen {
+                    background-size: 200% 100%;
+                    animation: progressSheen 2.2s linear infinite;
+                  }
+                `}</style>
             </motion.div>
           </motion.div>
         )}
