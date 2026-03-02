@@ -1201,6 +1201,8 @@ export default function NewMenuPage() {
                           disabled={aiEnhanced}
                           className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-emerald-300/40 bg-gradient-to-r from-emerald-500/30 via-white/5 to-emerald-500/30 px-4 py-2 text-xs font-semibold text-emerald-100 shadow-[0_0_18px_rgba(52,211,153,0.4)] transition hover:border-emerald-300/80 hover:text-white hover:shadow-[0_0_26px_rgba(52,211,153,0.7)] disabled:cursor-not-allowed disabled:opacity-60"
                         >
+                          <span className="rainbow-orbit pointer-events-none absolute -inset-[2px] rounded-full bg-[conic-gradient(from_180deg,rgba(59,130,246,0.6),rgba(236,72,153,0.6),rgba(250,204,21,0.6),rgba(34,197,94,0.6),rgba(59,130,246,0.6))] opacity-70 blur-[6px] transition-opacity duration-300 group-hover:opacity-100" />
+                          <span className="pointer-events-none absolute -inset-px rounded-full border border-white/30 opacity-30" />
                           <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                           <span className="relative">{aiEnhanced ? "Mejorada con IA" : "Mejorar con IA"}</span>
                         </button>
@@ -1242,6 +1244,17 @@ export default function NewMenuPage() {
                   .progress-sheen {
                     background-size: 200% 100%;
                     animation: progressSheen 2.2s linear infinite;
+                  }
+                  @keyframes rainbowSpin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                  }
+                  @keyframes rainbowPulse {
+                    0%, 100% { opacity: 0.55; }
+                    50% { opacity: 1; }
+                  }
+                  .rainbow-orbit {
+                    animation: rainbowSpin 3s linear infinite, rainbowPulse 1.6s ease-in-out infinite;
                   }
                 `}</style>
             </motion.div>
