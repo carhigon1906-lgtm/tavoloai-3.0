@@ -1,4 +1,5 @@
 ﻿import "@/styles/globals.css"
+import { Analytics } from "@vercel/analytics/next"
 import { Inter } from "next/font/google"
 import dynamic from "next/dynamic"
 import type { Metadata, Viewport } from "next"
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="es" className={inter.variable}>
       <body className={`${inter.className} antialiased bg-[#050505] text-slate-100`}>
         <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
+        <Analytics />
       </body>
     </html>
   )
