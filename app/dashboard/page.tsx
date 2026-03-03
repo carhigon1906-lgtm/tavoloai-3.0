@@ -113,6 +113,7 @@ export default function DashboardPage() {
   const [menusLoaded, setMenusLoaded] = useState(false)
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const [selectedMenu, setSelectedMenu] = useState<MenuRow | null>(null)
+  const [pdfError, setPdfError] = useState("")
   const qrRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -306,6 +307,19 @@ export default function DashboardPage() {
     img.src = url
   }
 
+  const openPrintablePdf = () => {
+    if (!selectedMenu) return
+    setPdfError("")
+    const menuId = encodeURIComponent(String(selectedMenu.id))
+    const printUrl = `/menu/print?menu=${menuId}&autoprint=1`
+
+    const printWindow = window.open(printUrl, "_blank", "noopener,noreferrer")
+    if (!printWindow) {
+      setPdfError("Tu navegador bloqueó la ventana emergente. Habilita popups e intenta de nuevo.")
+      return
+    }
+  }
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#070b12] via-[#0a111d] to-[#05070c] text-white pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+28px)]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(59,130,246,0.18),transparent_55%)]" />
@@ -446,6 +460,7 @@ export default function DashboardPage() {
             <button
               type="button"
               className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-slate-200 transition hover:bg-white/10 hover:text-white"
+              onClick={() => setQrModalOpen(true)}
             >
               Generar PDF para Imprimir
             </button>
@@ -470,7 +485,7 @@ export default function DashboardPage() {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-semibold text-white">Descargar QR</h3>
-                  <p className="mt-1 text-sm text-slate-300">Selecciona el menu que quieres descargar en alta resolucion.</p>
+                  <p className="mt-1 text-sm text-slate-300">Selecciona el menu para descargar QR o generar PDF imprimible.</p>
                 </div>
                 <button
                   type="button"
@@ -549,7 +564,19 @@ export default function DashboardPage() {
                       >
                         Vista previa
                       </button>
+                      <button
+                        type="button"
+                        onClick={openPrintablePdf}
+                        className="inline-flex items-center justify-center rounded-2xl border border-emerald-300/60 bg-emerald-400/20 px-4 py-2 text-xs font-semibold text-emerald-50 transition hover:bg-emerald-400/30"
+                      >
+                        Generar PDF para Imprimir
+                      </button>
                     </div>
+                    {pdfError && (
+                      <div className="rounded-2xl border border-red-300/30 bg-red-400/10 px-4 py-3 text-xs text-red-200">
+                        {pdfError}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

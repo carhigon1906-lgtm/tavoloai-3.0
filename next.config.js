@@ -37,7 +37,11 @@ const nextConfig = {
     esmExternals: "loose",
   },
   transpilePackages: ["@bunnio/rembg-web", "onnxruntime-web"],
-  webpack: (config) => {
+  webpack: (config, { dev }) => {
+    // Avoid intermittent stale cache issues in local dev on Windows.
+    if (dev) {
+      config.cache = false;
+    }
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
       {
