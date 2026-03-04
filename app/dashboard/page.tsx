@@ -112,6 +112,7 @@ export default function DashboardPage() {
   const [menusError, setMenusError] = useState("")
   const [menusLoaded, setMenusLoaded] = useState(false)
   const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [pdfModalOpen, setPdfModalOpen] = useState(false)
   const [selectedMenu, setSelectedMenu] = useState<MenuRow | null>(null)
   const [pdfError, setPdfError] = useState("")
   const qrRef = useRef<HTMLDivElement | null>(null)
@@ -248,9 +249,9 @@ export default function DashboardPage() {
       setMenusLoading(false)
     }
 
-    if (!qrModalOpen || menusLoaded) return
+    if ((!qrModalOpen && !pdfModalOpen) || menusLoaded) return
     loadMenus()
-  }, [qrModalOpen, menusLoaded])
+  }, [qrModalOpen, pdfModalOpen, menusLoaded])
 
   const qrMenuUrl = useMemo(() => {
     if (!selectedMenu) return ""
@@ -460,7 +461,10 @@ export default function DashboardPage() {
             <button
               type="button"
               className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-slate-200 transition hover:bg-white/10 hover:text-white"
-              onClick={() => setQrModalOpen(true)}
+              onClick={() => {
+                setPdfError("")
+                setPdfModalOpen(true)
+              }}
             >
               Generar PDF para Imprimir
             </button>
@@ -578,6 +582,114 @@ export default function DashboardPage() {
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {pdfModalOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6 py-10 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-2xl rounded-3xl border border-white/10 bg-[#0b1220] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.6)]"
+              initial={{ y: 24, scale: 0.98, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 16, scale: 0.98, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 220, damping: 22 }}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Generar PDF para imprimir</h3>
+                  <p className="mt-1 text-sm text-slate-300">Selecciona el menu y abre la vista lista para imprimir o guardar en PDF.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPdfModalOpen(false)}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/10"
+                >
+                  Cerrar
+                </button>
+              </div>
+
+              <div className="mt-5">
+                {menusLoading && (
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-300">
+                    Cargando menus...
+                  </div>
+                )}
+                {menusError && !menusLoading && (
+                  <div className="rounded-2xl border border-red-300/30 bg-red-400/10 px-4 py-5 text-center text-sm text-red-200">
+                    {menusError}
+                  </div>
+                )}
+                {!menusLoading && !menusError && menus.length === 0 && (
+                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-400">
+                    No hay menus creados todavia.
+                  </div>
+                )}
+                {!menusLoading && !menusError && menus.length > 0 && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {menus.map((menu) => {
+                      const isSelected = String(selectedMenu?.id) === String(menu.id)
+                      return (
+                        <button
+                          key={menu.id}
+                          type="button"
+                          onClick={() => {
+                            setPdfError("")
+                            setSelectedMenu(menu)
+                          }}
+                          className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
+                            isSelected
+                              ? "border-emerald-300/60 bg-emerald-400/15 text-emerald-50"
+                              : "border-white/10 bg-white/5 text-slate-200 hover:bg-white/10"
+                          }`}
+                        >
+                          <div className="font-semibold">{menu.nombre}</div>
+                          <div className="mt-1 text-xs text-slate-400">
+                            {(menu.categories ?? []).length} categorias
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {selectedMenu && (
+                <div className="mt-6 space-y-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-slate-200">
+                    {`/menu/print?menu=${encodeURIComponent(String(selectedMenu.id))}&autoprint=1`}
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={openPrintablePdf}
+                      className="inline-flex items-center justify-center rounded-2xl border border-emerald-300/60 bg-emerald-400/20 px-4 py-2 text-xs font-semibold text-emerald-50 transition hover:bg-emerald-400/30"
+                    >
+                      Generar PDF para Imprimir
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        window.open(`/menu/print?menu=${encodeURIComponent(String(selectedMenu.id))}`, "_blank", "noopener")
+                      }
+                      className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/20"
+                    >
+                      Vista previa
+                    </button>
+                  </div>
+                  {pdfError && (
+                    <div className="rounded-2xl border border-red-300/30 bg-red-400/10 px-4 py-3 text-xs text-red-200">
+                      {pdfError}
+                    </div>
+                  )}
                 </div>
               )}
             </motion.div>
