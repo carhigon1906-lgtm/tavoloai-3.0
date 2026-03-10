@@ -61,9 +61,9 @@ const dashboardLinks = [
   },
   {
     key: "writer",
-    name: "Redactor & traductor IA",
-    title: "REDACTOR & TRADUCTOR IA",
-    desc: "Textos gourmet y traducciones globales.",
+    name: "Diseñador de promocion IA",
+    title: "DISEÑADOR DE PROMOCION IA",
+    desc: "Promociones visuales listas para publicar.",
     icon: PenLine,
     href: "/dashboard/writer",
     color: "from-amber-400 to-fuchsia-600",
