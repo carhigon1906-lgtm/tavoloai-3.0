@@ -19,7 +19,7 @@ const bodyFont = Plus_Jakarta_Sans({
 
 export default function PostersPage() {
   const [title, setTitle] = useState("2x1 en pastas artesanales")
-  const [description, setDescription] = useState("Promoción premium para restaurante italiano con enfoque visual elegante.")
+  const [description, setDescription] = useState("Promocion premium para restaurante italiano con enfoque visual elegante.")
   const [generatedImageUrl, setGeneratedImageUrl] = useState("")
   const [generationError, setGenerationError] = useState("")
   const [generationStatus, setGenerationStatus] = useState("")
@@ -30,7 +30,7 @@ export default function PostersPage() {
     const cleanDescription = description.trim()
 
     if (!cleanTitle || !cleanDescription) {
-      setGenerationError("Completa el título y la descripción.")
+      setGenerationError("Completa el titulo y la descripcion.")
       setGenerationStatus("")
       setGeneratedImageUrl("")
       return
@@ -38,10 +38,10 @@ export default function PostersPage() {
 
     setIsGenerating(true)
     setGenerationError("")
-    setGenerationStatus("Generando afiche con Leonardo AI...")
+    setGenerationStatus("Generando afiche con Hugging Face...")
 
     try {
-      const response = await fetch("/api/posters/leonardo", {
+      const response = await fetch("/api/posters/huggingface", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -49,9 +49,6 @@ export default function PostersPage() {
         body: JSON.stringify({
           title: cleanTitle,
           subtitle: cleanDescription,
-          cta: "Pide ahora",
-          format: "feed-4-5",
-          palette: "amber",
         }),
       })
 
@@ -67,7 +64,7 @@ export default function PostersPage() {
       setGeneratedImageUrl(payload?.imageUrl || "")
       setGenerationStatus("Afiche generado.")
     } catch {
-      setGenerationError("Ocurrió un error al generar el afiche.")
+      setGenerationError("Ocurrio un error al generar el afiche.")
       setGenerationStatus("")
       setGeneratedImageUrl("")
     } finally {
@@ -83,7 +80,7 @@ export default function PostersPage() {
             <p className={`text-xs uppercase tracking-[0.28em] text-white/45 ${bodyFont.className}`}>Poster Studio</p>
             <h1 className={`mt-3 text-3xl text-white sm:text-4xl ${displayFont.className}`}>Generador de afiches</h1>
             <p className={`mt-3 max-w-xl text-sm text-white/65 ${bodyFont.className}`}>
-              Versión simple para probar la generación con Leonardo AI.
+              Version simple para probar la generacion con Hugging Face.
             </p>
           </div>
           <Link
@@ -100,14 +97,14 @@ export default function PostersPage() {
               <ImagePlus className="h-5 w-5 text-white/80" />
             </div>
             <div>
-              <h2 className={`text-lg text-white ${displayFont.className}`}>Brief mínimo</h2>
-              <p className={`text-sm text-white/55 ${bodyFont.className}`}>Solo título y descripción.</p>
+              <h2 className={`text-lg text-white ${displayFont.className}`}>Brief minimo</h2>
+              <p className={`text-sm text-white/55 ${bodyFont.className}`}>Solo titulo y descripcion.</p>
             </div>
           </div>
 
           <div className="mt-6 grid gap-4">
             <label className={`grid gap-2 text-sm text-white/70 ${bodyFont.className}`}>
-              Título
+              Titulo
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
@@ -117,11 +114,11 @@ export default function PostersPage() {
             </label>
 
             <label className={`grid gap-2 text-sm text-white/70 ${bodyFont.className}`}>
-              Descripción
+              Descripcion
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="Ej: Promoción gourmet con look premium, iluminación cálida y enfoque publicitario."
+                placeholder="Ej: Promocion gourmet con look premium, iluminacion calida y enfoque publicitario."
                 rows={4}
                 className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-white/25 focus:outline-none"
               />
@@ -168,11 +165,11 @@ export default function PostersPage() {
                 </a>
               </div>
 
-              <img src={generatedImageUrl} alt="Afiche generado con Leonardo AI" className="w-full rounded-[22px] border border-white/10" />
+              <img src={generatedImageUrl} alt="Afiche generado con Hugging Face" className="w-full rounded-[22px] border border-white/10" />
             </div>
           ) : (
             <div className={`flex min-h-[320px] items-center justify-center rounded-[22px] border border-dashed border-white/10 bg-black/20 text-sm text-white/35 ${bodyFont.className}`}>
-              Aquí aparecerá el afiche generado.
+              Aqui aparecera el afiche generado.
             </div>
           )}
         </section>
