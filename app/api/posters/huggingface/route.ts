@@ -8,17 +8,93 @@ const HF_IMAGE_MODEL_URL =
 type PosterRequest = {
   title?: string
   subtitle?: string
+  mode?: "promotion" | "event"
+  promotionType?: string
+  promoDate?: string
+  eventDate?: string
+  eventText?: string
 }
 
-function buildPrompt({ title, subtitle }: PosterRequest) {
+const PROMOTION_PRESETS: Record<string, string[]> = {
+  plato: [
+    "premium food poster",
+    "hero dish close-up",
+    "appetizing plating",
+    "warm cinematic lighting",
+    "restaurant advertising composition",
+    "luxury gastronomy branding",
+    "space reserved for headline and offer",
+  ],
+  bebida: [
+    "premium beverage poster",
+    "hero drink photography",
+    "condensation, reflections, ice, glow",
+    "dramatic studio lighting",
+    "elegant nightlife hospitality aesthetic",
+    "space reserved for headline and offer",
+  ],
+  menu: [
+    "premium restaurant menu campaign poster",
+    "editorial composition",
+    "clean hierarchy",
+    "refined food styling",
+    "commercial layout for restaurant marketing",
+    "space reserved for headline and supporting copy",
+  ],
+  general: [
+    "premium restaurant promotional poster",
+    "high-end hospitality branding",
+    "clean focal point",
+    "elegant composition",
+    "social media advertising layout",
+    "space reserved for marketing copy",
+  ],
+}
+
+const EVENT_PRESET = [
+  "premium restaurant event poster",
+  "hospitality nightlife campaign",
+  "ambient venue atmosphere",
+  "stylish interior",
+  "editorial event layout",
+  "space reserved for headline, schedule, and event details",
+]
+
+function buildPrompt({ title, subtitle, mode, promotionType, promoDate, eventDate, eventText }: PosterRequest) {
   const cleanTitle = title?.trim() || "Promocion gourmet"
   const cleanSubtitle = subtitle?.trim() || "Afiche publicitario para restaurante"
+  const typeLabel = promotionType?.trim() || "especialidad de la casa"
+  const promoTiming = promoDate?.trim() || "disponible por tiempo limitado"
+  const cleanEventDate = eventDate?.trim() || "proximamente"
+  const cleanEventText = eventText?.trim() || "evento especial en el local"
+  const presetKey =
+    promotionType === "plato" || promotionType === "bebida" || promotionType === "menu" || promotionType === "general"
+      ? promotionType
+      : "general"
+  const promotionPreset = PROMOTION_PRESETS[presetKey] ?? PROMOTION_PRESETS["general"] ?? []
+
+  const concept =
+    mode === "event"
+      ? [
+          ...EVENT_PRESET,
+          `featured event: ${cleanTitle}`,
+          `event schedule: ${cleanEventDate}`,
+          `event hook: ${cleanEventText}`,
+          `supporting description: ${cleanSubtitle}`,
+          "people enjoying the venue, ambient lighting, stylish interior, live entertainment mood, clear hierarchy, space reserved for headline and event details",
+        ]
+      : [
+          ...promotionPreset,
+          `promotion headline: ${cleanTitle}`,
+          `promotion type: ${typeLabel}`,
+          `promotion timing: ${promoTiming}`,
+          `supporting description: ${cleanSubtitle}`,
+          "hero food photography, appetizing presentation, warm cinematic lighting, premium branding, clear focal point, space reserved for promotional copy and price offer",
+        ]
 
   return [
-    "premium restaurant poster, gourmet food advertising, elegant typography space, polished marketing composition, social media poster",
-    `main headline theme: ${cleanTitle}`,
-    `supporting description theme: ${cleanSubtitle}`,
-    "warm lighting, cinematic food styling, premium branding, realistic details, professional advertising image",
+    ...concept,
+    "professional advertising image, realistic details, clean composition, high contrast focal subject, no watermark, no random unreadable text",
   ].join(", ")
 }
 

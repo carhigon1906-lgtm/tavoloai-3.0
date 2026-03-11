@@ -34,11 +34,11 @@ export default function PostersPage() {
     const cleanTitle =
       mode === "promotion"
         ? `${promoText.trim() || "Promocion especial"} - ${promotionType.trim() || "general"}`
-        : eventName.trim()
+        : eventName.trim() || "Evento especial"
 
     const cleanDescription =
       mode === "promotion"
-        ? `Promocion para ${promotionType}. ${promoDate.trim() || "Disponible por tiempo limitado"}.`
+        ? `${promoText.trim() || "Promocion especial"} para ${promotionType.trim() || "general"}, ${promoDate.trim() || "disponible por tiempo limitado"}.`
         : `${eventDate.trim() || "Proximamente"}. ${eventText.trim() || "Evento especial en el local"}.`
 
     if (!cleanTitle || !cleanDescription) {
@@ -61,6 +61,11 @@ export default function PostersPage() {
         body: JSON.stringify({
           title: cleanTitle,
           subtitle: cleanDescription,
+          mode,
+          promotionType: mode === "promotion" ? promotionType.trim() : undefined,
+          promoDate: mode === "promotion" ? promoDate.trim() : undefined,
+          eventDate: mode === "event" ? eventDate.trim() : undefined,
+          eventText: mode === "event" ? eventText.trim() : undefined,
         }),
       })
 
@@ -205,19 +210,6 @@ export default function PostersPage() {
                 </label>
               </>
             )}
-
-            <div className={`rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-sm text-white/65 ${bodyFont.className}`}>
-              <p className="text-white">Lo mejor para que quede bien</p>
-              <p className="mt-2">Muy pocos campos.</p>
-              <p>La IA completa el resto.</p>
-              <p className="mt-3 text-white">Mi recomendacion final</p>
-              <p className="mt-2">Boton 1: Crear promocion</p>
-              <p>Boton 2: Crear evento</p>
-              <p className="mt-2">Y dentro:</p>
-              <p>3 o 4 campos maximo</p>
-              <p>boton final: Generar afiche</p>
-              <p className="mt-2">Asi queda simple, usable y comercialmente fuerte.</p>
-            </div>
 
             <button
               type="button"
