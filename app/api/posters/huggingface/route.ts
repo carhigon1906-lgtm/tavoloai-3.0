@@ -72,6 +72,23 @@ function buildPrompt({ title, subtitle, mode, promotionType, promoDate, eventDat
       ? promotionType
       : "general"
   const promotionPreset = PROMOTION_PRESETS[presetKey] ?? PROMOTION_PRESETS["general"] ?? []
+  const exactTextInstructions =
+    mode === "event"
+      ? [
+          `render the exact headline text: "${cleanTitle}"`,
+          `render the exact schedule text: "${cleanEventDate}"`,
+          `render the exact supporting text: "${cleanEventText}"`,
+          `render the exact secondary description: "${cleanSubtitle}"`,
+          "poster must visibly include these exact words as readable typography",
+          "large headline, smaller schedule line, smaller supporting line",
+        ]
+      : [
+          `render the exact headline text: "${cleanTitle}"`,
+          `render the exact timing text: "${promoTiming}"`,
+          `render the exact supporting text: "${cleanSubtitle}"`,
+          "poster must visibly include these exact words as readable typography",
+          "large promotional headline, smaller timing line, smaller supporting line",
+        ]
 
   const concept =
     mode === "event"
@@ -81,6 +98,7 @@ function buildPrompt({ title, subtitle, mode, promotionType, promoDate, eventDat
           `event schedule: ${cleanEventDate}`,
           `event hook: ${cleanEventText}`,
           `supporting description: ${cleanSubtitle}`,
+          ...exactTextInstructions,
           "people enjoying the venue, ambient lighting, stylish interior, live entertainment mood, clear hierarchy, space reserved for headline and event details",
         ]
       : [
@@ -89,12 +107,13 @@ function buildPrompt({ title, subtitle, mode, promotionType, promoDate, eventDat
           `promotion type: ${typeLabel}`,
           `promotion timing: ${promoTiming}`,
           `supporting description: ${cleanSubtitle}`,
+          ...exactTextInstructions,
           "hero food photography, appetizing presentation, warm cinematic lighting, premium branding, clear focal point, space reserved for promotional copy and price offer",
         ]
 
   return [
     ...concept,
-    "professional advertising image, realistic details, clean composition, high contrast focal subject, no watermark, no random unreadable text",
+    "professional advertising image, realistic details, clean composition, high contrast focal subject, no watermark, no random unreadable text, avoid gibberish letters, avoid misspelled words, prioritize legible poster typography",
   ].join(", ")
 }
 
