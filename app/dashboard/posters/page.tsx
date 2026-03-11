@@ -18,16 +18,28 @@ const bodyFont = Plus_Jakarta_Sans({
 })
 
 export default function PostersPage() {
-  const [title, setTitle] = useState("2x1 en pastas artesanales")
-  const [description, setDescription] = useState("Promocion premium para restaurante italiano con enfoque visual elegante.")
+  const [mode, setMode] = useState<"promotion" | "event">("promotion")
+  const [promotionType, setPromotionType] = useState("plato")
+  const [promoText, setPromoText] = useState("Jueves 2x1")
+  const [promoDate, setPromoDate] = useState("Todos los jueves")
+  const [eventName, setEventName] = useState("Concierto en vivo")
+  const [eventDate, setEventDate] = useState("Viernes 21:00")
+  const [eventText, setEventText] = useState("Musica en vivo y ambiente especial")
   const [generatedImageUrl, setGeneratedImageUrl] = useState("")
   const [generationError, setGenerationError] = useState("")
   const [generationStatus, setGenerationStatus] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
 
   const generatePoster = async () => {
-    const cleanTitle = title.trim()
-    const cleanDescription = description.trim()
+    const cleanTitle =
+      mode === "promotion"
+        ? `${promoText.trim() || "Promocion especial"} - ${promotionType.trim() || "general"}`
+        : eventName.trim()
+
+    const cleanDescription =
+      mode === "promotion"
+        ? `Promocion para ${promotionType}. ${promoDate.trim() || "Disponible por tiempo limitado"}.`
+        : `${eventDate.trim() || "Proximamente"}. ${eventText.trim() || "Evento especial en el local"}.`
 
     if (!cleanTitle || !cleanDescription) {
       setGenerationError("Completa el titulo y la descripcion.")
@@ -98,31 +110,114 @@ export default function PostersPage() {
             </div>
             <div>
               <h2 className={`text-lg text-white ${displayFont.className}`}>Brief minimo</h2>
-              <p className={`text-sm text-white/55 ${bodyFont.className}`}>Solo titulo y descripcion.</p>
+              <p className={`text-sm text-white/55 ${bodyFont.className}`}>Muy pocos campos. La IA completa el resto.</p>
             </div>
           </div>
 
           <div className="mt-6 grid gap-4">
-            <label className={`grid gap-2 text-sm text-white/70 ${bodyFont.className}`}>
-              Titulo
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="Ej: Hamburguesa + papas por $19.900"
-                className="h-12 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-white/30 focus:border-white/25 focus:outline-none"
-              />
-            </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setMode("promotion")}
+                className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
+                  mode === "promotion" ? "border-[#d6a35d] bg-[#d6a35d]/15 text-white" : "border-white/10 bg-white/5 text-white/70"
+                } ${bodyFont.className}`}
+              >
+                Crear promocion
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("event")}
+                className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
+                  mode === "event" ? "border-[#d6a35d] bg-[#d6a35d]/15 text-white" : "border-white/10 bg-white/5 text-white/70"
+                } ${bodyFont.className}`}
+              >
+                Crear evento
+              </button>
+            </div>
 
-            <label className={`grid gap-2 text-sm text-white/70 ${bodyFont.className}`}>
-              Descripcion
-              <textarea
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="Ej: Promocion gourmet con look premium, iluminacion calida y enfoque publicitario."
-                rows={4}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-white/25 focus:outline-none"
-              />
-            </label>
+            {mode === "promotion" ? (
+              <>
+                <label className={`grid gap-2 text-sm text-white/70 ${bodyFont.className}`}>
+                  Que quieres promocionar?
+                  <select
+                    value={promotionType}
+                    onChange={(event) => setPromotionType(event.target.value)}
+                    className="h-12 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white focus:border-white/25 focus:outline-none"
+                  >
+                    <option value="plato">plato</option>
+                    <option value="bebida">bebida</option>
+                    <option value="menu">menu</option>
+                    <option value="general">general</option>
+                  </select>
+                </label>
+
+                <label className={`grid gap-2 text-sm text-white/70 ${bodyFont.className}`}>
+                  Texto corto de la promo
+                  <input
+                    value={promoText}
+                    onChange={(event) => setPromoText(event.target.value)}
+                    placeholder="Ej: Jueves 2x1"
+                    className="h-12 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-white/30 focus:border-white/25 focus:outline-none"
+                  />
+                </label>
+
+                <label className={`grid gap-2 text-sm text-white/70 ${bodyFont.className}`}>
+                  Fecha o dia
+                  <input
+                    value={promoDate}
+                    onChange={(event) => setPromoDate(event.target.value)}
+                    placeholder="Ej: Todos los jueves"
+                    className="h-12 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-white/30 focus:border-white/25 focus:outline-none"
+                  />
+                </label>
+              </>
+            ) : (
+              <>
+                <label className={`grid gap-2 text-sm text-white/70 ${bodyFont.className}`}>
+                  Nombre del evento
+                  <input
+                    value={eventName}
+                    onChange={(event) => setEventName(event.target.value)}
+                    placeholder="Ej: Concierto en vivo"
+                    className="h-12 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-white/30 focus:border-white/25 focus:outline-none"
+                  />
+                </label>
+
+                <label className={`grid gap-2 text-sm text-white/70 ${bodyFont.className}`}>
+                  Dia y hora
+                  <input
+                    value={eventDate}
+                    onChange={(event) => setEventDate(event.target.value)}
+                    placeholder="Ej: Viernes 21:00"
+                    className="h-12 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-white/30 focus:border-white/25 focus:outline-none"
+                  />
+                </label>
+
+                <label className={`grid gap-2 text-sm text-white/70 ${bodyFont.className}`}>
+                  Texto corto
+                  <input
+                    value={eventText}
+                    onChange={(event) => setEventText(event.target.value)}
+                    placeholder="Ej: Musica en vivo y ambiente especial"
+                    className="h-12 rounded-2xl border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-white/30 focus:border-white/25 focus:outline-none"
+                  />
+                </label>
+              </>
+            )}
+
+            <div className={`rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-sm text-white/65 ${bodyFont.className}`}>
+              <p className="text-white">Lo mejor para que quede bien</p>
+              <p className="mt-2">Muy pocos campos.</p>
+              <p>La IA completa el resto.</p>
+              <p className="mt-3 text-white">Mi recomendacion final</p>
+              <p className="mt-2">Boton 1: Crear promocion</p>
+              <p>Boton 2: Crear evento</p>
+              <p className="mt-2">Y dentro:</p>
+              <p>3 o 4 campos maximo</p>
+              <p>boton final: Generar afiche</p>
+              <p className="mt-2">Asi queda simple, usable y comercialmente fuerte.</p>
+            </div>
 
             <button
               type="button"
