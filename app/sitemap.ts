@@ -1,20 +1,9 @@
 import type { MetadataRoute } from "next"
-
-const BASE_URL = "https://www.tavoloai.it"
-
-const staticRoutes = [
-  "/",
-  "/register",
-  "/premium",
-  "/pago",
-  "/forgot-password",
-  "/menu",
-  "/menu/burgers",
-]
+import { BASE_URL, STATIC_ROUTES } from "@/lib/site"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date()
-  return staticRoutes.map((path) => ({
+  return STATIC_ROUTES.map((path) => ({
     url: `${BASE_URL}${path}`,
     lastModified,
     changeFrequency: "weekly",

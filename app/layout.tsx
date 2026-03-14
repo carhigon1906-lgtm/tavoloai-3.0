@@ -6,6 +6,8 @@ import type { Metadata, Viewport } from "next"
 import type { ReactNode } from "react"
 
 const ClientLayoutWrapper = dynamic(() => import("./ClientLayoutWrapper"))
+const googleVerification = process.env["GOOGLE_SITE_VERIFICATION"]
+const bingVerification = process.env["BING_SITE_VERIFICATION"]
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.tavoloai.it"),
@@ -13,6 +15,19 @@ export const metadata: Metadata = {
   description:
     "Actualiza precios, mejora fotos y lanza promos en segundos con IA. El menú digital que trabaja por ti las 24 horas.",
   keywords: ["menú digital", "restaurante", "IA", "inteligencia artificial", "hostelería"],
+  applicationName: "TavoloAI",
+  category: "restaurant software",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   icons: {
     icon: "/logoblanco.png",
   },
@@ -29,6 +44,10 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   alternates: { canonical: "/" },
+  verification: {
+    ...(googleVerification ? { google: googleVerification } : {}),
+    ...(bingVerification ? { other: { "msvalidate.01": bingVerification } } : {}),
+  },
 }
 
 export const viewport: Viewport = {
