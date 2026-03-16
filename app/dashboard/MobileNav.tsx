@@ -8,7 +8,7 @@ import { BarChart3, Home, Image, Menu, Settings } from "lucide-react"
 
 const items = [
   { icon: Home, label: "Inicio", href: "/dashboard" },
-  { icon: Menu, label: "Menús", href: "/dashboard/menus" },
+  { icon: Menu, label: "Menus", href: "/dashboard/menus" },
   { icon: Image, label: "IA", href: "/dashboard/media" },
   { icon: BarChart3, label: "Stats", href: "/dashboard/reports" },
   { icon: Settings, label: "Ajustes", href: "/dashboard/settings" },
@@ -25,9 +25,9 @@ export default function MobileNav() {
   return (
     <div
       id="dashboard-mobile-nav"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+10px)]"
+      className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+10px)] md:hidden"
     >
-      <div className="rounded-[28px] border border-white/10 bg-black/70 backdrop-blur-2xl shadow-[0_-20px_60px_rgba(0,0,0,0.6)]">
+      <div className="rounded-[28px] border border-white/8 bg-[#05070c]/84 backdrop-blur-2xl shadow-[0_-20px_60px_rgba(0,0,0,0.55)]">
         <nav className="flex items-center justify-between px-4 py-3">
           {items.map((item, index) => {
             const active = isActive(item.href)
@@ -48,11 +48,11 @@ export default function MobileNav() {
                   <span
                     className={`flex h-10 w-10 items-center justify-center rounded-2xl border transition-all ${
                       active
-                        ? "border-white/25 bg-white/10 shadow-[0_10px_30px_rgba(59,130,246,0.35)]"
-                        : "border-white/10 bg-white/5"
+                        ? "border-cyan-300/20 bg-cyan-400/10 shadow-[0_10px_30px_rgba(34,211,238,0.18)]"
+                        : "border-white/8 bg-white/5"
                     }`}
                   >
-                    <Icon className={`h-5 w-5 ${active ? "text-white" : "text-slate-300"}`} />
+                    <Icon className={`h-5 w-5 ${active ? "text-cyan-100" : "text-slate-300"}`} />
                   </span>
                   {item.label}
                 </Link>

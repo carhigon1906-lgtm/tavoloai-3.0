@@ -34,26 +34,30 @@ export default function Sidebar() {
       animate={{ x: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 200, damping: 20 }}
       className={`${
-        isCollapsed ? "w-20" : "w-64"
-      } hidden md:flex bg-black/70 backdrop-blur-2xl border-r border-white/10 flex-col transition-all duration-300 text-slate-100 shadow-[8px_0_40px_rgba(0,0,0,0.65)]`}
+        isCollapsed ? "w-16" : "w-52"
+      } hidden md:flex bg-[#05070c]/88 backdrop-blur-2xl border-r border-white/5 flex-col transition-all duration-300 text-slate-100 shadow-[8px_0_40px_rgba(0,0,0,0.58)]`}
     >
       {/* Header */}
-      <div className="p-6 border-b border-white/10">
+      <div className="border-b border-white/5 p-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-600/40 to-purple-500/40 rounded-2xl flex items-center justify-center border border-white/20 shadow-inner">
-            <ChefHat className="w-5 h-5 text-white" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-[18px] border border-white/12 bg-gradient-to-br from-blue-600/25 to-cyan-500/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <ChefHat className="h-4.5 w-4.5 text-white" />
           </div>
           {!isCollapsed && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
-              <h2 className="font-bold text-white text-lg">TavoloAI</h2>
-              <p className="text-xs text-slate-300 font-medium">Restaurante</p>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="min-w-0">
+              <h2 className="truncate text-[15px] font-semibold tracking-[-0.02em] text-white">TavoloAI</h2>
+              <p className="text-xs font-medium text-slate-400">Restaurante</p>
             </motion.div>
           )}
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-3">
+        {!isCollapsed && (
+          <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Panel</p>
+        )}
+        <div className="space-y-1.5">
         {menuItems.map((item, index) => {
           const active = isActive(item.href)
           return (
@@ -63,24 +67,26 @@ export default function Sidebar() {
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: index * 0.05 }}
-              className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group ${
+              className={`group relative flex items-center gap-3 rounded-[18px] px-3 py-2.5 transition-all duration-200 ${
                 active
-                  ? "bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-white shadow-lg border border-white/20"
-                  : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  ? "border border-white/6 bg-white/10 text-white shadow-[0_14px_32px_rgba(0,0,0,0.28)]"
+                  : "border border-transparent text-slate-300 hover:bg-white/6 hover:text-white"
               }`}
             >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              {!isCollapsed && <span className="font-medium text-sm">{item.label}</span>}
+              {active && <div className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-cyan-300" />}
+              <item.icon className={`h-[18px] w-[18px] flex-shrink-0 ${active ? "text-cyan-100" : "text-slate-300 group-hover:text-white"}`} />
+              {!isCollapsed && <span className="font-medium text-[14px] tracking-[-0.01em]">{item.label}</span>}
               {active && !isCollapsed && (
-                <motion.div layoutId="activeIndicator" className="ml-auto w-2 h-2 bg-blue-500 rounded-full" />
+                <motion.div layoutId="activeIndicator" className="ml-auto h-1.5 w-1.5 rounded-full bg-cyan-300" />
               )}
             </MotionLink>
           )
         })}
+        </div>
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-white/10">
+      <div className="border-t border-white/5 p-3">
         <motion.button
           onClick={async () => {
             await supabase.auth.signOut()
@@ -88,17 +94,17 @@ export default function Sidebar() {
           }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-slate-300 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200"
+          className="flex w-full items-center gap-3 rounded-[18px] px-3 py-2.5 text-slate-300 transition-all duration-200 hover:bg-red-500/10 hover:text-red-300"
         >
-          <LogOut className="w-5 h-5 flex-shrink-0" />
-          {!isCollapsed && <span className="font-medium text-sm">Cerrar Sesión</span>}
+          <LogOut className="h-[18px] w-[18px] flex-shrink-0" />
+          {!isCollapsed && <span className="font-medium text-[14px] tracking-[-0.01em]">Cerrar Sesión</span>}
         </motion.button>
       </div>
 
       {/* Collapse Toggle */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/10 backdrop-blur border border-white/30 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+        className="absolute -right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur shadow-lg transition-all duration-200 hover:scale-110 hover:bg-white/15"
       >
         <motion.div animate={{ rotate: isCollapsed ? 180 : 0 }} transition={{ duration: 0.2 }}>
           <Menu className="w-4 h-4 text-white" />

@@ -3,11 +3,24 @@
 
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
+import { usePathname } from "next/navigation"
+import { CalendarDays, Sparkles } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
+
+const sectionTitles = [
+  { match: /^\/dashboard$/, title: "Dashboard", subtitle: "Resumen general del negocio" },
+  { match: /^\/dashboard\/menus/, title: "Menus", subtitle: "Gestiona cartas y categorias" },
+  { match: /^\/dashboard\/media/, title: "Laboratorio IA", subtitle: "Mejora visual para platos y bebidas" },
+  { match: /^\/dashboard\/reports/, title: "Estadisticas", subtitle: "Lectura comercial del rendimiento" },
+  { match: /^\/dashboard\/posters/, title: "Afiches IA", subtitle: "Promociones listas para publicar" },
+  { match: /^\/dashboard\/local/, title: "Mi local", subtitle: "Datos visibles del negocio" },
+  { match: /^\/dashboard\/settings/, title: "Configuracion", subtitle: "Preferencias y cuenta" },
+]
 
 export default function DashboardNavbar() {
   const [userLabel, setUserLabel] = useState<string | null>(null)
   const [typedText, setTypedText] = useState("")
+  const pathname = usePathname()
 
   useEffect(() => {
     let mounted = true
@@ -50,23 +63,40 @@ export default function DashboardNavbar() {
     return () => window.clearInterval(timer)
   }, [targetText])
 
+  const currentSection = sectionTitles.find((section) => section.match.test(pathname || "")) || sectionTitles[0]
+
   return (
     <motion.header
       initial={{ y: -8, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 180, damping: 18 }}
-      className="h-16 bg-neutral-950/70 backdrop-blur-xl border-b border-white/10 px-4 md:px-6 flex items-center justify-between shadow-[0_20px_60px_rgba(0,0,0,0.6)] text-slate-100"
+      className="mx-4 mt-4 flex h-[72px] items-center justify-between rounded-[26px] border border-white/[0.04] bg-[#070d17]/72 px-4 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-2xl text-slate-100 md:mx-5 md:mt-5 md:px-5"
     >
-      <div className="font-semibold text-base md:text-lg text-white">
-        {typedText}
-        <span className="ml-1 inline-block h-4 w-0.5 bg-white/70 align-middle animate-pulse" />
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-2xl border border-cyan-300/15 bg-cyan-400/10">
+            <Sparkles className="h-4 w-4 text-cyan-200" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-[15px] font-semibold tracking-[-0.02em] text-white">{currentSection.title}</p>
+            <p className="truncate text-xs text-slate-400">{currentSection.subtitle}</p>
+          </div>
+        </div>
       </div>
 
-      {userLabel && (
-        <div className="text-xs sm:text-sm text-slate-300 font-medium">
-          Sesión: <span className="text-white font-semibold">{userLabel}</span>
+      <div className="ml-4 flex items-center gap-3">
+        <div className="hidden items-center gap-2 rounded-full border border-white/[0.05] bg-white/6 px-3 py-2 text-xs text-slate-300 md:flex">
+          <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
+          <span>{new Date().toLocaleDateString("es-CO", { day: "numeric", month: "short" })}</span>
         </div>
-      )}
+        <div className="hidden min-w-0 rounded-full border border-white/[0.05] bg-white/6 px-3 py-2 text-xs md:block">
+          <p className="truncate text-slate-400">Sesion</p>
+          <p className="max-w-[180px] truncate font-medium text-white">
+            {userLabel || typedText}
+            {!userLabel && <span className="ml-1 inline-block h-3 w-0.5 animate-pulse bg-white/70 align-middle" />}
+          </p>
+        </div>
+      </div>
     </motion.header>
   )
 }
