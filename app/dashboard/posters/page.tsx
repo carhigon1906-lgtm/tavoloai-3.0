@@ -22,11 +22,14 @@ export default function PostersPage() {
   const [promotionType, setPromotionType] = useState("plato")
   const [promoText, setPromoText] = useState("Jueves 2x1")
   const [promoDate, setPromoDate] = useState("Todos los jueves")
+  const [promptDetails, setPromptDetails] = useState("Look premium, iluminacion cinematografica, enfoque comercial elegante.")
   const [eventName, setEventName] = useState("Concierto en vivo")
   const [eventDate, setEventDate] = useState("Viernes 21:00")
   const [eventText, setEventText] = useState("Musica en vivo y ambiente especial")
+  const [referenceImage, setReferenceImage] = useState<File | null>(null)
   const [generatedImageUrl, setGeneratedImageUrl] = useState("")
   const [generationError, setGenerationError] = useState("")
+  const [generationErrorCode, setGenerationErrorCode] = useState("")
   const [generationStatus, setGenerationStatus] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
 
@@ -43,6 +46,7 @@ export default function PostersPage() {
 
     if (!cleanTitle || !cleanDescription) {
       setGenerationError("Completa el titulo y la descripcion.")
+      setGenerationErrorCode("validation_error")
       setGenerationStatus("")
       setGeneratedImageUrl("")
       return
@@ -50,38 +54,52 @@ export default function PostersPage() {
 
     setIsGenerating(true)
     setGenerationError("")
+    setGenerationErrorCode("")
     setGenerationStatus("Generando afiche con OpenAI...")
 
     try {
+      const formData = new FormData()
+      formData.append("title", cleanTitle)
+      formData.append("subtitle", cleanDescription)
+      formData.append("creativeBrief", promptDetails.trim())
+      formData.append("mode", mode)
+      if (mode === "promotion") {
+        formData.append("promotionType", promotionType.trim())
+        formData.append("promoDate", promoDate.trim())
+      }
+      if (mode === "event") {
+        formData.append("eventDate", eventDate.trim())
+        formData.append("eventText", eventText.trim())
+      }
+      if (referenceImage) {
+        formData.append("referenceImage", referenceImage)
+      }
+
       const response = await fetch("/api/posters/openai", {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          title: cleanTitle,
-          subtitle: cleanDescription,
-          mode,
-          promotionType: mode === "promotion" ? promotionType.trim() : undefined,
-          promoDate: mode === "promotion" ? promoDate.trim() : undefined,
-          eventDate: mode === "event" ? eventDate.trim() : undefined,
-          eventText: mode === "event" ? eventText.trim() : undefined,
-        }),
+        body: formData,
       })
 
       const payload = await response.json().catch(() => null)
 
       if (!response.ok) {
         setGenerationError(payload?.error || "No se pudo generar el afiche.")
+        setGenerationErrorCode(payload?.errorCode || "")
         setGenerationStatus("")
         setGeneratedImageUrl("")
         return
       }
 
       setGeneratedImageUrl(payload?.imageUrl || "")
-      setGenerationStatus("Afiche generado.")
+      setGenerationErrorCode("")
+      setGenerationStatus(
+        payload?.usedReferenceImage
+          ? `Afiche generado con imagen de referencia${payload?.processingMs ? ` en ${payload.processingMs} ms` : ""}.`
+          : `Afiche generado${payload?.processingMs ? ` en ${payload.processingMs} ms` : ""}.`,
+      )
     } catch {
       setGenerationError("Ocurrio un error al generar el afiche.")
+      setGenerationErrorCode("client_fetch_error")
       setGenerationStatus("")
       setGeneratedImageUrl("")
     } finally {
@@ -204,6 +222,27 @@ export default function PostersPage() {
                         className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
                       />
                     </label>
+
+                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                      Descripcion del afiche
+                      <textarea
+                        value={promptDetails}
+                        onChange={(event) => setPromptDetails(event.target.value)}
+                        placeholder="Ej: Fondo oscuro elegante, plato protagonista, luz calida, estilo publicitario premium."
+                        rows={4}
+                        className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
+                      />
+                    </label>
+
+                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                      Imagen de referencia
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={(event) => setReferenceImage(event.target.files?.[0] || null)}
+                        className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white file:mr-3 file:rounded-full file:border-0 file:bg-cyan-400/15 file:px-4 file:py-2 file:text-sm file:font-medium file:text-cyan-100"
+                      />
+                    </label>
                   </>
                 ) : (
                   <>
@@ -236,6 +275,27 @@ export default function PostersPage() {
                         className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
                       />
                     </label>
+
+                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                      Descripcion del afiche
+                      <textarea
+                        value={promptDetails}
+                        onChange={(event) => setPromptDetails(event.target.value)}
+                        placeholder="Ej: Ambiente nocturno sofisticado, luces tenues, escenario visible, estilo editorial premium."
+                        rows={4}
+                        className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
+                      />
+                    </label>
+
+                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                      Imagen de referencia
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={(event) => setReferenceImage(event.target.files?.[0] || null)}
+                        className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white file:mr-3 file:rounded-full file:border-0 file:bg-cyan-400/15 file:px-4 file:py-2 file:text-sm file:font-medium file:text-cyan-100"
+                      />
+                    </label>
                   </>
                 )}
 
@@ -251,7 +311,8 @@ export default function PostersPage() {
 
               {generationError && (
                 <div className={`mt-4 rounded-[22px] border border-red-300/30 bg-red-400/10 px-4 py-3 text-sm text-red-200 backdrop-blur-xl ${bodyFont.className}`}>
-                  {generationError}
+                  <p>{generationError}</p>
+                  {generationErrorCode && <p className="mt-2 text-xs uppercase tracking-[0.2em] text-red-100/75">Codigo: {generationErrorCode}</p>}
                 </div>
               )}
 
@@ -272,14 +333,23 @@ export default function PostersPage() {
                   <p className={`mt-1 text-sm text-slate-300 ${bodyFont.className}`}>Aqui veras el resultado listo para compartir en redes o usar en tu local.</p>
                 </div>
                 {generatedImageUrl && (
-                  <a
-                    href={generatedImageUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-slate-200 shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl transition hover:bg-white/15 ${bodyFont.className}`}
-                  >
-                    Abrir imagen
-                  </a>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <a
+                      href={generatedImageUrl}
+                      download="afiche-tavoloai.png"
+                      className={`rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-100 shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl transition hover:bg-cyan-400/15 ${bodyFont.className}`}
+                    >
+                      Descargar afiche
+                    </a>
+                    <a
+                      href={generatedImageUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-slate-200 shadow-[0_20px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl transition hover:bg-white/15 ${bodyFont.className}`}
+                    >
+                      Abrir imagen
+                    </a>
+                  </div>
                 )}
               </div>
 
