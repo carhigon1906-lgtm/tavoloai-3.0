@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { ImagePlus } from "lucide-react"
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google"
-import { useEffect, useState } from "react"
+import { useMemo, useState } from "react"
 
 const displayFont = Playfair_Display({
   subsets: ["latin"],
@@ -30,51 +30,72 @@ const DETAILED_PROMPT_PRESETS = {
     "Create a premium nightlife and restaurant event campaign background for a sophisticated venue poster. The scene must communicate atmosphere, anticipation, and upscale energy. Use cinematic venue lighting, controlled highlights, subtle haze only if it improves depth, elegant crowd energy, a refined sense of live performance or DJ ambience, premium hospitality mood, and a composition that feels like editorial nightlife advertising. The frame should preserve a strong dark area or negative space for event text overlay. Do not generate readable text, posters on walls, neon words, logos, watermarks, chaotic crowds, amateur club aesthetics, or overexposed stage effects.",
 } as const
 
-const PROMPT_PRESETS = {
-  plato: "Fotografia gastronomica premium, plato protagonista en primer plano, fondo editorial oscuro, vapor sutil, luz calida lateral, texturas apetitosas, composicion limpia de campaña.",
-  bebida: "Bebida protagonista con look nightlife premium, hielo, condensacion, brillos controlados, fondo profundo, iluminacion dramatica de estudio, reflejos elegantes, energia nocturna.",
-  menu: "Composicion editorial para campana de menu, varios elementos bien estilizados, look premium de restaurante, jerarquia visual limpia, superficie sofisticada, direccion de arte de revista.",
-  general: "Afiche comercial premium para restaurante, branding elegante, sujeto claro, composicion pulida, contraste cinematografico, atmosfera exclusiva, look publicitario refinado.",
-  event: "Ambiente nocturno sofisticado, venue con energia real, luces tenues, profundidad cinematografica, publico elegante, escenario o performance insinuada, estilo editorial premium.",
-} as const
+type PosterMode = "promotion" | "event"
+type PromptPresetKey = keyof typeof DETAILED_PROMPT_PRESETS
+type VisualStyleChoice = "elegante" | "comercial" | "nocturno" | "premium"
 
-const PROMPT_PRESET_LABELS = {
-  plato: "Chef Signature",
-  bebida: "After Dark",
-  menu: "Editorial Spread",
-  general: "Brand Poster",
-  event: "Live Night",
-} as const
+const VISUAL_STYLE_PROMPTS: Record<VisualStyleChoice, string> = {
+  elegante:
+    "Art direction must feel elegant, refined, restrained, and polished. Use controlled composition, sophisticated negative space, tasteful premium styling, subtle contrast, luxury hospitality mood, soft yet intentional lighting, and a clean editorial finish. Avoid exaggerated sales energy, avoid loud color treatment, and avoid cheap commercial aesthetics.",
+  comercial:
+    "Art direction must feel commercial, clear, attractive, and conversion-oriented. Use a strong focal point, immediate readability, balanced contrast, appetizing or engaging visual hierarchy, broad audience appeal, and campaign-ready restaurant advertising energy. Keep it premium but accessible, clean, and highly usable for promotion.",
+  nocturno:
+    "Art direction must feel nocturnal, moody, cinematic, and atmospheric. Use deeper backgrounds, nightlife-inspired highlights, dramatic contrast, glossy reflections when appropriate, richer shadows, ambient glow, and upscale evening hospitality energy. Keep the scene premium, seductive, and visually memorable.",
+  premium:
+    "Art direction must feel premium, exclusive, high-end, and art-directed. Use luxury-level polish, elevated materials, cinematic lighting, sophisticated textures, strong negative space, sharper styling decisions, and a final image that looks approved for a top-tier hospitality campaign. Avoid generic stock-photo aesthetics completely.",
+}
 
-type PromptPresetKey = keyof typeof PROMPT_PRESETS
+const VISUAL_STYLE_LABELS: Record<VisualStyleChoice, string> = {
+  elegante: "Elegante",
+  comercial: "Comercial",
+  nocturno: "Nocturno",
+  premium: "Premium",
+}
 
-function getDefaultPromptPresetKey(mode: "promotion" | "event", promotionType: string): PromptPresetKey {
-  if (mode === "event") {
-    return "event"
+function inferPromotionType(title: string, description: string) {
+  const content = `${title} ${description}`.toLowerCase()
+
+  if (/(coctel|cocktail|vino|cerveza|beer|cafe|coffee|trago|drink|whisky|ron|gin|spritz|mojito|margarita)/.test(content)) {
+    return "bebida"
   }
 
-  if (promotionType === "plato" || promotionType === "bebida" || promotionType === "menu" || promotionType === "general") {
-    return promotionType
+  if (/(menu|menú|carta|degustacion|degustación|seleccion|selección|entrada y plato|varios platos)/.test(content)) {
+    return "menu"
+  }
+
+  if (/(pizza|burger|hamburguesa|pasta|risotto|sushi|postre|steak|carne|pollo|salmon|salmón|plato)/.test(content)) {
+    return "plato"
   }
 
   return "general"
 }
 
+function buildInternalBrief(mode: PosterMode, title: string, description: string, visualStyle: VisualStyleChoice) {
+  const basePrompt =
+    mode === "event"
+      ? DETAILED_PROMPT_PRESETS.event
+      : DETAILED_PROMPT_PRESETS[inferPromotionType(title, description) as PromptPresetKey] || DETAILED_PROMPT_PRESETS.general
+
+  return `${basePrompt} ${VISUAL_STYLE_PROMPTS[visualStyle]}`
+}
+
+function buildDisplaySchedule(date: string, hour: string) {
+  const cleanDate = date.trim()
+  const cleanHour = hour.trim()
+
+  if (cleanDate && cleanHour) return `${cleanDate} ${cleanHour}`
+  if (cleanDate) return cleanDate
+  if (cleanHour) return cleanHour
+  return ""
+}
+
 export default function PostersPage() {
-  const [mode, setMode] = useState<"promotion" | "event">("promotion")
-  const [promotionType, setPromotionType] = useState("plato")
-  const [promoText, setPromoText] = useState("Jueves 2x1")
-  const [promoDate, setPromoDate] = useState("Todos los jueves")
-  const [metaText, setMetaText] = useState("")
-  const [secondaryText, setSecondaryText] = useState("")
-  const [footerText, setFooterText] = useState("")
-  const [selectedPromptPreset, setSelectedPromptPreset] = useState<PromptPresetKey>("plato")
-  const [promptDetails, setPromptDetails] = useState<string>(DETAILED_PROMPT_PRESETS["plato"])
-  const [posterSize, setPosterSize] = useState<"1024x1536" | "1024x1024" | "1536x1024">("1024x1536")
-  const [renderQuality, setRenderQuality] = useState<"medium" | "high" | "auto">("medium")
-  const [eventName, setEventName] = useState("Concierto en vivo")
-  const [eventDate, setEventDate] = useState("Viernes 21:00")
-  const [eventText, setEventText] = useState("Musica en vivo y ambiente especial")
+  const [mode, setMode] = useState<PosterMode>("promotion")
+  const [title, setTitle] = useState("Jueves 2x1")
+  const [description, setDescription] = useState("Promocion especial para compartir en redes y atraer clientes.")
+  const [dateValue, setDateValue] = useState("Todos los jueves")
+  const [hourValue, setHourValue] = useState("")
+  const [visualStyle, setVisualStyle] = useState<VisualStyleChoice>("comercial")
   const [referenceImage, setReferenceImage] = useState<File | null>(null)
   const [generatedImageUrl, setGeneratedImageUrl] = useState("")
   const [generationError, setGenerationError] = useState("")
@@ -82,27 +103,12 @@ export default function PostersPage() {
   const [generationStatus, setGenerationStatus] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
 
-  useEffect(() => {
-    const nextPreset = getDefaultPromptPresetKey(mode, promotionType)
-    setSelectedPromptPreset(nextPreset)
-    setPromptDetails(DETAILED_PROMPT_PRESETS[nextPreset])
-  }, [mode, promotionType])
-
-  const applyPromptPreset = (presetKey: PromptPresetKey) => {
-    setSelectedPromptPreset(presetKey)
-    setPromptDetails(DETAILED_PROMPT_PRESETS[presetKey])
-  }
+  const scheduleLabel = useMemo(() => buildDisplaySchedule(dateValue, hourValue), [dateValue, hourValue])
 
   const generatePoster = async () => {
-    const cleanTitle =
-      mode === "promotion"
-        ? promoText.trim() || "Promocion especial"
-        : eventName.trim() || "Evento especial"
-
-    const cleanDescription =
-      mode === "promotion"
-        ? `${promoText.trim() || "Promocion especial"} para ${promotionType.trim() || "general"}, ${promoDate.trim() || "disponible por tiempo limitado"}.`
-        : `${eventDate.trim() || "Proximamente"}. ${eventText.trim() || "Evento especial en el local"}.`
+    const cleanTitle = title.trim()
+    const cleanDescription = description.trim()
+    const cleanSchedule = scheduleLabel.trim()
 
     if (!cleanTitle || !cleanDescription) {
       setGenerationError("Completa el titulo y la descripcion.")
@@ -112,6 +118,26 @@ export default function PostersPage() {
       return
     }
 
+    const promotionType = inferPromotionType(cleanTitle, cleanDescription)
+    const creativeBrief = buildInternalBrief(mode, cleanTitle, cleanDescription, visualStyle)
+    const subtitle =
+      mode === "event"
+        ? `${cleanSchedule || "Proximamente"}. ${cleanDescription}`
+        : cleanSchedule
+          ? `${cleanDescription}. ${cleanSchedule}.`
+          : cleanDescription
+
+    const metaText = cleanSchedule
+    const secondaryText = cleanDescription
+    const footerText =
+      mode === "event"
+        ? cleanSchedule
+          ? `Reserva y asistencia ${cleanSchedule.toLowerCase()}`
+          : "Reserva anticipada recomendada"
+        : cleanSchedule
+          ? `Disponible ${cleanSchedule.toLowerCase()}`
+          : "Promocion activa por tiempo limitado"
+
     setIsGenerating(true)
     setGenerationError("")
     setGenerationErrorCode("")
@@ -120,22 +146,23 @@ export default function PostersPage() {
     try {
       const formData = new FormData()
       formData.append("title", cleanTitle)
-      formData.append("subtitle", cleanDescription)
-      formData.append("metaText", metaText.trim())
-      formData.append("secondaryText", secondaryText.trim())
-      formData.append("footerText", footerText.trim())
-      formData.append("creativeBrief", promptDetails.trim())
+      formData.append("subtitle", subtitle)
+      formData.append("metaText", metaText)
+      formData.append("secondaryText", secondaryText)
+      formData.append("footerText", footerText)
+      formData.append("creativeBrief", creativeBrief)
       formData.append("mode", mode)
-      formData.append("size", posterSize)
-      formData.append("quality", renderQuality)
+      formData.append("size", "1024x1536")
+      formData.append("quality", "medium")
+
       if (mode === "promotion") {
-        formData.append("promotionType", promotionType.trim())
-        formData.append("promoDate", promoDate.trim())
+        formData.append("promotionType", promotionType)
+        formData.append("promoDate", cleanSchedule)
+      } else {
+        formData.append("eventDate", cleanSchedule)
+        formData.append("eventText", cleanDescription)
       }
-      if (mode === "event") {
-        formData.append("eventDate", eventDate.trim())
-        formData.append("eventText", eventText.trim())
-      }
+
       if (referenceImage) {
         formData.append("referenceImage", referenceImage)
       }
@@ -184,9 +211,9 @@ export default function PostersPage() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className={`text-xs uppercase tracking-[0.28em] text-white/45 ${bodyFont.className}`}>Poster Studio</p>
-            <h1 className={`mt-3 text-3xl text-white sm:text-5xl ${displayFont.className}`}>Generador de afiches</h1>
+            <h1 className={`mt-3 text-3xl text-white sm:text-5xl ${displayFont.className}`}>Crear afiche</h1>
             <p className={`mt-3 max-w-2xl text-sm text-slate-300 sm:text-base ${bodyFont.className}`}>
-              Una interfaz mas limpia para armar promociones y eventos con una estetica inspirada en superficies de iOS.
+              Completa solo lo esencial. La direccion visual, el prompt y la composicion se resuelven internamente.
             </p>
           </div>
           <Link
@@ -208,7 +235,7 @@ export default function PostersPage() {
                   </div>
                   <div>
                     <h2 className={`text-xl text-white ${displayFont.className}`}>Crea tu afiche en segundos</h2>
-                    <p className={`text-sm text-slate-300 ${bodyFont.className}`}>Completa unos pocos datos y genera una pieza lista para promocionar tu negocio.</p>
+                    <p className={`text-sm text-slate-300 ${bodyFont.className}`}>El cliente solo define el mensaje. El sistema arma el resto.</p>
                   </div>
                 </div>
                 <div className={`rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-100 shadow-[0_10px_30px_rgba(34,211,238,0.12)] ${bodyFont.className}`}>
@@ -227,7 +254,7 @@ export default function PostersPage() {
                         : "text-slate-400 hover:bg-white/5"
                     } ${bodyFont.className}`}
                   >
-                    Crear promocion
+                    Promocion
                   </button>
                   <button
                     type="button"
@@ -238,286 +265,88 @@ export default function PostersPage() {
                         : "text-slate-400 hover:bg-white/5"
                     } ${bodyFont.className}`}
                   >
-                    Crear evento
+                    Evento
                   </button>
                 </div>
               </div>
 
               <div className="mt-6 grid gap-4">
-                {mode === "promotion" ? (
-                  <>
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Que quieres promocionar?
-                      <select
-                        value={promotionType}
-                        onChange={(event) => setPromotionType(event.target.value)}
-                        className="h-13 rounded-[22px] border border-white/10 bg-[#0b1525] px-4 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
+                <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                  Titulo
+                  <input
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
+                    placeholder={mode === "promotion" ? "Ej: Jueves 2x1" : "Ej: Concierto en vivo"}
+                    className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
+                  />
+                </label>
+
+                <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                  Descripcion
+                  <textarea
+                    value={description}
+                    onChange={(event) => setDescription(event.target.value)}
+                    placeholder={
+                      mode === "promotion"
+                        ? "Ej: 2x1 en platos seleccionados con una presentacion premium."
+                        : "Ej: Noche especial con musica en vivo y ambiente exclusivo."
+                    }
+                    rows={4}
+                    className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
+                  />
+                </label>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                    Fecha
+                    <input
+                      value={dateValue}
+                      onChange={(event) => setDateValue(event.target.value)}
+                      placeholder={mode === "promotion" ? "Ej: Todos los jueves" : "Ej: Viernes 15 de mayo"}
+                      className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
+                    />
+                  </label>
+
+                  <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                    Hora
+                    <input
+                      value={hourValue}
+                      onChange={(event) => setHourValue(event.target.value)}
+                      placeholder="Ej: 21:00"
+                      className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
+                    />
+                  </label>
+                </div>
+
+                <div className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                  Estilo visual
+                  <div className="flex flex-wrap gap-2">
+                    {(["elegante", "comercial", "nocturno", "premium"] as const).map((style) => (
+                      <button
+                        key={style}
+                        type="button"
+                        onClick={() => setVisualStyle(style)}
+                        className={`rounded-full border px-4 py-2 text-xs uppercase tracking-[0.18em] transition ${
+                          visualStyle === style
+                            ? "border-cyan-300/40 bg-cyan-400/15 text-cyan-100"
+                            : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
+                        }`}
                       >
-                        <option value="plato" className="bg-[#0b1525] text-white">
-                          plato
-                        </option>
-                        <option value="bebida" className="bg-[#0b1525] text-white">
-                          bebida
-                        </option>
-                        <option value="menu" className="bg-[#0b1525] text-white">
-                          menu
-                        </option>
-                        <option value="general" className="bg-[#0b1525] text-white">
-                          general
-                        </option>
-                      </select>
-                    </label>
+                        {VISUAL_STYLE_LABELS[style]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Texto corto de la promo
-                      <input
-                        value={promoText}
-                        onChange={(event) => setPromoText(event.target.value)}
-                        placeholder="Ej: Jueves 2x1"
-                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                      />
-                    </label>
-
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Fecha o dia
-                      <input
-                        value={promoDate}
-                        onChange={(event) => setPromoDate(event.target.value)}
-                        placeholder="Ej: Todos los jueves"
-                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                      />
-                    </label>
-
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Texto superior opcional
-                      <input
-                        value={metaText}
-                        onChange={(event) => setMetaText(event.target.value)}
-                        placeholder="Ej: Happy hour exclusivo"
-                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                      />
-                    </label>
-
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Texto secundario opcional
-                      <input
-                        value={secondaryText}
-                        onChange={(event) => setSecondaryText(event.target.value)}
-                        placeholder="Ej: Solo por tiempo limitado"
-                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                      />
-                    </label>
-
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Texto inferior opcional
-                      <input
-                        value={footerText}
-                        onChange={(event) => setFooterText(event.target.value)}
-                        placeholder="Ej: Reserva hoy y comparte"
-                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                      />
-                    </label>
-
-                    <div className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Direccion visual
-                      <div className="flex flex-wrap gap-2">
-                        {(["plato", "bebida", "menu", "general"] as const).map((presetKey) => (
-                          <button
-                            key={presetKey}
-                            type="button"
-                            onClick={() => applyPromptPreset(presetKey)}
-                            className={`rounded-full border px-3 py-1 text-xs uppercase tracking-[0.18em] transition ${
-                              selectedPromptPreset === presetKey
-                                ? "border-cyan-300/40 bg-cyan-400/15 text-cyan-100"
-                                : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
-                            }`}
-                          >
-                            {PROMPT_PRESET_LABELS[presetKey]}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                        Formato
-                        <select
-                          value={posterSize}
-                          onChange={(event) => setPosterSize(event.target.value as "1024x1536" | "1024x1024" | "1536x1024")}
-                          className="h-13 rounded-[22px] border border-white/10 bg-[#0b1525] px-4 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                        >
-                          <option value="1024x1536" className="bg-[#0b1525] text-white">
-                            Vertical poster
-                          </option>
-                          <option value="1024x1024" className="bg-[#0b1525] text-white">
-                            Cuadrado
-                          </option>
-                          <option value="1536x1024" className="bg-[#0b1525] text-white">
-                            Horizontal
-                          </option>
-                        </select>
-                      </label>
-
-                      <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                        Calidad
-                        <select
-                          value={renderQuality}
-                          onChange={(event) => setRenderQuality(event.target.value as "medium" | "high" | "auto")}
-                          className="h-13 rounded-[22px] border border-white/10 bg-[#0b1525] px-4 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                        >
-                          <option value="medium" className="bg-[#0b1525] text-white">
-                            Media
-                          </option>
-                          <option value="high" className="bg-[#0b1525] text-white">
-                            Alta
-                          </option>
-                          <option value="auto" className="bg-[#0b1525] text-white">
-                            Auto
-                          </option>
-                        </select>
-                      </label>
-                    </div>
-
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Imagen de referencia
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        onChange={(event) => setReferenceImage(event.target.files?.[0] || null)}
-                        className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white file:mr-3 file:rounded-full file:border-0 file:bg-cyan-400/15 file:px-4 file:py-2 file:text-sm file:font-medium file:text-cyan-100"
-                      />
-                    </label>
-                  </>
-                ) : (
-                  <>
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Nombre del evento
-                      <input
-                        value={eventName}
-                        onChange={(event) => setEventName(event.target.value)}
-                        placeholder="Ej: Concierto en vivo"
-                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                      />
-                    </label>
-
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Dia y hora
-                      <input
-                        value={eventDate}
-                        onChange={(event) => setEventDate(event.target.value)}
-                        placeholder="Ej: Viernes 21:00"
-                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                      />
-                    </label>
-
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Texto superior opcional
-                      <input
-                        value={metaText}
-                        onChange={(event) => setMetaText(event.target.value)}
-                        placeholder="Ej: Una sola fecha"
-                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                      />
-                    </label>
-
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Texto corto
-                      <input
-                        value={eventText}
-                        onChange={(event) => setEventText(event.target.value)}
-                        placeholder="Ej: Musica en vivo y ambiente especial"
-                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                      />
-                    </label>
-
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Texto secundario opcional
-                      <input
-                        value={secondaryText}
-                        onChange={(event) => setSecondaryText(event.target.value)}
-                        placeholder="Ej: Cupos limitados y reserva recomendada"
-                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                      />
-                    </label>
-
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Texto inferior opcional
-                      <input
-                        value={footerText}
-                        onChange={(event) => setFooterText(event.target.value)}
-                        placeholder="Ej: Reserva anticipada recomendada"
-                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                      />
-                    </label>
-
-                    <div className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Direccion visual
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => applyPromptPreset("event")}
-                          className={`rounded-full border px-3 py-1 text-xs uppercase tracking-[0.18em] transition ${
-                            selectedPromptPreset === "event"
-                              ? "border-cyan-300/40 bg-cyan-400/15 text-cyan-100"
-                              : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10"
-                          }`}
-                        >
-                          {PROMPT_PRESET_LABELS["event"]}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                        Formato
-                        <select
-                          value={posterSize}
-                          onChange={(event) => setPosterSize(event.target.value as "1024x1536" | "1024x1024" | "1536x1024")}
-                          className="h-13 rounded-[22px] border border-white/10 bg-[#0b1525] px-4 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                        >
-                          <option value="1024x1536" className="bg-[#0b1525] text-white">
-                            Vertical poster
-                          </option>
-                          <option value="1024x1024" className="bg-[#0b1525] text-white">
-                            Cuadrado
-                          </option>
-                          <option value="1536x1024" className="bg-[#0b1525] text-white">
-                            Horizontal
-                          </option>
-                        </select>
-                      </label>
-
-                      <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                        Calidad
-                        <select
-                          value={renderQuality}
-                          onChange={(event) => setRenderQuality(event.target.value as "medium" | "high" | "auto")}
-                          className="h-13 rounded-[22px] border border-white/10 bg-[#0b1525] px-4 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
-                        >
-                          <option value="medium" className="bg-[#0b1525] text-white">
-                            Media
-                          </option>
-                          <option value="high" className="bg-[#0b1525] text-white">
-                            Alta
-                          </option>
-                          <option value="auto" className="bg-[#0b1525] text-white">
-                            Auto
-                          </option>
-                        </select>
-                      </label>
-                    </div>
-
-                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
-                      Imagen de referencia
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        onChange={(event) => setReferenceImage(event.target.files?.[0] || null)}
-                        className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white file:mr-3 file:rounded-full file:border-0 file:bg-cyan-400/15 file:px-4 file:py-2 file:text-sm file:font-medium file:text-cyan-100"
-                      />
-                    </label>
-                  </>
-                )}
+                <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                  Imagen de referencia
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={(event) => setReferenceImage(event.target.files?.[0] || null)}
+                    className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white file:mr-3 file:rounded-full file:border-0 file:bg-cyan-400/15 file:px-4 file:py-2 file:text-sm file:font-medium file:text-cyan-100"
+                  />
+                </label>
 
                 <button
                   type="button"
@@ -525,7 +354,7 @@ export default function PostersPage() {
                   disabled={isGenerating}
                   className={`inline-flex h-14 items-center justify-center rounded-[24px] bg-[linear-gradient(180deg,#101727,#1d2942)] px-5 text-sm font-semibold text-white shadow-[0_22px_35px_rgba(18,28,49,0.28)] transition hover:translate-y-[-1px] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70 ${bodyFont.className}`}
                 >
-                  {isGenerating ? "Generando..." : "Generar afiche"}
+                  {isGenerating ? "Generando..." : "Crear afiche"}
                 </button>
               </div>
 
@@ -591,16 +420,14 @@ export default function PostersPage() {
                           {mode === "promotion" ? "Promocion" : "Evento"}
                         </p>
                         <h4 className={`mt-4 text-3xl leading-tight ${displayFont.className}`}>
-                          {mode === "promotion" ? promoText || "Tu oferta aparece aqui" : eventName || "Tu evento aparece aqui"}
+                          {title || "Tu mensaje aparece aqui"}
                         </h4>
                         <p className={`mt-3 text-sm text-white/72 ${bodyFont.className}`}>
-                          {mode === "promotion" ? promoDate || "Fecha o disponibilidad" : eventDate || "Dia y hora"}
+                          {scheduleLabel || "Fecha y hora"}
                         </p>
                         <div className="mt-6 rounded-[18px] bg-white/10 p-3 backdrop-blur-xl">
                           <p className={`text-sm text-white/78 ${bodyFont.className}`}>
-                            {mode === "promotion"
-                              ? "La composicion final se genera aqui con look editorial, luz suave y tipografia protagonista."
-                              : eventText || "El texto corto del evento se usara para darle tono y jerarquia visual."}
+                            {description || "La descripcion se usara para construir la direccion visual y el copy del afiche."}
                           </p>
                         </div>
                       </div>
