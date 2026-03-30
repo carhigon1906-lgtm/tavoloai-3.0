@@ -393,7 +393,7 @@ export default function EditMenuPage() {
     return new File([result], `${baseName}.png`, { type: "image/png" })
   }
 
-  const enhanceDishPhotoWithClaid = async (file: File) => {
+  const enhanceDishPhotoWithOpenAi = async (file: File) => {
     const formData = new FormData()
     formData.append("file", file)
 
@@ -439,7 +439,7 @@ export default function EditMenuPage() {
     setProcessingProgress(0)
     try {
       const progressPromise = animateProgressTo(92, 3200)
-      const enhanced = await enhanceDishPhotoWithClaid(backgroundRemovedFile)
+      const enhanced = await enhanceDishPhotoWithOpenAi(backgroundRemovedFile)
       await progressPromise
       setProcessingProgress(100)
       setProcessedPreview(enhanced.previewUrl)

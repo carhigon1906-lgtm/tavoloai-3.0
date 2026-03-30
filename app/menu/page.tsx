@@ -65,6 +65,16 @@ const iconForCategory = (name: string) => {
     return "🍽️"
 }
 
+const getAnalyticsSessionId = () => {
+    if (typeof window === "undefined") return ""
+    const storageKey = "tavoloai-menu-session-id"
+    const existing = window.localStorage.getItem(storageKey)
+    if (existing) return existing
+    const created = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `session-${Date.now()}`
+    window.localStorage.setItem(storageKey, created)
+    return created
+}
+
 export default function HomePage() {
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -190,6 +200,28 @@ export default function HomePage() {
         window.addEventListener("resize", updateViewportFlag)
         return () => window.removeEventListener("resize", updateViewportFlag)
     }, [])
+
+    useEffect(() => {
+        if (!menuData.id || typeof window === "undefined") return
+
+        const storageKey = `menu-view-tracked:${menuData.id}`
+        if (window.sessionStorage.getItem(storageKey)) return
+
+        fetch("/api/analytics/track", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                menuId: menuData.id,
+                eventType: "menu_view",
+                sessionId: getAnalyticsSessionId(),
+                path: window.location.pathname + window.location.search,
+            }),
+        }).catch(() => {})
+
+        window.sessionStorage.setItem(storageKey, "1")
+    }, [menuData.id])
 
     const containerVariants = {
         hidden: { opacity: 0 },

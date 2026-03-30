@@ -65,7 +65,9 @@ export default function PostersPage() {
   const [promotionType, setPromotionType] = useState("plato")
   const [promoText, setPromoText] = useState("Jueves 2x1")
   const [promoDate, setPromoDate] = useState("Todos los jueves")
+  const [metaText, setMetaText] = useState("")
   const [secondaryText, setSecondaryText] = useState("")
+  const [footerText, setFooterText] = useState("")
   const [selectedPromptPreset, setSelectedPromptPreset] = useState<PromptPresetKey>("plato")
   const [promptDetails, setPromptDetails] = useState<string>(DETAILED_PROMPT_PRESETS["plato"])
   const [posterSize, setPosterSize] = useState<"1024x1536" | "1024x1024" | "1536x1024">("1024x1536")
@@ -119,7 +121,9 @@ export default function PostersPage() {
       const formData = new FormData()
       formData.append("title", cleanTitle)
       formData.append("subtitle", cleanDescription)
+      formData.append("metaText", metaText.trim())
       formData.append("secondaryText", secondaryText.trim())
+      formData.append("footerText", footerText.trim())
       formData.append("creativeBrief", promptDetails.trim())
       formData.append("mode", mode)
       formData.append("size", posterSize)
@@ -285,11 +289,31 @@ export default function PostersPage() {
                     </label>
 
                     <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                      Texto superior opcional
+                      <input
+                        value={metaText}
+                        onChange={(event) => setMetaText(event.target.value)}
+                        placeholder="Ej: Happy hour exclusivo"
+                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
+                      />
+                    </label>
+
+                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
                       Texto secundario opcional
                       <input
                         value={secondaryText}
                         onChange={(event) => setSecondaryText(event.target.value)}
                         placeholder="Ej: Solo por tiempo limitado"
+                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
+                      />
+                    </label>
+
+                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                      Texto inferior opcional
+                      <input
+                        value={footerText}
+                        onChange={(event) => setFooterText(event.target.value)}
+                        placeholder="Ej: Reserva hoy y comparte"
                         className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
                       />
                     </label>
@@ -387,6 +411,16 @@ export default function PostersPage() {
                     </label>
 
                     <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                      Texto superior opcional
+                      <input
+                        value={metaText}
+                        onChange={(event) => setMetaText(event.target.value)}
+                        placeholder="Ej: Una sola fecha"
+                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
+                      />
+                    </label>
+
+                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
                       Texto corto
                       <input
                         value={eventText}
@@ -402,6 +436,16 @@ export default function PostersPage() {
                         value={secondaryText}
                         onChange={(event) => setSecondaryText(event.target.value)}
                         placeholder="Ej: Cupos limitados y reserva recomendada"
+                        className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
+                      />
+                    </label>
+
+                    <label className={`grid gap-2 text-sm text-slate-300 ${bodyFont.className}`}>
+                      Texto inferior opcional
+                      <input
+                        value={footerText}
+                        onChange={(event) => setFooterText(event.target.value)}
+                        placeholder="Ej: Reserva anticipada recomendada"
                         className="h-13 rounded-[22px] border border-white/10 bg-white/5 px-4 text-sm text-white placeholder:text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl focus:border-cyan-400/60 focus:outline-none"
                       />
                     </label>

@@ -158,7 +158,7 @@ export default function MediaLabPage() {
     return result.publicUrl as string
   }
 
-  const enhanceWithClaid = async () => {
+  const enhanceWithOpenAi = async () => {
     if (!selected) return
     setEnhancing(true)
     setEnhanceError("")
@@ -423,7 +423,7 @@ export default function MediaLabPage() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={enhanceWithClaid}
+                  onClick={enhanceWithOpenAi}
                   disabled={enhancing}
                   className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-emerald-300/40 bg-gradient-to-r from-emerald-500/30 via-white/5 to-emerald-500/30 px-4 py-1.5 text-xs font-semibold text-emerald-100 shadow-[0_0_18px_rgba(52,211,153,0.4)] transition hover:border-emerald-300/80 hover:text-white hover:shadow-[0_0_26px_rgba(52,211,153,0.7)] disabled:cursor-not-allowed disabled:opacity-60"
                 >

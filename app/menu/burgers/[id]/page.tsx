@@ -105,6 +105,16 @@ const ingredientPositions: Ingredient[] = [
   },
 ]
 
+const getAnalyticsSessionId = () => {
+  if (typeof window === "undefined") return ""
+  const storageKey = "tavoloai-menu-session-id"
+  const existing = window.localStorage.getItem(storageKey)
+  if (existing) return existing
+  const created = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `session-${Date.now()}`
+  window.localStorage.setItem(storageKey, created)
+  return created
+}
+
 const styles = {
   container: {
     minHeight: "100vh",
@@ -416,6 +426,29 @@ export default function DishDetailPage() {
 
     loadDish()
   }, [dishId, menuIdParam])
+
+  useEffect(() => {
+    if (!dish?.id || !menuIdParam || typeof window === "undefined") return
+
+    const storageKey = `dish-view-tracked:${menuIdParam}:${dish.id}`
+    if (window.sessionStorage.getItem(storageKey)) return
+
+    fetch("/api/analytics/track", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        menuId: menuIdParam,
+        eventType: "dish_view",
+        dishId: String(dish.id),
+        sessionId: getAnalyticsSessionId(),
+        path: window.location.pathname + window.location.search,
+      }),
+    }).catch(() => {})
+
+    window.sessionStorage.setItem(storageKey, "1")
+  }, [dish?.id, menuIdParam])
 
   useEffect(() => {
     const evaluateViewport = () => {

@@ -10,7 +10,9 @@ const ALLOWED_REFERENCE_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image
 type PosterRequest = {
   title?: string
   subtitle?: string
+  metaText?: string
   secondaryText?: string
+  footerText?: string
   creativeBrief?: string
   mode?: "promotion" | "event"
   promotionType?: string
@@ -54,6 +56,8 @@ type PosterVisualStyle = {
   glowScaleX: number
   glowScaleY: number
 }
+
+type CropPosition = "centre" | "top" | "right" | "right top" | "right centre" | "attention"
 
 function classifyOpenAiError(args: {
   status: number
@@ -446,35 +450,39 @@ function buildPosterCopy(body: PosterRequest) {
   const title = body.title?.trim() || (body.mode === "event" ? "Evento especial" : "Promocion especial")
 
   if (body.mode === "event") {
-    const metaLabel = getEventMetaFallback(body.eventDate)
-    const subtitle = dedupeSupportCopy({
-      title,
-      meta: body.eventDate?.trim() || "",
-      subtitle: body.secondaryText?.trim() || body.eventText?.trim() || body.subtitle?.trim() || "",
-      fallback: getEventSupportLine(body.eventText),
-    })
+    const metaLabel = body.metaText?.trim() || getEventMetaFallback(body.eventDate)
+    const subtitle = body.secondaryText?.trim()
+      ? body.secondaryText.trim()
+      : dedupeSupportCopy({
+          title,
+          meta: body.eventDate?.trim() || "",
+          subtitle: body.eventText?.trim() || body.subtitle?.trim() || "",
+          fallback: getEventSupportLine(body.eventText),
+        })
 
     return {
       title,
       metaLabel,
       subtitle,
-      footer: getEventFooterLine(body.eventDate),
+      footer: body.footerText?.trim() || getEventFooterLine(body.eventDate),
     }
   }
 
-  const metaLabel = body.promoDate?.trim() || getPromotionMetaFallback(body.promotionType)
-  const subtitle = dedupeSupportCopy({
-    title,
-    meta: body.promoDate?.trim() || "",
-    subtitle: body.secondaryText?.trim() || body.subtitle?.trim() || "",
-    fallback: getPromotionSupportLine(body.promotionType),
-  })
+  const metaLabel = body.metaText?.trim() || body.promoDate?.trim() || getPromotionMetaFallback(body.promotionType)
+  const subtitle = body.secondaryText?.trim()
+    ? body.secondaryText.trim()
+    : dedupeSupportCopy({
+        title,
+        meta: body.promoDate?.trim() || "",
+        subtitle: body.subtitle?.trim() || "",
+        fallback: getPromotionSupportLine(body.promotionType),
+      })
 
   return {
     title,
     metaLabel,
     subtitle,
-    footer: getPromotionFooterLine(body.promotionType, body.promoDate),
+    footer: body.footerText?.trim() || getPromotionFooterLine(body.promotionType, body.promoDate),
   }
 }
 
@@ -638,15 +646,45 @@ function buildPosterOverlay(body: PosterRequest, dimensions: PosterDimensions) {
   `
 }
 
+function getCropPosition(body: PosterRequest): CropPosition {
+  const isEvent = body.mode === "event"
+  const isLandscape = body.size === "1536x1024"
+  const isSquare = body.size === "1024x1024"
+
+  if (isEvent) {
+    if (isLandscape) {
+      return "right"
+    }
+
+    if (isSquare) {
+      return "right top"
+    }
+
+    return "right top"
+  }
+
+  switch (body.promotionType) {
+    case "bebida":
+      return isLandscape ? "right" : "right top"
+    case "plato":
+      return isLandscape ? "right centre" : "right top"
+    case "menu":
+      return isLandscape ? "attention" : isSquare ? "centre" : "top"
+    default:
+      return isLandscape ? "right" : isSquare ? "attention" : "right top"
+  }
+}
+
 async function composePosterImage(base64Image: string, body: PosterRequest) {
   const dimensions = getDimensions(body.size)
   const baseBuffer = Buffer.from(base64Image, "base64")
   const overlayBuffer = Buffer.from(buildPosterOverlay(body, dimensions))
+  const cropPosition = getCropPosition(body)
 
   return sharp(baseBuffer)
     .resize(dimensions.width, dimensions.height, {
       fit: "cover",
-      position: "center",
+      position: cropPosition,
     })
     .composite([
       {
@@ -681,7 +719,9 @@ export async function POST(request: Request) {
   const body: PosterRequest = {
     title: String(formData.get("title") || ""),
     subtitle: String(formData.get("subtitle") || ""),
+    metaText: String(formData.get("metaText") || ""),
     secondaryText: String(formData.get("secondaryText") || ""),
+    footerText: String(formData.get("footerText") || ""),
     creativeBrief: String(formData.get("creativeBrief") || ""),
     mode: formData.get("mode") === "event" ? "event" : "promotion",
     promotionType: String(formData.get("promotionType") || ""),

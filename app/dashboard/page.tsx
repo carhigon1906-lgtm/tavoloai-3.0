@@ -84,16 +84,6 @@ const quickLinks = [
   { key: "settings", name: "Configuración", href: "/dashboard/settings", icon: Settings },
 ]
 
-const stats = [
-  { title: "Scans QR", value: 124, trend: "+12% esta semana" },
-  { title: "Menús activos", value: 12, trend: "=" },
-  { title: "Plato más visto", value: "Spaghetti carbonara", trend: "Top hoy" },
-]
-
-const qrScanValues = [10, 14, 9, 18, 22, 17, 25]
-const qrScanDays = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"]
-const maxQrScans = Math.max(...qrScanValues)
-
 type MenuRow = {
   id: number | string
   nombre: string
@@ -115,7 +105,24 @@ export default function DashboardPage() {
   const [pdfModalOpen, setPdfModalOpen] = useState(false)
   const [selectedMenu, setSelectedMenu] = useState<MenuRow | null>(null)
   const [pdfError, setPdfError] = useState("")
+  const [analyticsLoaded, setAnalyticsLoaded] = useState(false)
+  const [dashboardStats, setDashboardStats] = useState([
+    { title: "Scans QR", value: 0, trend: "Sin actividad reciente" },
+    { title: "Menús activos", value: 0, trend: "Sin menús activos" },
+    { title: "Plato más visto", value: "Sin datos", trend: "Sin visualizaciones" },
+  ])
+  const [weeklyQrScans, setWeeklyQrScans] = useState([
+    { day: "Lun", value: 0 },
+    { day: "Mar", value: 0 },
+    { day: "Mie", value: 0 },
+    { day: "Jue", value: 0 },
+    { day: "Vie", value: 0 },
+    { day: "Sab", value: 0 },
+    { day: "Dom", value: 0 },
+  ])
   const qrRef = useRef<HTMLDivElement | null>(null)
+
+  const maxQrScans = Math.max(...weeklyQrScans.map((item) => item.value), 1)
 
   useEffect(() => {
     const container = statsScrollRef.current
@@ -253,6 +260,62 @@ export default function DashboardPage() {
     loadMenus()
   }, [qrModalOpen, pdfModalOpen, menusLoaded])
 
+  useEffect(() => {
+    const loadAnalytics = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!session?.access_token) {
+        setAnalyticsLoaded(true)
+        return
+      }
+
+      const response = await fetch("/api/analytics/summary", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      })
+
+      if (!response.ok) {
+        setAnalyticsLoaded(true)
+        return
+      }
+
+      const payload = await response.json()
+      const summary = payload?.stats || {}
+      const topDish = typeof summary.topDish === "string" && summary.topDish.trim() ? summary.topDish : "Sin datos"
+      const weekly = Array.isArray(payload?.weekly) && payload.weekly.length > 0 ? payload.weekly : weeklyQrScans
+
+      setDashboardStats([
+        {
+          title: "Scans QR",
+          value: Number(summary.qrScans || 0),
+          trend: `${Number(summary.visitsToday || 0)} visitas hoy`,
+        },
+        {
+          title: "Menús activos",
+          value: Number(summary.activeMenus || 0),
+          trend: Number(summary.activeMenus || 0) > 0 ? "Con actividad disponible" : "Activa tu primer menú",
+        },
+        {
+          title: "Plato más visto",
+          value: topDish,
+          trend: topDish === "Sin datos" ? "Aún no hay visualizaciones" : "Más consultado del mes",
+        },
+      ])
+      setWeeklyQrScans(
+        weekly.map((item: { day?: string; value?: number }) => ({
+          day: item?.day || "",
+          value: Number(item?.value || 0),
+        })),
+      )
+      setAnalyticsLoaded(true)
+    }
+
+    loadAnalytics()
+  }, [])
+
   const qrMenuUrl = useMemo(() => {
     if (!selectedMenu) return ""
     const menuId = encodeURIComponent(String(selectedMenu.id))
@@ -350,7 +413,7 @@ export default function DashboardPage() {
           className="flex snap-x snap-mandatory scroll-smooth gap-6 overflow-x-auto pb-4 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible xl:grid-cols-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           ref={statsScrollRef}
         >
-          {stats.map(({ title, value, trend }) => (
+          {dashboardStats.map(({ title, value, trend }) => (
             <StatsCard key={title} title={title} value={value} trend={trend} />
           ))}
         </motion.section>
@@ -367,14 +430,14 @@ export default function DashboardPage() {
           </div>
 
           <div className="mt-2 grid h-44 grid-cols-7 items-end gap-1.5 sm:gap-3">
-            {qrScanValues.map((value, index) => (
-              <div key={`${value}-${index}`} className="flex h-full flex-col items-center justify-end gap-2">
+            {weeklyQrScans.map(({ day, value }, index) => (
+              <div key={`${day}-${index}`} className="flex h-full flex-col items-center justify-end gap-2">
                 <span className="text-xs font-semibold text-teal-100">{value}</span>
                 <div
                   className="mx-auto w-full max-w-[28px] rounded-2xl bg-gradient-to-t from-teal-500/90 via-cyan-300/70 to-teal-100/35 shadow-[0_12px_30px_rgba(20,184,166,0.55)] sm:max-w-none sm:w-24"
                   style={{ height: `${Math.max(24, (value / maxQrScans) * 100)}%` }}
                 />
-                <span className="text-[10px] uppercase tracking-widest text-slate-400">{qrScanDays[index]}</span>
+                <span className="text-[10px] uppercase tracking-widest text-slate-400">{day}</span>
               </div>
             ))}
           </div>
