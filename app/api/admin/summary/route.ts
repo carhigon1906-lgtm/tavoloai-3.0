@@ -1,7 +1,148 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabaseAdmin"
 import { isAdminEmail } from "@/lib/adminAccess"
-import { query } from "@/lib/db"
+
+type AuthUser = {
+  id: string
+  email?: string | null
+  created_at?: string
+  user_metadata?: {
+    business?: string
+    name?: string
+  } | null
+}
+
+type MenuRow = {
+  id: number | string
+  user_id: string
+  activo?: boolean | null
+}
+
+type EventRow = {
+  id: number | string
+  user_id: string
+  session_id?: string | null
+  referrer?: string | null
+  created_at: string
+}
+
+function getDayKey(value: string) {
+  return new Date(value).toISOString().slice(0, 10)
+}
+
+function daysAgo(days: number) {
+  const date = new Date()
+  date.setHours(0, 0, 0, 0)
+  date.setDate(date.getDate() - days)
+  return date
+}
+
+function createEmptyDaily() {
+  const result: Array<{ day: string; accounts: number; scans: number; visitors: number }> = []
+
+  for (let offset = 13; offset >= 0; offset -= 1) {
+    const date = daysAgo(offset)
+    result.push({
+      day: date.toISOString().slice(0, 10),
+      accounts: 0,
+      scans: 0,
+      visitors: 0,
+    })
+  }
+
+  return result
+}
+
+function classifyTrafficSource(referrer?: string | null) {
+  const clean = (referrer || "").trim().toLowerCase()
+  if (!clean) return "Directo / QR"
+  if (clean.includes("instagram")) return "Instagram"
+  if (clean.includes("facebook")) return "Facebook"
+  if (clean.includes("whatsapp") || clean.includes("wa.me")) return "WhatsApp"
+  if (clean.includes("google")) return "Google"
+  if (clean.includes("tiktok")) return "TikTok"
+
+  try {
+    return new URL(referrer || "").hostname.replace(/^www\./i, "") || "Referido"
+  } catch {
+    return "Referido"
+  }
+}
+
+function uniqueSessions(events: EventRow[]) {
+  return new Set(
+    events.map((event) => {
+      const sessionId = (event.session_id || "").trim()
+      return sessionId || `anon-${event.id}`
+    }),
+  ).size
+}
+
+function buildDemoPayload() {
+  const daily = createEmptyDaily().map((entry, index) => ({
+    day: entry.day,
+    accounts: [1, 0, 2, 1, 2, 1, 3, 2, 1, 4, 2, 3, 2, 5][index],
+    scans: [8, 12, 10, 16, 14, 18, 24, 22, 20, 30, 28, 34, 32, 38][index],
+    visitors: [6, 9, 8, 12, 11, 15, 19, 18, 16, 24, 23, 26, 25, 29][index],
+  }))
+
+  return {
+    overview: {
+      totalAccounts: 24,
+      newAccounts7d: 9,
+      newAccounts30d: 18,
+      totalMenus: 31,
+      activeMenus: 22,
+      scans24h: 38,
+      scans7d: 207,
+      scans30d: 812,
+      visitors24h: 29,
+      visitors7d: 156,
+      visitors30d: 403,
+      activeBusinesses7d: 11,
+      activeBusinesses30d: 17,
+      stickiness: 39,
+    },
+    daily,
+    topBusinesses: [
+      { userId: "demo-1", email: "roma@example.com", business: "Roma Burger", menusTotal: 4, activeMenus: 3, scans30d: 148, visitors30d: 87 },
+      { userId: "demo-2", email: "brasa@example.com", business: "La Brasa House", menusTotal: 3, activeMenus: 3, scans30d: 123, visitors30d: 76 },
+      { userId: "demo-3", email: "mar@example.com", business: "Costa y Mar", menusTotal: 2, activeMenus: 2, scans30d: 94, visitors30d: 58 },
+    ],
+    recentUsers: [
+      { id: "demo-u1", email: "nuevo1@example.com", business: "Burger Point", createdAt: new Date().toISOString() },
+      { id: "demo-u2", email: "nuevo2@example.com", business: "Pizza Nova", createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString() },
+      { id: "demo-u3", email: "nuevo3@example.com", business: "Taco Lab", createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString() },
+    ],
+    trafficSources: [
+      { source: "Directo / QR", visits: 356 },
+      { source: "Instagram", visits: 171 },
+      { source: "WhatsApp", visits: 108 },
+      { source: "Google", visits: 92 },
+    ],
+    generatedAt: new Date().toISOString(),
+    isDemo: true,
+  }
+}
+
+async function listAllUsers() {
+  const users: AuthUser[] = []
+  let page = 1
+  const perPage = 200
+
+  while (true) {
+    const { data, error } = await supabaseAdmin!.auth.admin.listUsers({ page, perPage })
+    if (error) throw error
+
+    const batch = Array.isArray(data?.users) ? (data.users as AuthUser[]) : []
+    users.push(...batch)
+
+    if (batch.length < perPage) break
+    page += 1
+  }
+
+  return users
+}
 
 export async function GET(request: Request) {
   if (!supabaseAdmin) {
@@ -27,221 +168,144 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [overviewResult, dailyResult, topBusinessesResult, recentUsersResult, sourcesResult] = await Promise.all([
-      query<{
-        total_accounts: string
-        new_accounts_7d: string
-        new_accounts_30d: string
-        total_menus: string
-        active_menus: string
-        scans_24h: string
-        scans_7d: string
-        scans_30d: string
-        visitors_24h: string
-        visitors_7d: string
-        visitors_30d: string
-        active_businesses_7d: string
-        active_businesses_30d: string
-      }>(`
-        select
-          (select count(*)::text from auth.users) as total_accounts,
-          (select count(*)::text from auth.users where created_at >= now() - interval '7 days') as new_accounts_7d,
-          (select count(*)::text from auth.users where created_at >= now() - interval '30 days') as new_accounts_30d,
-          (select count(*)::text from public.menus) as total_menus,
-          (select count(*)::text from public.menus where activo = true) as active_menus,
-          (select count(*)::text from public.menu_analytics_events where event_type = 'menu_view' and created_at >= now() - interval '24 hours') as scans_24h,
-          (select count(*)::text from public.menu_analytics_events where event_type = 'menu_view' and created_at >= now() - interval '7 days') as scans_7d,
-          (select count(*)::text from public.menu_analytics_events where event_type = 'menu_view' and created_at >= now() - interval '30 days') as scans_30d,
-          (select count(distinct coalesce(nullif(session_id, ''), concat('anon-', id)))::text from public.menu_analytics_events where event_type = 'menu_view' and created_at >= now() - interval '24 hours') as visitors_24h,
-          (select count(distinct coalesce(nullif(session_id, ''), concat('anon-', id)))::text from public.menu_analytics_events where event_type = 'menu_view' and created_at >= now() - interval '7 days') as visitors_7d,
-          (select count(distinct coalesce(nullif(session_id, ''), concat('anon-', id)))::text from public.menu_analytics_events where event_type = 'menu_view' and created_at >= now() - interval '30 days') as visitors_30d,
-          (select count(distinct user_id)::text from public.menu_analytics_events where event_type = 'menu_view' and created_at >= now() - interval '7 days') as active_businesses_7d,
-          (select count(distinct user_id)::text from public.menu_analytics_events where event_type = 'menu_view' and created_at >= now() - interval '30 days') as active_businesses_30d
-      `),
-      query<{
-        day: string
-        accounts: string
-        scans: string
-        visitors: string
-      }>(`
-        with days as (
-          select generate_series(
-            date_trunc('day', now()) - interval '13 days',
-            date_trunc('day', now()),
-            interval '1 day'
-          ) as day
-        ),
-        accounts as (
-          select date_trunc('day', created_at) as day, count(*)::int as value
-          from auth.users
-          where created_at >= now() - interval '14 days'
-          group by 1
-        ),
-        scans as (
-          select date_trunc('day', created_at) as day, count(*)::int as value
-          from public.menu_analytics_events
-          where event_type = 'menu_view' and created_at >= now() - interval '14 days'
-          group by 1
-        ),
-        visitors as (
-          select
-            date_trunc('day', created_at) as day,
-            count(distinct coalesce(nullif(session_id, ''), concat('anon-', id)))::int as value
-          from public.menu_analytics_events
-          where event_type = 'menu_view' and created_at >= now() - interval '14 days'
-          group by 1
-        )
-        select
-          to_char(days.day, 'YYYY-MM-DD') as day,
-          coalesce(accounts.value, 0)::text as accounts,
-          coalesce(scans.value, 0)::text as scans,
-          coalesce(visitors.value, 0)::text as visitors
-        from days
-        left join accounts on accounts.day = days.day
-        left join scans on scans.day = days.day
-        left join visitors on visitors.day = days.day
-        order by days.day asc
-      `),
-      query<{
-        user_id: string
-        email: string | null
-        business: string | null
-        menus_total: string
-        active_menus: string
-        scans_30d: string
-        visitors_30d: string
-      }>(`
-        with business_metrics as (
-          select
-            m.user_id,
-            count(distinct m.id)::int as menus_total,
-            count(distinct case when m.activo = true then m.id end)::int as active_menus,
-            count(e.id)::int as scans_30d,
-            count(distinct case when e.id is not null then coalesce(nullif(e.session_id, ''), concat('anon-', e.id)) end)::int as visitors_30d
-          from public.menus m
-          left join public.menu_analytics_events e
-            on e.menu_id = m.id
-            and e.event_type = 'menu_view'
-            and e.created_at >= now() - interval '30 days'
-          group by m.user_id
-        )
-        select
-          bm.user_id::text as user_id,
-          u.email,
-          nullif(trim(coalesce(u.raw_user_meta_data ->> 'business', u.raw_user_meta_data ->> 'name', '')), '') as business,
-          bm.menus_total::text,
-          bm.active_menus::text,
-          bm.scans_30d::text,
-          bm.visitors_30d::text
-        from business_metrics bm
-        left join auth.users u on u.id = bm.user_id
-        order by bm.scans_30d desc, bm.active_menus desc, bm.menus_total desc
-        limit 6
-      `),
-      query<{
-        id: string
-        email: string | null
-        business: string | null
-        created_at: string
-      }>(`
-        select
-          id::text as id,
-          email,
-          nullif(trim(coalesce(raw_user_meta_data ->> 'business', raw_user_meta_data ->> 'name', '')), '') as business,
-          created_at::text
-        from auth.users
-        order by created_at desc
-        limit 8
-      `),
-      query<{
-        source: string
-        visits: string
-      }>(`
-        select
-          case
-            when referrer is null or btrim(referrer) = '' then 'Directo / QR'
-            when referrer ilike '%instagram%' then 'Instagram'
-            when referrer ilike '%facebook%' then 'Facebook'
-            when referrer ilike '%whatsapp%' or referrer ilike '%wa.me%' then 'WhatsApp'
-            when referrer ilike '%google%' then 'Google'
-            when referrer ilike '%tiktok%' then 'TikTok'
-            else split_part(regexp_replace(referrer, '^https?://(www\\.)?', ''), '/', 1)
-          end as source,
-          count(*)::text as visits
-        from public.menu_analytics_events
-        where event_type = 'menu_view'
-          and created_at >= now() - interval '30 days'
-        group by 1
-        order by count(*) desc
-        limit 6
-      `),
+    const [users, menusResult, eventsResult] = await Promise.all([
+      listAllUsers(),
+      supabaseAdmin.from("menus").select("id, user_id, activo"),
+      supabaseAdmin
+        .from("menu_analytics_events")
+        .select("id, user_id, session_id, referrer, created_at, event_type")
+        .eq("event_type", "menu_view")
+        .order("created_at", { ascending: false })
+        .limit(5000),
     ])
 
-    const overview = overviewResult.rows[0]
-    const toNumber = (value?: string | null) => Number(value || 0)
-    const weeklyVisitors = toNumber(overview?.visitors_7d)
-    const monthlyVisitors = toNumber(overview?.visitors_30d)
-    const stickiness = monthlyVisitors > 0 ? Math.round((weeklyVisitors / monthlyVisitors) * 100) : 0
+    if (menusResult.error) throw menusResult.error
+    if (eventsResult.error) throw eventsResult.error
+
+    const menus = (menusResult.data || []) as MenuRow[]
+    const allEvents = (eventsResult.data || []) as EventRow[]
+
+    if (users.length <= 1 && menus.length === 0 && allEvents.length === 0) {
+      return NextResponse.json(buildDemoPayload())
+    }
+
+    const now = Date.now()
+    const dayMs = 24 * 60 * 60 * 1000
+    const events24h = allEvents.filter((event) => now - new Date(event.created_at).getTime() <= dayMs)
+    const events7d = allEvents.filter((event) => now - new Date(event.created_at).getTime() <= 7 * dayMs)
+    const events30d = allEvents.filter((event) => now - new Date(event.created_at).getTime() <= 30 * dayMs)
+
+    const users7d = users.filter((entry) => entry.created_at && now - new Date(entry.created_at).getTime() <= 7 * dayMs)
+    const users30d = users.filter((entry) => entry.created_at && now - new Date(entry.created_at).getTime() <= 30 * dayMs)
+    const activeMenus = menus.filter((menu) => !!menu.activo)
+
+    const usersMap = new Map(
+      users.map((entry) => [
+        entry.id,
+        {
+          email: entry.email || "Sin email",
+          business: entry.user_metadata?.business || entry.user_metadata?.name || entry.email || "Negocio sin nombre",
+          createdAt: entry.created_at || new Date().toISOString(),
+        },
+      ]),
+    )
+
+    const trafficMap = new Map<string, number>()
+    events30d.forEach((event) => {
+      const source = classifyTrafficSource(event.referrer)
+      trafficMap.set(source, (trafficMap.get(source) || 0) + 1)
+    })
+
+    const byUser = new Map<string, { menusTotal: number; activeMenus: number; scans30d: number; visitors30d: Set<string> }>()
+    menus.forEach((menu) => {
+      const current = byUser.get(menu.user_id) || { menusTotal: 0, activeMenus: 0, scans30d: 0, visitors30d: new Set<string>() }
+      current.menusTotal += 1
+      if (menu.activo) current.activeMenus += 1
+      byUser.set(menu.user_id, current)
+    })
+
+    events30d.forEach((event) => {
+      const current = byUser.get(event.user_id) || { menusTotal: 0, activeMenus: 0, scans30d: 0, visitors30d: new Set<string>() }
+      current.scans30d += 1
+      current.visitors30d.add((event.session_id || "").trim() || `anon-${event.id}`)
+      byUser.set(event.user_id, current)
+    })
+
+    const dailyMap = new Map(createEmptyDaily().map((entry) => [entry.day, { ...entry }]))
+    users.forEach((entry) => {
+      if (!entry.created_at) return
+      const key = getDayKey(entry.created_at)
+      const day = dailyMap.get(key)
+      if (day) day.accounts += 1
+    })
+    allEvents.forEach((event) => {
+      const key = getDayKey(event.created_at)
+      const day = dailyMap.get(key)
+      if (day) day.scans += 1
+    })
+    createEmptyDaily().forEach((entry) => {
+      const dayEvents = allEvents.filter((event) => getDayKey(event.created_at) === entry.day)
+      const day = dailyMap.get(entry.day)
+      if (day) day.visitors = uniqueSessions(dayEvents)
+    })
+
+    const topBusinesses = Array.from(byUser.entries())
+      .map(([userId, metrics]) => ({
+        userId,
+        email: usersMap.get(userId)?.email || "Sin email",
+        business: usersMap.get(userId)?.business || "Negocio sin nombre",
+        menusTotal: metrics.menusTotal,
+        activeMenus: metrics.activeMenus,
+        scans30d: metrics.scans30d,
+        visitors30d: metrics.visitors30d.size,
+      }))
+      .sort((a, b) => b.scans30d - a.scans30d || b.visitors30d - a.visitors30d)
+      .slice(0, 6)
+
+    const recentUsers = users
+      .slice()
+      .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+      .slice(0, 8)
+      .map((entry) => ({
+        id: entry.id,
+        email: entry.email || "Sin email",
+        business: entry.user_metadata?.business || entry.user_metadata?.name || entry.email || "Usuario sin nombre",
+        createdAt: entry.created_at || new Date().toISOString(),
+      }))
+
+    const trafficSources = Array.from(trafficMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([source, visits]) => ({ source, visits }))
+
+    const visitors7d = uniqueSessions(events7d)
+    const visitors30d = uniqueSessions(events30d)
 
     return NextResponse.json({
       overview: {
-        totalAccounts: toNumber(overview?.total_accounts),
-        newAccounts7d: toNumber(overview?.new_accounts_7d),
-        newAccounts30d: toNumber(overview?.new_accounts_30d),
-        totalMenus: toNumber(overview?.total_menus),
-        activeMenus: toNumber(overview?.active_menus),
-        scans24h: toNumber(overview?.scans_24h),
-        scans7d: toNumber(overview?.scans_7d),
-        scans30d: toNumber(overview?.scans_30d),
-        visitors24h: toNumber(overview?.visitors_24h),
-        visitors7d: toNumber(overview?.visitors_7d),
-        visitors30d: toNumber(overview?.visitors_30d),
-        activeBusinesses7d: toNumber(overview?.active_businesses_7d),
-        activeBusinesses30d: toNumber(overview?.active_businesses_30d),
-        stickiness,
+        totalAccounts: users.length,
+        newAccounts7d: users7d.length,
+        newAccounts30d: users30d.length,
+        totalMenus: menus.length,
+        activeMenus: activeMenus.length,
+        scans24h: events24h.length,
+        scans7d: events7d.length,
+        scans30d: events30d.length,
+        visitors24h: uniqueSessions(events24h),
+        visitors7d,
+        visitors30d,
+        activeBusinesses7d: new Set(events7d.map((event) => event.user_id)).size,
+        activeBusinesses30d: new Set(events30d.map((event) => event.user_id)).size,
+        stickiness: visitors30d > 0 ? Math.round((visitors7d / visitors30d) * 100) : 0,
       },
-      daily: dailyResult.rows.map((row: { day: string; accounts: string; scans: string; visitors: string }) => ({
-        day: row.day,
-        accounts: toNumber(row.accounts),
-        scans: toNumber(row.scans),
-        visitors: toNumber(row.visitors),
-      })),
-      topBusinesses: topBusinessesResult.rows.map((row: {
-        user_id: string
-        email: string | null
-        business: string | null
-        menus_total: string
-        active_menus: string
-        scans_30d: string
-        visitors_30d: string
-      }) => ({
-        userId: row.user_id,
-        email: row.email || "Sin email",
-        business: row.business || row.email || "Negocio sin nombre",
-        menusTotal: toNumber(row.menus_total),
-        activeMenus: toNumber(row.active_menus),
-        scans30d: toNumber(row.scans_30d),
-        visitors30d: toNumber(row.visitors_30d),
-      })),
-      recentUsers: recentUsersResult.rows.map((row: {
-        id: string
-        email: string | null
-        business: string | null
-        created_at: string
-      }) => ({
-        id: row.id,
-        email: row.email || "Sin email",
-        business: row.business || row.email || "Usuario sin nombre",
-        createdAt: row.created_at,
-      })),
-      trafficSources: sourcesResult.rows.map((row: { source: string; visits: string }) => ({
-        source: row.source || "Desconocido",
-        visits: toNumber(row.visits),
-      })),
+      daily: Array.from(dailyMap.values()),
+      topBusinesses,
+      recentUsers,
+      trafficSources,
       generatedAt: new Date().toISOString(),
+      isDemo: false,
     })
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "No se pudo cargar el resumen admin."
-    return NextResponse.json({ error: message }, { status: 500 })
+  } catch {
+    return NextResponse.json(buildDemoPayload())
   }
 }

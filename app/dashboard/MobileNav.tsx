@@ -17,6 +17,8 @@ const items = [
   { icon: Settings, label: "Ajustes", href: "/dashboard/settings" },
 ]
 
+const adminItems = [{ icon: Shield, label: "Admin", href: "/dashboard/admin" }]
+
 export default function MobileNav() {
   const pathname = usePathname()
   const [showAdmin, setShowAdmin] = useState(false)
@@ -46,7 +48,7 @@ export default function MobileNav() {
     }
   }, [])
 
-  const navItems = showAdmin ? [...items, { icon: Shield, label: "Admin", href: "/dashboard/admin" }] : items
+  const navItems = showAdmin ? adminItems : items
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard"
@@ -59,7 +61,7 @@ export default function MobileNav() {
       className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+10px)] md:hidden"
     >
       <div className="rounded-[28px] border border-white/8 bg-[#05070c]/84 backdrop-blur-2xl shadow-[0_-20px_60px_rgba(0,0,0,0.55)]">
-        <nav className="flex items-center justify-between gap-1 overflow-x-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <nav className="flex items-center justify-center gap-1 overflow-x-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {navItems.map((item, index) => {
             const active = isActive(item.href)
             const Icon = item.icon

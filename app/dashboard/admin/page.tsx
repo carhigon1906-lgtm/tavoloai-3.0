@@ -47,6 +47,7 @@ type AdminPayload = {
   recentUsers: Array<{ id: string; email: string; business: string; createdAt: string }>
   trafficSources: Array<{ source: string; visits: number }>
   generatedAt: string
+  isDemo?: boolean
 }
 
 const container = {
@@ -81,6 +82,7 @@ const emptyPayload: AdminPayload = {
   recentUsers: [],
   trafficSources: [],
   generatedAt: "",
+  isDemo: false,
 }
 
 function MetricCard({
@@ -195,6 +197,11 @@ export default function AdminDashboardPage() {
                   <Shield className="h-3.5 w-3.5" />
                   Admin privado
                 </div>
+                {data.isDemo && (
+                  <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-400/10 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-amber-100">
+                    Datos de ejemplo
+                  </div>
+                )}
                 <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
                   Centro de control global
                 </h1>

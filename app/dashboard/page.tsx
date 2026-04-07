@@ -4,10 +4,12 @@
 import { AnimatePresence, motion } from "framer-motion"
 import dynamic from "next/dynamic"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { AlertTriangle, BarChart3, BookOpen, Image, LayoutTemplate, PenLine, Settings } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import QRCode from "react-qr-code"
 import { supabase } from "@/lib/supabaseClient"
+import { isPublicAdminEmail } from "@/lib/adminAccess"
 
 const StatsCard = dynamic(() => import("./StatsCard"))
 const MotionLink = motion(Link)
@@ -94,8 +96,10 @@ type MenuRow = {
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
   const statsScrollRef = useRef<HTMLDivElement | null>(null)
   const cardsSectionRef = useRef<HTMLElement | null>(null)
+  const [checkingAdminRedirect, setCheckingAdminRedirect] = useState(true)
   const [activeCard, setActiveCard] = useState<string | null>(null)
   const [menus, setMenus] = useState<MenuRow[]>([])
   const [menusLoading, setMenusLoading] = useState(false)
@@ -123,6 +127,39 @@ export default function DashboardPage() {
   const qrRef = useRef<HTMLDivElement | null>(null)
 
   const maxQrScans = Math.max(...weeklyQrScans.map((item) => item.value), 1)
+
+  useEffect(() => {
+    let mounted = true
+
+    const resolveAdminRedirect = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!mounted) return
+
+      if (isPublicAdminEmail(session?.user?.email)) {
+        router.replace("/dashboard/admin")
+        return
+      }
+
+      setCheckingAdminRedirect(false)
+    }
+
+    resolveAdminRedirect()
+
+    return () => {
+      mounted = false
+    }
+  }, [router])
+
+  if (checkingAdminRedirect) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center rounded-[28px] border border-white/10 bg-black/20 text-slate-200">
+        Validando panel...
+      </div>
+    )
+  }
 
   useEffect(() => {
     const container = statsScrollRef.current
