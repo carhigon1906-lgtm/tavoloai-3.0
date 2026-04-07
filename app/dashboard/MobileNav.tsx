@@ -4,7 +4,10 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
-import { BarChart3, Home, Image, Menu, Settings } from "lucide-react"
+import { useEffect, useState } from "react"
+import { BarChart3, Home, Image, Menu, Settings, Shield } from "lucide-react"
+import { supabase } from "@/lib/supabaseClient"
+import { isPublicAdminEmail } from "@/lib/adminAccess"
 
 const items = [
   { icon: Home, label: "Inicio", href: "/dashboard" },
@@ -16,6 +19,34 @@ const items = [
 
 export default function MobileNav() {
   const pathname = usePathname()
+  const [showAdmin, setShowAdmin] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+
+    const resolveAdmin = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!mounted) return
+      setShowAdmin(isPublicAdminEmail(session?.user?.email))
+    }
+
+    resolveAdmin()
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return
+      setShowAdmin(isPublicAdminEmail(session?.user?.email))
+    })
+
+    return () => {
+      mounted = false
+      listener?.subscription?.unsubscribe()
+    }
+  }, [])
+
+  const navItems = showAdmin ? [...items, { icon: Shield, label: "Admin", href: "/dashboard/admin" }] : items
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard"
@@ -28,8 +59,8 @@ export default function MobileNav() {
       className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+10px)] md:hidden"
     >
       <div className="rounded-[28px] border border-white/8 bg-[#05070c]/84 backdrop-blur-2xl shadow-[0_-20px_60px_rgba(0,0,0,0.55)]">
-        <nav className="flex items-center justify-between px-4 py-3">
-          {items.map((item, index) => {
+        <nav className="flex items-center justify-between gap-1 overflow-x-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {navItems.map((item, index) => {
             const active = isActive(item.href)
             const Icon = item.icon
             return (

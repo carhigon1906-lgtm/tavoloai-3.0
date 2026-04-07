@@ -14,6 +14,7 @@ const sectionTitles = [
   { match: /^\/dashboard\/reports/, title: "Estadisticas", subtitle: "Lectura comercial del rendimiento" },
   { match: /^\/dashboard\/posters/, title: "Afiches IA", subtitle: "Promociones listas para publicar" },
   { match: /^\/dashboard\/local/, title: "Mi local", subtitle: "Datos visibles del negocio" },
+  { match: /^\/dashboard\/admin/, title: "Administrador", subtitle: "Operacion global de TavoloAI" },
   { match: /^\/dashboard\/settings/, title: "Configuracion", subtitle: "Preferencias y cuenta" },
 ]
 

@@ -1,7 +1,7 @@
 // lib/db.ts
 import { Pool } from "pg"
 
-const connectionString = process.env.SUPABASE_DB_URL
+const connectionString = process.env["SUPABASE_DB_URL"]
 
 if (!connectionString) {
   throw new Error("SUPABASE_DB_URL env var is required to connect to Supabase Postgres")

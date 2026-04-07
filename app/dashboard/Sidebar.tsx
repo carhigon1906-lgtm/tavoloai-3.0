@@ -4,9 +4,10 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Home, Menu, Image as ImageIcon, BarChart3, LogOut, ChefHat, Store } from "lucide-react"
-import { useState } from "react"
+import { Home, Menu, Image as ImageIcon, BarChart3, LogOut, ChefHat, Store, Shield } from "lucide-react"
+import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
+import { isPublicAdminEmail } from "@/lib/adminAccess"
 
 const menuItems = [
   { icon: Home, label: "Dashboard", href: "/dashboard" },
@@ -20,8 +21,36 @@ const MotionLink = motion(Link)
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [showAdmin, setShowAdmin] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+
+  useEffect(() => {
+    let mounted = true
+
+    const resolveAdmin = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!mounted) return
+      setShowAdmin(isPublicAdminEmail(session?.user?.email))
+    }
+
+    resolveAdmin()
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return
+      setShowAdmin(isPublicAdminEmail(session?.user?.email))
+    })
+
+    return () => {
+      mounted = false
+      listener?.subscription?.unsubscribe()
+    }
+  }, [])
+
+  const items = showAdmin ? [...menuItems, { icon: Shield, label: "Admin", href: "/dashboard/admin" }] : menuItems
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard"
@@ -58,7 +87,7 @@ export default function Sidebar() {
           <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Panel</p>
         )}
         <div className="space-y-1.5">
-        {menuItems.map((item, index) => {
+        {items.map((item, index) => {
           const active = isActive(item.href)
           return (
             <MotionLink
