@@ -7,6 +7,21 @@ export const runtime = "nodejs"
 const OPENAI_IMAGE_TIMEOUT_MS = 75_000
 const ALLOWED_REFERENCE_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"])
 
+// ─── Tipos ───────────────────────────────────────────────────────────────────
+
+const VALID_PROMOTION_TYPES = ["plato", "bebida", "menu", "general"] as const
+type PromotionType = (typeof VALID_PROMOTION_TYPES)[number]
+const VALID_VISUAL_STYLES = ["elegante", "comercial", "nocturno", "premium"] as const
+type VisualStyleChoice = (typeof VALID_VISUAL_STYLES)[number]
+
+function isValidPromotionType(v: unknown): v is PromotionType {
+  return VALID_PROMOTION_TYPES.includes(v as PromotionType)
+}
+
+function isValidVisualStyle(v: unknown): v is VisualStyleChoice {
+  return VALID_VISUAL_STYLES.includes(v as VisualStyleChoice)
+}
+
 type PosterRequest = {
   title?: string
   subtitle?: string
@@ -14,6 +29,7 @@ type PosterRequest = {
   secondaryText?: string
   footerText?: string
   creativeBrief?: string
+  visualStyle?: VisualStyleChoice
   mode?: "promotion" | "event"
   promotionType?: string
   promoDate?: string
@@ -57,7 +73,32 @@ type PosterVisualStyle = {
   glowScaleY: number
 }
 
+type PosterVisualStyleOverride = Partial<PosterVisualStyle>
+type OverlayPresentation = {
+  sidePaddingRatio: number
+  topPaddingRatio: number
+  bottomPaddingRatio: number
+  eyebrowScale: number
+  metaScale: number
+  titleScale: number
+  bodyScale: number
+  titleMaxCharsPortrait: number
+  titleMaxCharsLandscape: number
+  subtitleMaxCharsPortrait: number
+  subtitleMaxCharsLandscape: number
+  footerMaxCharsPortrait: number
+  footerMaxCharsLandscape: number
+  titleAlign: "start" | "middle"
+  contentWidthRatio: number
+  dividerWidthRatio: number
+  dividerStroke: number
+  badgeStyle: "pill" | "square" | "outline"
+  badgeCornerRatio: number
+}
+
 type CropPosition = "centre" | "top" | "right" | "right top" | "right centre" | "attention"
+
+// ─── Clasificación de errores ─────────────────────────────────────────────────
 
 function classifyOpenAiError(args: {
   status: number
@@ -68,25 +109,24 @@ function classifyOpenAiError(args: {
 }) {
   const message = (args.message || "").toLowerCase()
   const code = (args.code || "").toLowerCase()
-  const type = (args.type || "").toLowerCase()
 
   if (args.status === 429 || code.includes("rate_limit")) {
-    return "OpenAI rechazo la solicitud por limite de uso. Espera un momento e intenta de nuevo."
+    return "OpenAI rechazó la solicitud por límite de uso. Espera un momento e intenta de nuevo."
   }
 
-  if (code.includes("insufficient_quota") || message.includes("insufficient_quota") || message.includes("billing")) {
-    return "La cuenta de OpenAI no tiene creditos disponibles o alcanzo su limite de facturacion."
+  if (code.includes("insufficient_quota") || message.includes("billing")) {
+    return "La cuenta de OpenAI no tiene créditos disponibles o alcanzó su límite de facturación."
   }
 
   if (
     code.includes("invalid_image") ||
-    type.includes("invalid_request_error") ||
+    (args.type || "").includes("invalid_request_error") ||
     message.includes("image") ||
     message.includes("mask")
   ) {
     return args.hasReferenceImage
-      ? "La imagen de referencia no es valida para OpenAI. Prueba con un PNG, JPG o WEBP mas liviano."
-      : "OpenAI rechazo la solicitud de imagen por un parametro invalido."
+      ? "La imagen de referencia no es válida para OpenAI. Prueba con un PNG con transparencia, JPG o WEBP más liviano."
+      : "OpenAI rechazó la solicitud de imagen por un parámetro inválido."
   }
 
   if (args.status >= 500) {
@@ -96,7 +136,9 @@ function classifyOpenAiError(args: {
   return "No se pudo generar la imagen con OpenAI."
 }
 
-const PROMOTION_PRESETS: Record<string, string[]> = {
+// ─── Presets visuales ─────────────────────────────────────────────────────────
+
+const PROMOTION_PRESETS: Record<PromotionType, string[]> = {
   plato: [
     "premium food poster",
     "hero dish close-up",
@@ -141,7 +183,7 @@ const EVENT_PRESET = [
   "space reserved for headline, schedule, and event details",
 ]
 
-const VISUAL_STYLES: Record<"plato" | "bebida" | "menu" | "general" | "event", PosterVisualStyle> = {
+const VISUAL_STYLES: Record<PromotionType | "event", PosterVisualStyle> = {
   plato: {
     accent: "#f59e0b",
     accentSoftOpacity: 0.24,
@@ -149,8 +191,8 @@ const VISUAL_STYLES: Record<"plato" | "bebida" | "menu" | "general" | "event", P
     shadeTopOpacity: 0.08,
     shadeMidOpacity: 0.18,
     shadeBottomOpacity: 0.92,
-    metaFallback: "SELECCION DEL CHEF",
-    footerText: "Fotografia gastronomica premium y acabado editorial",
+    metaFallback: "SELECCIÓN DEL CHEF",
+    footerText: "Fotografía gastronómica premium y acabado editorial",
     titleYOffsetRatio: 0.4,
     glowX: 0.22,
     glowY: 0.17,
@@ -165,7 +207,7 @@ const VISUAL_STYLES: Record<"plato" | "bebida" | "menu" | "general" | "event", P
     shadeMidOpacity: 0.2,
     shadeBottomOpacity: 0.9,
     metaFallback: "SIGNATURE DRINK",
-    footerText: "Brillo nocturno, contraste alto y energia premium",
+    footerText: "Brillo nocturno, contraste alto y energía premium",
     titleYOffsetRatio: 0.37,
     glowX: 0.74,
     glowY: 0.16,
@@ -180,7 +222,7 @@ const VISUAL_STYLES: Record<"plato" | "bebida" | "menu" | "general" | "event", P
     shadeMidOpacity: 0.14,
     shadeBottomOpacity: 0.88,
     metaFallback: "CURATED MENU",
-    footerText: "Direccion de arte editorial con jerarquia de campaña",
+    footerText: "Dirección de arte editorial con jerarquía de campaña",
     titleYOffsetRatio: 0.34,
     glowX: 0.5,
     glowY: 0.2,
@@ -195,7 +237,7 @@ const VISUAL_STYLES: Record<"plato" | "bebida" | "menu" | "general" | "event", P
     shadeMidOpacity: 0.18,
     shadeBottomOpacity: 0.92,
     metaFallback: "OFERTA DESTACADA",
-    footerText: "Comunicacion comercial refinada para restaurante",
+    footerText: "Comunicación comercial refinada para restaurante",
     titleYOffsetRatio: 0.42,
     glowX: 0.2,
     glowY: 0.18,
@@ -210,7 +252,7 @@ const VISUAL_STYLES: Record<"plato" | "bebida" | "menu" | "general" | "event", P
     shadeMidOpacity: 0.16,
     shadeBottomOpacity: 0.9,
     metaFallback: "UNA NOCHE ESPECIAL",
-    footerText: "Experiencia gastronomica, ambientacion y energia en vivo",
+    footerText: "Experiencia gastronómica, ambientación y energía en vivo",
     titleYOffsetRatio: 0.36,
     glowX: 0.18,
     glowY: 0.14,
@@ -219,7 +261,149 @@ const VISUAL_STYLES: Record<"plato" | "bebida" | "menu" | "general" | "event", P
   },
 }
 
-const STYLE_ART_DIRECTION: Record<"plato" | "bebida" | "menu" | "general" | "event", string[]> = {
+const VISUAL_STYLE_OVERLAY_OVERRIDES: Record<VisualStyleChoice, PosterVisualStyleOverride> = {
+  elegante: {
+    accent: "#f6c88f",
+    accentSoftOpacity: 0.16,
+    badgeFill: "rgba(58,42,26,0.34)",
+    shadeTopOpacity: 0.04,
+    shadeMidOpacity: 0.12,
+    shadeBottomOpacity: 0.88,
+    titleYOffsetRatio: 0.33,
+    glowX: 0.3,
+    glowY: 0.18,
+    glowScaleX: 0.68,
+    glowScaleY: 0.34,
+  },
+  comercial: {
+    accent: "#34d399",
+    accentSoftOpacity: 0.24,
+    badgeFill: "rgba(10,24,21,0.5)",
+    shadeTopOpacity: 0.08,
+    shadeMidOpacity: 0.18,
+    shadeBottomOpacity: 0.92,
+    titleYOffsetRatio: 0.41,
+    glowX: 0.22,
+    glowY: 0.18,
+    glowScaleX: 0.82,
+    glowScaleY: 0.52,
+  },
+  nocturno: {
+    accent: "#38bdf8",
+    accentSoftOpacity: 0.32,
+    badgeFill: "rgba(9,15,36,0.62)",
+    shadeTopOpacity: 0.14,
+    shadeMidOpacity: 0.26,
+    shadeBottomOpacity: 0.94,
+    titleYOffsetRatio: 0.38,
+    glowX: 0.76,
+    glowY: 0.14,
+    glowScaleX: 0.88,
+    glowScaleY: 0.58,
+  },
+  premium: {
+    accent: "#d4af37",
+    accentSoftOpacity: 0.22,
+    badgeFill: "rgba(38,29,11,0.56)",
+    shadeTopOpacity: 0.06,
+    shadeMidOpacity: 0.17,
+    shadeBottomOpacity: 0.93,
+    titleYOffsetRatio: 0.35,
+    glowX: 0.5,
+    glowY: 0.13,
+    glowScaleX: 0.96,
+    glowScaleY: 0.42,
+  },
+}
+
+const VISUAL_STYLE_PRESENTATION: Record<VisualStyleChoice, OverlayPresentation> = {
+  elegante: {
+    sidePaddingRatio: 0.1,
+    topPaddingRatio: 0.075,
+    bottomPaddingRatio: 0.09,
+    eyebrowScale: 0.92,
+    metaScale: 0.92,
+    titleScale: 0.9,
+    bodyScale: 0.94,
+    titleMaxCharsPortrait: 14,
+    titleMaxCharsLandscape: 20,
+    subtitleMaxCharsPortrait: 28,
+    subtitleMaxCharsLandscape: 42,
+    footerMaxCharsPortrait: 30,
+    footerMaxCharsLandscape: 44,
+    titleAlign: "start",
+    contentWidthRatio: 0.54,
+    dividerWidthRatio: 0.16,
+    dividerStroke: 3,
+    badgeStyle: "outline",
+    badgeCornerRatio: 0.22,
+  },
+  comercial: {
+    sidePaddingRatio: 0.08,
+    topPaddingRatio: 0.07,
+    bottomPaddingRatio: 0.08,
+    eyebrowScale: 1,
+    metaScale: 1,
+    titleScale: 1,
+    bodyScale: 1,
+    titleMaxCharsPortrait: 16,
+    titleMaxCharsLandscape: 22,
+    subtitleMaxCharsPortrait: 32,
+    subtitleMaxCharsLandscape: 48,
+    footerMaxCharsPortrait: 34,
+    footerMaxCharsLandscape: 54,
+    titleAlign: "start",
+    contentWidthRatio: 0.6,
+    dividerWidthRatio: 0.26,
+    dividerStroke: 5,
+    badgeStyle: "pill",
+    badgeCornerRatio: 0.5,
+  },
+  nocturno: {
+    sidePaddingRatio: 0.085,
+    topPaddingRatio: 0.06,
+    bottomPaddingRatio: 0.085,
+    eyebrowScale: 1.02,
+    metaScale: 1.04,
+    titleScale: 1.06,
+    bodyScale: 0.98,
+    titleMaxCharsPortrait: 15,
+    titleMaxCharsLandscape: 21,
+    subtitleMaxCharsPortrait: 30,
+    subtitleMaxCharsLandscape: 44,
+    footerMaxCharsPortrait: 32,
+    footerMaxCharsLandscape: 46,
+    titleAlign: "start",
+    contentWidthRatio: 0.58,
+    dividerWidthRatio: 0.22,
+    dividerStroke: 6,
+    badgeStyle: "square",
+    badgeCornerRatio: 0.16,
+  },
+  premium: {
+    sidePaddingRatio: 0.09,
+    topPaddingRatio: 0.065,
+    bottomPaddingRatio: 0.09,
+    eyebrowScale: 0.98,
+    metaScale: 1,
+    titleScale: 1.08,
+    bodyScale: 0.96,
+    titleMaxCharsPortrait: 14,
+    titleMaxCharsLandscape: 20,
+    subtitleMaxCharsPortrait: 28,
+    subtitleMaxCharsLandscape: 40,
+    footerMaxCharsPortrait: 30,
+    footerMaxCharsLandscape: 42,
+    titleAlign: "middle",
+    contentWidthRatio: 0.7,
+    dividerWidthRatio: 0.32,
+    dividerStroke: 4,
+    badgeStyle: "outline",
+    badgeCornerRatio: 0.28,
+  },
+}
+
+const STYLE_ART_DIRECTION: Record<PromotionType | "event", string[]> = {
   plato: [
     "main dish must be the single hero subject with no competing food items",
     "refined fine-dining plating with premium ingredient texture and realistic garnish restraint",
@@ -256,41 +440,151 @@ const STYLE_ART_DIRECTION: Record<"plato" | "bebida" | "menu" | "general" | "eve
   ],
 }
 
-function getVisualStyle(body: PosterRequest) {
-  if (body.mode === "event") {
-    return VISUAL_STYLES["event"]
-  }
-
-  if (body.promotionType === "plato" || body.promotionType === "bebida" || body.promotionType === "menu" || body.promotionType === "general") {
-    return VISUAL_STYLES[body.promotionType]
-  }
-
-  return VISUAL_STYLES["general"]
+type PromptStyleLayer = {
+  styleIdentity: string[]
+  commercialIntent: string[]
+  negativeConstraints: string[]
 }
 
-function getStyleDirection(body: PosterRequest) {
-  if (body.mode === "event") {
-    return STYLE_ART_DIRECTION["event"]
+const VISUAL_STYLE_LAYERS: Record<VisualStyleChoice, PromptStyleLayer> = {
+  elegante: {
+    styleIdentity: [
+      "palette direction: warm ivory, soft charcoal, muted champagne, restrained warm neutrals",
+      "lighting direction: soft diffused side light with delicate highlight rolloff and low glare",
+      "background direction: calm editorial setting with controlled depth and generous quiet negative space",
+      "materials direction: matte ceramics, linen, brushed stone, subtle glass, understated luxury finishes",
+      "framing direction: minimal composition, balanced asymmetry, refined breathing room, elegant crop discipline",
+    ],
+    commercialIntent: [
+      "commercial intent: quiet luxury editorial campaign for fine dining and premium hospitality",
+      "prioritize sophistication, restraint, timelessness, and polished refinement over obvious sales energy",
+      "the scene should feel curated by an art director for a premium restaurant brand rather than a discount promotion",
+    ],
+    negativeConstraints: [
+      "avoid loud saturated color, aggressive call-to-action energy, exaggerated contrast, and flashy props",
+      "avoid nightclub glow, neon-heavy treatment, chaotic styling, and mass-market promo aesthetics",
+      "avoid cluttered tables, excessive garnish, cheap decorative elements, and noisy backgrounds",
+    ],
+  },
+  comercial: {
+    styleIdentity: [
+      "palette direction: brighter appetizing hues, warm highlights, cleaner separation between subject and background",
+      "lighting direction: crisp commercial lighting with stronger front-side definition and energetic contrast",
+      "background direction: simplified ad-ready setting with clearer focal hierarchy and immediate readability",
+      "materials direction: polished surfaces, appetizing texture clarity, cleaner reflections, sharper product definition",
+      "framing direction: bold hero framing, direct composition, strong center of interest, optimized for fast social impact",
+    ],
+    commercialIntent: [
+      "commercial intent: high-conversion restaurant advertising made to sell quickly and read instantly",
+      "prioritize appetite appeal, immediacy, clarity, and campaign usability over subtle editorial nuance",
+      "the image should feel like a premium but accessible paid ad designed for promotion performance",
+    ],
+    negativeConstraints: [
+      "avoid subdued luxury minimalism that weakens readability or urgency",
+      "avoid overly dark scenes, overly artistic framing, and atmospheric ambiguity that reduces conversion clarity",
+      "avoid weak contrast, tiny subjects, and empty compositions with no immediate focal punch",
+    ],
+  },
+  nocturno: {
+    styleIdentity: [
+      "palette direction: black, blue-black, deep burgundy, petrol tones, selective electric accents",
+      "lighting direction: dramatic rim light, glossy specular edges, deep shadow pockets, selective ambient glow",
+      "background direction: after-dark hospitality atmosphere with cinematic depth and premium nightlife mood",
+      "materials direction: reflective glass, lacquered surfaces, subtle haze, metallic highlights, sensual textures",
+      "framing direction: moody cinematic crop, stronger shadow dominance, immersive depth, memorable silhouette separation",
+    ],
+    commercialIntent: [
+      "commercial intent: upscale nightlife and after-dark hospitality campaign with seductive premium energy",
+      "prioritize mood, memorability, tension, and atmosphere while preserving clear hierarchy for poster use",
+      "the result should feel like a premium bar, cocktail, or evening venue campaign rather than daytime restaurant advertising",
+    ],
+    negativeConstraints: [
+      "avoid bright daylight treatment, pastel palette, flat catalog lighting, and family-friendly promo tone",
+      "avoid amateur club clichés, chaotic crowds, oversaturated neon overload, and cheap party aesthetics",
+      "avoid muddy shadows, unreadable focal subjects, and random background clutter competing with the hero",
+    ],
+  },
+  premium: {
+    styleIdentity: [
+      "palette direction: rich dark neutrals, sculpted highlights, selective jewel-toned accents, elevated contrast",
+      "lighting direction: sculpted cinematic lighting with high production polish and intentional luxury falloff",
+      "background direction: prestigious brand world with controlled depth, dramatic atmosphere, and elite campaign presence",
+      "materials direction: premium glass, stone, metal, lacquer, elevated food or beverage textures, expensive tactile detail",
+      "framing direction: art-directed composition with sharper editorial decisions, aspirational balance, and luxury campaign authority",
+    ],
+    commercialIntent: [
+      "commercial intent: top-tier hospitality brand campaign with exclusive, aspirational, high-production-value impact",
+      "prioritize prestige, desirability, and elite brand perception over mass-market accessibility",
+      "the image should look expensive enough for a flagship launch, luxury menu drop, or signature venue campaign",
+    ],
+    negativeConstraints: [
+      "avoid discount-promo energy, generic stock-photo framing, and simple catalog lighting",
+      "avoid cheerful low-end commercial styling, obvious social media gimmicks, and cluttered ad tropes",
+      "avoid casual props, weak material rendering, and anything that reduces the sense of exclusivity",
+    ],
+  },
+}
+
+// ─── Helpers de tipo y dimensión ──────────────────────────────────────────────
+
+function inferPromotionTypeFromText(title?: string, description?: string) {
+  const content = `${title || ""} ${description || ""}`
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+
+  if (/(coctel|cocktail|vino|cerveza|beer|cafe|coffee|trago|drink|whisky|ron|gin|spritz|mojito|margarita)/.test(content)) {
+    return "bebida" as const
+  }
+  if (/(menu|carta|degustacion|seleccion|entrada y plato|varios platos)/.test(content)) {
+    return "menu" as const
+  }
+  if (/(pizza|burger|hamburguesa|pasta|risotto|sushi|postre|steak|carne|pollo|salmon|plato)/.test(content)) {
+    return "plato" as const
+  }
+  return "general" as const
+}
+
+function resolvePromotionType(body: PosterRequest): PromotionType {
+  if (isValidPromotionType(body.promotionType)) {
+    return body.promotionType
   }
 
-  if (body.promotionType === "plato" || body.promotionType === "bebida" || body.promotionType === "menu" || body.promotionType === "general") {
-    return STYLE_ART_DIRECTION[body.promotionType]
-  }
+  return inferPromotionTypeFromText(body.title, body.secondaryText || body.subtitle)
+}
 
-  return STYLE_ART_DIRECTION["general"]
+function getVisualStyle(body: PosterRequest): PosterVisualStyle {
+  const baseStyle = body.mode === "event" ? VISUAL_STYLES["event"] : VISUAL_STYLES[resolvePromotionType(body)]
+  return {
+    ...baseStyle,
+    ...VISUAL_STYLE_OVERLAY_OVERRIDES[resolveVisualStyle(body)],
+  }
+}
+
+function resolveVisualStyle(body: PosterRequest): VisualStyleChoice {
+  return isValidVisualStyle(body.visualStyle) ? body.visualStyle : "comercial"
+}
+
+function getStyleDirection(body: PosterRequest): string[] {
+  if (body.mode === "event") return STYLE_ART_DIRECTION["event"]
+  return STYLE_ART_DIRECTION[resolvePromotionType(body)]
+}
+
+function getVisualStylePromptLayer(body: PosterRequest): PromptStyleLayer {
+  return VISUAL_STYLE_LAYERS[resolveVisualStyle(body)]
+}
+
+function getOverlayPresentation(body: PosterRequest): OverlayPresentation {
+  return VISUAL_STYLE_PRESENTATION[resolveVisualStyle(body)]
 }
 
 function getDimensions(size?: PosterRequest["size"]): PosterDimensions {
-  if (size === "1536x1024") {
-    return { width: 1536, height: 1024 }
-  }
-
-  if (size === "1024x1024") {
-    return { width: 1024, height: 1024 }
-  }
-
+  if (size === "1536x1024") return { width: 1536, height: 1024 }
+  if (size === "1024x1024") return { width: 1024, height: 1024 }
   return { width: 1024, height: 1536 }
 }
+
+// ─── Helpers de texto ─────────────────────────────────────────────────────────
 
 function escapeXml(value: string) {
   return value
@@ -301,44 +595,38 @@ function escapeXml(value: string) {
     .replace(/'/g, "&apos;")
 }
 
-function wrapText(text: string, maxCharsPerLine: number, maxLines: number) {
+/**
+ * Divide un texto en líneas respetando palabras completas.
+ * Corregido: usa índice de palabras para detectar truncamiento correctamente.
+ */
+function wrapText(text: string, maxCharsPerLine: number, maxLines: number): string[] {
   const words = text.trim().split(/\s+/).filter(Boolean)
-  if (!words.length) {
-    return [""]
-  }
+  if (!words.length) return [""]
 
   const lines: string[] = []
-  let currentLine = ""
+  let wordIndex = 0
 
-  for (const word of words) {
-    const candidate = currentLine ? `${currentLine} ${word}` : word
-    if (candidate.length <= maxCharsPerLine) {
-      currentLine = candidate
-      continue
+  while (wordIndex < words.length && lines.length < maxLines) {
+    let line = words[wordIndex]!
+    wordIndex++
+
+    while (wordIndex < words.length) {
+      const candidate = `${line} ${words[wordIndex]}`
+      if (candidate.length > maxCharsPerLine) break
+      line = candidate
+      wordIndex++
     }
 
-    if (currentLine) {
-      lines.push(currentLine)
-    }
-    currentLine = word
-
-    if (lines.length === maxLines - 1) {
-      break
-    }
+    lines.push(line)
   }
 
-  if (lines.length < maxLines && currentLine) {
-    lines.push(currentLine)
+  // Si quedan palabras sin renderizar, truncar la última línea
+  if (wordIndex < words.length && lines.length > 0) {
+    const last = lines[lines.length - 1]!
+    lines[lines.length - 1] = last.replace(/\.{3}$/, "").trimEnd() + "..."
   }
 
-  const remainingWords = words.join(" ")
-  const reconstructed = lines.join(" ")
-  if (remainingWords.length > reconstructed.length && lines.length > 0) {
-    const lastLineIndex = lines.length - 1
-    lines[lastLineIndex] = `${lines[lastLineIndex]?.replace(/\.\.\.$/, "")}...`
-  }
-
-  return lines.slice(0, maxLines)
+  return lines
 }
 
 function normalizeCopy(value?: string) {
@@ -351,95 +639,71 @@ function normalizeCopy(value?: string) {
     .trim()
 }
 
+// ─── Copy del poster ──────────────────────────────────────────────────────────
+
 function getPromotionSupportLine(promotionType?: string) {
   switch (promotionType) {
-    case "plato":
-      return "Seleccion gastronomica con presentacion premium"
-    case "bebida":
-      return "Bebida protagonista con look nocturno y acabado premium"
-    case "menu":
-      return "Curaduria especial con enfoque editorial para compartir"
-    default:
-      return "Campana comercial con imagen refinada para restaurante"
+    case "plato": return "Selección gastronómica con presentación premium"
+    case "bebida": return "Bebida protagonista con look nocturno y acabado premium"
+    case "menu":  return "Curaduría especial con enfoque editorial para compartir"
+    default:      return "Campaña comercial con imagen refinada para restaurante"
   }
 }
 
 function getPromotionMetaFallback(promotionType?: string) {
   switch (promotionType) {
-    case "plato":
-      return "PLATO DESTACADO"
-    case "bebida":
-      return "BARRA DESTACADA"
-    case "menu":
-      return "MENU CURADO"
-    default:
-      return "PROMOCION ESPECIAL"
+    case "plato":  return "PLATO DESTACADO"
+    case "bebida": return "BARRA DESTACADA"
+    case "menu":   return "MENÚ CURADO"
+    default:       return "PROMOCIÓN ESPECIAL"
   }
 }
 
 function getPromotionFooterLine(promotionType?: string, promoDate?: string) {
-  const cleanPromoDate = (promoDate || "").trim()
-
+  const d = (promoDate || "").trim()
   switch (promotionType) {
     case "plato":
-      return cleanPromoDate
-        ? `Ideal para comunicar una propuesta especial ${cleanPromoDate.toLowerCase()}`
-        : "Ideal para comunicar una propuesta gastronomica especial"
+      return d ? `Ideal para comunicar una propuesta especial ${d.toLowerCase()}` : "Ideal para comunicar una propuesta gastronómica especial"
     case "bebida":
-      return cleanPromoDate
-        ? `Perfecto para impulsar la barra ${cleanPromoDate.toLowerCase()}`
-        : "Perfecto para impulsar la barra con una estetica nocturna premium"
+      return d ? `Perfecto para impulsar la barra ${d.toLowerCase()}` : "Perfecto para impulsar la barra con una estética nocturna premium"
     case "menu":
-      return cleanPromoDate
-        ? `Pensado para destacar el menu ${cleanPromoDate.toLowerCase()}`
-        : "Pensado para destacar una seleccion curada del menu"
+      return d ? `Pensado para destacar el menú ${d.toLowerCase()}` : "Pensado para destacar una selección curada del menú"
     default:
-      return cleanPromoDate
-        ? `Campana visual lista para activar ${cleanPromoDate.toLowerCase()}`
-        : "Campana visual lista para comunicar una promocion destacada"
+      return d ? `Campaña visual lista para activar ${d.toLowerCase()}` : "Campaña visual lista para comunicar una promoción destacada"
   }
 }
 
 function getEventMetaFallback(eventDate?: string) {
-  const cleanEventDate = (eventDate || "").trim()
-  return cleanEventDate ? cleanEventDate.toUpperCase() : "NOCHE ESPECIAL"
+  const d = (eventDate || "").trim()
+  return d ? d.toUpperCase() : "NOCHE ESPECIAL"
 }
 
 function getEventSupportLine(eventText?: string) {
-  const cleanEventText = (eventText || "").trim()
-  return cleanEventText || "Experiencia en vivo con atmosfera premium y convocatoria clara"
+  return (eventText || "").trim() || "Experiencia en vivo con atmósfera premium y convocatoria clara"
 }
 
 function getEventFooterLine(eventDate?: string) {
-  const cleanEventDate = (eventDate || "").trim()
-  return cleanEventDate
-    ? `Comunicacion lista para promover asistencia ${cleanEventDate.toLowerCase()}`
-    : "Comunicacion lista para promover una noche especial en el local"
+  const d = (eventDate || "").trim()
+  return d
+    ? `Comunicación lista para promover asistencia ${d.toLowerCase()}`
+    : "Comunicación lista para promover una noche especial en el local"
 }
 
-function dedupeSupportCopy({
-  title,
-  meta,
-  subtitle,
-  fallback,
-}: {
-  title: string
-  meta: string
-  subtitle: string
-  fallback: string
+function dedupeSupportCopy({ title, meta, subtitle, fallback }: {
+  title: string; meta: string; subtitle: string; fallback: string
 }) {
-  const normalizedTitle = normalizeCopy(title)
-  const normalizedMeta = normalizeCopy(meta)
-  const normalizedSubtitle = normalizeCopy(subtitle)
+  const nTitle    = normalizeCopy(title)
+  const nMeta     = normalizeCopy(meta)
+  const nSubtitle = normalizeCopy(subtitle)
 
-  if (!normalizedSubtitle) {
-    return fallback
-  }
+  if (!nSubtitle) return fallback
 
-  const subtitleContainsTitle = normalizedTitle && normalizedSubtitle.includes(normalizedTitle)
-  const subtitleContainsMeta = normalizedMeta && normalizedSubtitle.includes(normalizedMeta)
-
-  if (subtitleContainsTitle || subtitleContainsMeta || normalizedSubtitle === normalizedTitle || normalizedSubtitle === normalizedMeta) {
+  if (
+    (nTitle && nSubtitle.includes(nTitle)) ||
+    (nMeta  && nSubtitle.includes(nMeta))  ||
+    nSubtitle === nTitle ||
+    nSubtitle === nMeta
+  ) {
     return fallback
   }
 
@@ -447,19 +711,16 @@ function dedupeSupportCopy({
 }
 
 function buildPosterCopy(body: PosterRequest) {
-  const title = body.title?.trim() || (body.mode === "event" ? "Evento especial" : "Promocion especial")
+  const title = body.title?.trim() || (body.mode === "event" ? "Evento especial" : "Promoción especial")
 
   if (body.mode === "event") {
     const metaLabel = body.metaText?.trim() || getEventMetaFallback(body.eventDate)
-    const subtitle = body.secondaryText?.trim()
-      ? body.secondaryText.trim()
-      : dedupeSupportCopy({
-          title,
-          meta: body.eventDate?.trim() || "",
-          subtitle: body.eventText?.trim() || body.subtitle?.trim() || "",
-          fallback: getEventSupportLine(body.eventText),
-        })
-
+    const subtitle = body.secondaryText?.trim() || dedupeSupportCopy({
+      title,
+      meta:     body.eventDate?.trim() || "",
+      subtitle: body.eventText?.trim() || body.subtitle?.trim() || "",
+      fallback: getEventSupportLine(body.eventText),
+    })
     return {
       title,
       metaLabel,
@@ -469,14 +730,12 @@ function buildPosterCopy(body: PosterRequest) {
   }
 
   const metaLabel = body.metaText?.trim() || body.promoDate?.trim() || getPromotionMetaFallback(body.promotionType)
-  const subtitle = body.secondaryText?.trim()
-    ? body.secondaryText.trim()
-    : dedupeSupportCopy({
-        title,
-        meta: body.promoDate?.trim() || "",
-        subtitle: body.subtitle?.trim() || "",
-        fallback: getPromotionSupportLine(body.promotionType),
-      })
+  const subtitle = body.secondaryText?.trim() || dedupeSupportCopy({
+    title,
+    meta:     body.promoDate?.trim() || "",
+    subtitle: body.subtitle?.trim() || "",
+    fallback: getPromotionSupportLine(body.promotionType),
+  })
 
   return {
     title,
@@ -486,222 +745,260 @@ function buildPosterCopy(body: PosterRequest) {
   }
 }
 
-function buildPrompt({
-  title,
-  subtitle,
-  creativeBrief,
-  mode,
-  promotionType,
-  promoDate,
-  eventDate,
-  eventText,
-  size,
-}: PosterRequest) {
-  const cleanTitle = title?.trim() || "Promocion gourmet"
-  const cleanSubtitle = subtitle?.trim() || "Afiche publicitario para restaurante"
-  const cleanCreativeBrief = creativeBrief?.trim() || "premium commercial art direction, polished composition, restaurant marketing focus"
-  const typeLabel = promotionType?.trim() || "especialidad de la casa"
-  const promoTiming = promoDate?.trim() || "disponible por tiempo limitado"
-  const cleanEventDate = eventDate?.trim() || "proximamente"
-  const cleanEventText = eventText?.trim() || "evento especial en el local"
-  const presetKey =
-    promotionType === "plato" || promotionType === "bebida" || promotionType === "menu" || promotionType === "general"
-      ? promotionType
-      : "general"
-  const promotionPreset = PROMOTION_PRESETS[presetKey] ?? PROMOTION_PRESETS["general"] ?? []
-  const styleDirection = getStyleDirection({ mode, promotionType })
+// ─── Prompt ───────────────────────────────────────────────────────────────────
 
-  const concept =
-    mode === "event"
-      ? [
-          ...EVENT_PRESET,
-          `featured event theme: ${cleanTitle}`,
-          `event atmosphere reference: ${cleanEventText}`,
-          `secondary context: ${cleanSubtitle}`,
-          `schedule context: ${cleanEventDate}`,
-          `additional creative direction: ${cleanCreativeBrief}`,
-          ...styleDirection,
-          "people enjoying the venue, ambient lighting, stylish interior, live entertainment mood, clear hierarchy",
-        ]
-      : [
-          ...promotionPreset,
-          `promotion theme: ${cleanTitle}`,
-          `promotion type: ${typeLabel}`,
-          `promotion timing context: ${promoTiming}`,
-          `secondary context: ${cleanSubtitle}`,
-          `additional creative direction: ${cleanCreativeBrief}`,
-          ...styleDirection,
-          "hero food or drink photography, appetizing presentation, warm cinematic lighting, premium branding, clear focal point",
-        ]
+function buildPrompt(body: PosterRequest): string {
+  const cleanTitle        = body.title?.trim()        || "Promoción gourmet"
+  const cleanSubtitle     = body.subtitle?.trim()     || "Afiche publicitario para restaurante"
+  const cleanBrief        = "premium commercial art direction, polished composition, restaurant marketing focus"
+  const typeLabel         = body.promotionType?.trim()|| "especialidad de la casa"
+  const promoTiming       = body.promoDate?.trim()    || "disponible por tiempo limitado"
+  const cleanEventDate    = body.eventDate?.trim()    || "próximamente"
+  const cleanEventText    = body.eventText?.trim()    || "evento especial en el local"
 
-  const layoutInstruction =
-    size === "1536x1024"
-      ? "Use a horizontal advertising layout with the focal subject offset to one side and clean negative space for editorial text overlay."
-      : size === "1024x1024"
-        ? "Use a square campaign layout with a balanced composition and a clear safe zone for copy overlay."
-        : "Use a vertical poster layout optimized for restaurant advertising, mobile stories, and printed flyers with a strong subject and generous negative space for copy overlay."
+  const promoType     = resolvePromotionType(body)
+  const promotionPreset = PROMOTION_PRESETS[promoType]
+  const styleDirection  = getStyleDirection(body)
+  const visualStyleLayer = getVisualStylePromptLayer(body)
+  const visualStyleName = resolveVisualStyle(body)
 
-  return [
-    ...concept,
-    layoutInstruction,
-    "Design a polished commercial poster background for a restaurant brand.",
-    "The image must look like a final advertising background approved by an art director, with deliberate framing, premium lighting, realistic material rendering, and strong visual hierarchy.",
-    "Keep one clear focal subject or a tightly curated focal grouping depending on the selected promotion type.",
-    "Preserve clean negative space for later copy overlay and keep background areas controlled, darker, and visually calm where text can be placed.",
-    "The result must feel premium, realistic, elegant, campaign-ready, and not generic.",
-    "Do not render any text, letters, typography, logos, price tags, UI, watermark, badge, or signage.",
-    "Do not invent extra hero objects, do not create clutter, and do not fill the frame with unnecessary props.",
-    "Avoid cluttered composition, distorted anatomy, extra fingers, low quality rendering, random objects, cheap stock-photo aesthetics, and busy unreadable details.",
-  ].join(", ")
+  const concept = body.mode === "event"
+    ? [
+        ...EVENT_PRESET,
+        `featured event theme: ${cleanTitle}`,
+        `event atmosphere reference: ${cleanEventText}`,
+        `secondary context: ${cleanSubtitle}`,
+        `schedule context: ${cleanEventDate}`,
+        `additional creative direction: ${cleanBrief}`,
+        ...styleDirection,
+        "people enjoying the venue, ambient lighting, stylish interior, live entertainment mood, clear hierarchy",
+      ]
+    : [
+        ...promotionPreset,
+        `promotion theme: ${cleanTitle}`,
+        `promotion type: ${typeLabel}`,
+        `promotion timing context: ${promoTiming}`,
+        `secondary context: ${cleanSubtitle}`,
+        `additional creative direction: ${cleanBrief}`,
+        ...styleDirection,
+        "hero food or drink photography, appetizing presentation, warm cinematic lighting, premium branding, clear focal point",
+      ]
+
+  const layoutInstruction = body.size === "1536x1024"
+    ? "Use a horizontal advertising layout with the focal subject offset to one side and clean negative space for editorial text overlay."
+    : body.size === "1024x1024"
+      ? "Use a square campaign layout with a balanced composition and a clear safe zone for copy overlay."
+      : "Use a vertical poster layout optimized for restaurant advertising, mobile stories, and printed flyers with a strong subject and generous negative space for copy overlay."
+
+  // Prompt estructurado en secciones para mejor comprensión por OpenAI
+  const sections = [
+    `[CONCEPT] ${concept.join(". ")}.`,
+    `[STYLE_IDENTITY] selected visual style: ${visualStyleName}. ${visualStyleLayer.styleIdentity.join(". ")}.`,
+    `[COMMERCIAL_INTENT] ${visualStyleLayer.commercialIntent.join(". ")}.`,
+    `[LAYOUT] ${layoutInstruction}`,
+    "[QUALITY] Design a polished commercial poster background for a restaurant brand. The image must look like a final advertising background approved by an art director, with deliberate framing, premium lighting, realistic material rendering, and strong visual hierarchy. Keep one clear focal subject or a tightly curated focal grouping. Preserve clean negative space for later copy overlay.",
+    `[NEGATIVE_CONSTRAINTS] ${visualStyleLayer.negativeConstraints.join(". ")}.`,
+    "[CONSTRAINTS] Do not render any text, letters, typography, logos, price tags, UI, watermark, badge, or signage. Do not invent extra hero objects, do not create clutter, and do not fill the frame with unnecessary props. Avoid cluttered composition, distorted anatomy, extra fingers, low quality rendering, random objects, cheap stock-photo aesthetics, and busy unreadable details. The result must feel premium, realistic, campaign-ready, and visually distinct for the selected style.",
+  ]
+
+  return sections.join("\n\n")
 }
 
-function buildPosterOverlay(body: PosterRequest, dimensions: PosterDimensions) {
+// ─── Overlay SVG ──────────────────────────────────────────────────────────────
+
+function buildPosterOverlay(body: PosterRequest, dimensions: PosterDimensions): string {
   const { width, height } = dimensions
   const isLandscape = width > height
   const style = getVisualStyle(body)
-  const sidePadding = Math.round(width * 0.08)
-  const topPadding = Math.round(height * 0.07)
-  const bottomPadding = Math.round(height * 0.08)
-  const eyebrowFontSize = Math.round(width * 0.028)
-  const metaFontSize = Math.round(width * 0.034)
-  const titleFontSize = Math.round((isLandscape ? width : height) * (isLandscape ? 0.055 : 0.05))
-  const bodyFontSize = Math.round(width * 0.03)
-  const titleMaxChars = isLandscape ? 22 : 16
-  const subtitleMaxChars = isLandscape ? 48 : 32
-  const footerMaxChars = isLandscape ? 54 : 34
+  const presentation = getOverlayPresentation(body)
 
-  const copy = buildPosterCopy(body)
-  const modeLabel = body.mode === "event" ? "EVENTO" : "PROMOCION"
-  const accent = style.accent
-  const title = copy.title
-  const subtitle = copy.subtitle
-  const footer = copy.footer || style.footerText
-  const metaLabel = copy.metaLabel || style.metaFallback
+  const sidePadding       = Math.round(width * presentation.sidePaddingRatio)
+  const topPadding        = Math.round(height * presentation.topPaddingRatio)
+  const bottomPadding     = Math.round(height * presentation.bottomPaddingRatio)
+  const eyebrowFontSize   = Math.round(width * 0.028 * presentation.eyebrowScale)
+  const metaFontSize      = Math.round(width * 0.034 * presentation.metaScale)
+  const titleFontSize     = Math.round((isLandscape ? width : height) * (isLandscape ? 0.055 : 0.05) * presentation.titleScale)
+  const bodyFontSize      = Math.round(width * 0.03 * presentation.bodyScale)
+  const titleMaxChars     = isLandscape ? presentation.titleMaxCharsLandscape : presentation.titleMaxCharsPortrait
+  const subtitleMaxChars  = isLandscape ? presentation.subtitleMaxCharsLandscape : presentation.subtitleMaxCharsPortrait
+  const footerMaxChars    = isLandscape ? presentation.footerMaxCharsLandscape : presentation.footerMaxCharsPortrait
 
-  const titleLines = wrapText(title, titleMaxChars, isLandscape ? 3 : 4)
-  const subtitleLines = wrapText(subtitle, subtitleMaxChars, 3)
-  const footerLines = wrapText(footer, footerMaxChars, 2)
-
-  const titleLineHeight = Math.round(titleFontSize * 1.04)
-  const bodyLineHeight = Math.round(bodyFontSize * 1.35)
-  const footerLineHeight = Math.round(metaFontSize * 1.3)
-  const titleBlockHeight = titleLines.length * titleLineHeight
-  const subtitleBlockHeight = subtitleLines.length * bodyLineHeight
-  const footerBlockHeight = footerLines.length * footerLineHeight
-
-  const footerY = height - bottomPadding
-  const subtitleY = footerY - footerBlockHeight - Math.round(height * 0.035)
-  const titleY = subtitleY - subtitleBlockHeight - Math.round(height * 0.05)
-  const safeTitleY = Math.max(titleY, Math.round(height * style.titleYOffsetRatio))
-  const metaY = safeTitleY - Math.round(height * 0.055)
-  const badgeHeight = Math.round(height * 0.058)
+  const copy      = buildPosterCopy(body)
+  const modeLabel = body.mode === "event" ? "EVENTO" : "PROMOCIÓN"
+  const accent    = style.accent
+  const { title, subtitle, footer, metaLabel } = copy
+  const contentWidth = Math.round(width * presentation.contentWidthRatio)
+  const titleX = presentation.titleAlign === "middle" ? Math.round(width / 2) : sidePadding
+  const textAnchor = presentation.titleAlign === "middle" ? "middle" : "start"
+  const badgeHeight= Math.round(height * 0.058)
   const badgeWidth = Math.max(Math.round(width * 0.2), modeLabel.length * eyebrowFontSize + 80)
-  const badgeY = topPadding
+  const badgeY     = topPadding
+  const badgeX =
+    presentation.titleAlign === "middle"
+      ? Math.round((width - badgeWidth) / 2)
+      : sidePadding
+  const badgeRadius =
+    presentation.badgeStyle === "pill"
+      ? Math.round(badgeHeight / 2)
+      : Math.round(badgeHeight * presentation.badgeCornerRatio)
+
+  const titleLines    = wrapText(title,    titleMaxChars,    isLandscape ? 3 : 4)
+  const subtitleLines = wrapText(subtitle, subtitleMaxChars, 3)
+  const footerLines   = wrapText(footer || style.footerText, footerMaxChars, 2)
+
+  const titleLineHeight   = Math.round(titleFontSize * 1.04)
+  const bodyLineHeight    = Math.round(bodyFontSize  * 1.35)
+  const footerLineHeight  = Math.round(metaFontSize  * 1.3)
+  const titleBlockHeight  = titleLines.length    * titleLineHeight
+  const subtitleBlockHeight = subtitleLines.length * bodyLineHeight
+  const footerBlockHeight = footerLines.length   * footerLineHeight
+
+  const footerY    = height - bottomPadding
+  const subtitleY  = footerY - footerBlockHeight - Math.round(height * 0.035)
+  const titleY     = subtitleY - subtitleBlockHeight - Math.round(height * 0.05)
+  const safeTitleY = Math.max(titleY, Math.round(height * style.titleYOffsetRatio))
+  const metaY      = safeTitleY - Math.round(height * 0.055)
 
   const renderLines = (lines: string[], x: number, y: number, lineHeight: number) =>
     lines
-      .map((line, index) => `<tspan x="${x}" dy="${index === 0 ? 0 : lineHeight}">${escapeXml(line)}</tspan>`)
+      .map((line, i) => `<tspan x="${x}" dy="${i === 0 ? 0 : lineHeight}">${escapeXml(line)}</tspan>`)
       .join("")
 
+  const badgeFill =
+    presentation.badgeStyle === "outline"
+      ? "rgba(255,255,255,0.04)"
+      : style.badgeFill
+  const badgeStroke = presentation.badgeStyle === "square" ? accent : "url(#glassLine)"
+  const dividerStartX = presentation.titleAlign === "middle" ? Math.round((width - width * presentation.dividerWidthRatio) / 2) : sidePadding
+  const dividerEndX = presentation.titleAlign === "middle"
+    ? Math.round((width + width * presentation.dividerWidthRatio) / 2)
+    : Math.min(width - sidePadding, sidePadding + width * presentation.dividerWidthRatio)
+  const metaX = presentation.titleAlign === "middle" ? Math.round(width / 2) : sidePadding
+  const footerX = presentation.titleAlign === "middle" ? Math.round(width / 2) : sidePadding
+  const subtitleTextY = safeTitleY + titleBlockHeight + Math.round(height * 0.03)
+
   return `
-    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="posterShade" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#040A14" stop-opacity="${style.shadeTopOpacity}" />
-          <stop offset="55%" stop-color="#040A14" stop-opacity="${style.shadeMidOpacity}" />
-          <stop offset="100%" stop-color="#040A14" stop-opacity="${style.shadeBottomOpacity}" />
-        </linearGradient>
-        <radialGradient id="posterGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(${width * style.glowX} ${height * style.glowY}) rotate(37) scale(${width * style.glowScaleX} ${height * style.glowScaleY})">
-          <stop stop-color="${accent}" stop-opacity="${style.accentSoftOpacity}" />
-          <stop offset="1" stop-color="#FFFFFF" stop-opacity="0" />
-        </radialGradient>
-        <linearGradient id="glassLine" x1="0" y1="0" x2="1" y2="1">
-          <stop stop-color="#FFFFFF" stop-opacity="0.4" />
-          <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.12" />
-        </linearGradient>
-      </defs>
+<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="posterShade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#040A14" stop-opacity="${style.shadeTopOpacity}" />
+      <stop offset="55%"  stop-color="#040A14" stop-opacity="${style.shadeMidOpacity}" />
+      <stop offset="100%" stop-color="#040A14" stop-opacity="${style.shadeBottomOpacity}" />
+    </linearGradient>
+    <radialGradient id="posterGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(${width * style.glowX} ${height * style.glowY}) rotate(37) scale(${width * style.glowScaleX} ${height * style.glowScaleY})">
+      <stop stop-color="${accent}" stop-opacity="${style.accentSoftOpacity}" />
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="glassLine" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FFFFFF" stop-opacity="0.4" />
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.12" />
+    </linearGradient>
+  </defs>
 
-      <rect width="${width}" height="${height}" fill="url(#posterShade)" />
-      <rect width="${width}" height="${height}" fill="url(#posterGlow)" />
-      <rect x="${sidePadding}" y="${badgeY}" width="${badgeWidth}" height="${badgeHeight}" rx="${Math.round(badgeHeight / 2)}" fill="${style.badgeFill}" stroke="url(#glassLine)" />
-      <circle cx="${sidePadding + 28}" cy="${badgeY + badgeHeight / 2}" r="7" fill="${accent}" />
-      <text x="${sidePadding + 48}" y="${badgeY + badgeHeight / 2 + eyebrowFontSize * 0.36}" fill="#F8FAFC" font-size="${eyebrowFontSize}" font-family="Arial, Helvetica, sans-serif" font-weight="700" letter-spacing="2.6">${escapeXml(modeLabel)}</text>
+  <rect width="${width}" height="${height}" fill="url(#posterShade)" />
+  <rect width="${width}" height="${height}" fill="url(#posterGlow)" />
 
-      <text x="${sidePadding}" y="${Math.max(metaY, badgeY + badgeHeight + Math.round(height * 0.08))}" fill="${accent}" font-size="${metaFontSize}" font-family="Arial, Helvetica, sans-serif" font-weight="700" letter-spacing="2.2">${escapeXml(metaLabel.toUpperCase())}</text>
+  <rect x="${badgeX}" y="${badgeY}" width="${badgeWidth}" height="${badgeHeight}"
+    rx="${badgeRadius}" fill="${badgeFill}" stroke="${badgeStroke}" stroke-width="${presentation.badgeStyle === "square" ? 1.5 : 1}" />
+  <circle cx="${badgeX + 28}" cy="${badgeY + badgeHeight / 2}" r="7" fill="${accent}" />
+  <text x="${badgeX + 48}" y="${badgeY + badgeHeight / 2 + eyebrowFontSize * 0.36}"
+    fill="#F8FAFC" font-size="${eyebrowFontSize}" font-family="Arial, Helvetica, sans-serif"
+    font-weight="700" letter-spacing="2.6">${escapeXml(modeLabel)}</text>
 
-      <text x="${sidePadding}" y="${safeTitleY}" fill="#FFFFFF" font-size="${titleFontSize}" font-family="Arial, Helvetica, sans-serif" font-weight="800">
-        ${renderLines(titleLines, sidePadding, safeTitleY, titleLineHeight)}
-      </text>
+  <text x="${metaX}" y="${Math.max(metaY, badgeY + badgeHeight + Math.round(height * 0.08))}"
+    fill="${accent}" font-size="${metaFontSize}" font-family="Arial, Helvetica, sans-serif"
+    font-weight="700" letter-spacing="2.2" text-anchor="${textAnchor}">${escapeXml((metaLabel || style.metaFallback).toUpperCase())}</text>
 
-      <text x="${sidePadding}" y="${safeTitleY + titleBlockHeight + Math.round(height * 0.03)}" fill="rgba(241,245,249,0.92)" font-size="${bodyFontSize}" font-family="Arial, Helvetica, sans-serif" font-weight="500">
-        ${renderLines(subtitleLines, sidePadding, safeTitleY + titleBlockHeight + Math.round(height * 0.03), bodyLineHeight)}
-      </text>
+  <text x="${titleX}" y="${safeTitleY}"
+    fill="#FFFFFF" font-size="${titleFontSize}" font-family="Arial, Helvetica, sans-serif" font-weight="800" text-anchor="${textAnchor}">
+    ${renderLines(titleLines, titleX, safeTitleY, titleLineHeight)}
+  </text>
 
-      <line x1="${sidePadding}" y1="${subtitleY - Math.round(height * 0.025)}" x2="${Math.min(width - sidePadding, sidePadding + width * 0.26)}" y2="${subtitleY - Math.round(height * 0.025)}" stroke="${accent}" stroke-width="5" stroke-linecap="round" />
+  <foreignObject x="${presentation.titleAlign === "middle" ? Math.round((width - contentWidth) / 2) : sidePadding}" y="${subtitleTextY - bodyFontSize}" width="${contentWidth}" height="${Math.round(bodyLineHeight * 4)}">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="color: rgba(241,245,249,0.92); font-family: Arial, Helvetica, sans-serif; font-size: ${bodyFontSize}px; font-weight: 500; line-height: ${bodyLineHeight}px; text-align: ${presentation.titleAlign === "middle" ? "center" : "left"};">
+      ${escapeXml(subtitleLines.join(" "))}
+    </div>
+  </foreignObject>
 
-      <text x="${sidePadding}" y="${footerY - footerBlockHeight + footerLineHeight * 0.1}" fill="rgba(226,232,240,0.78)" font-size="${metaFontSize}" font-family="Arial, Helvetica, sans-serif" font-weight="600">
-        ${renderLines(footerLines, sidePadding, footerY - footerBlockHeight + footerLineHeight * 0.1, footerLineHeight)}
-      </text>
-    </svg>
-  `
+  <line
+    x1="${dividerStartX}" y1="${subtitleY - Math.round(height * 0.025)}"
+    x2="${dividerEndX}" y2="${subtitleY - Math.round(height * 0.025)}"
+    stroke="${accent}" stroke-width="${presentation.dividerStroke}" stroke-linecap="round" />
+
+  <text x="${footerX}" y="${footerY - footerBlockHeight + footerLineHeight * 0.1}"
+    fill="rgba(226,232,240,0.78)" font-size="${metaFontSize}" font-family="Arial, Helvetica, sans-serif" font-weight="600" text-anchor="${textAnchor}">
+    ${renderLines(footerLines, footerX, footerY - footerBlockHeight + footerLineHeight * 0.1, footerLineHeight)}
+  </text>
+</svg>`.trim()
 }
 
+// ─── Crop ─────────────────────────────────────────────────────────────────────
+
 function getCropPosition(body: PosterRequest): CropPosition {
-  const isEvent = body.mode === "event"
+  const isEvent     = body.mode === "event"
   const isLandscape = body.size === "1536x1024"
-  const isSquare = body.size === "1024x1024"
+  const isSquare    = body.size === "1024x1024"
 
   if (isEvent) {
-    if (isLandscape) {
-      return "right"
-    }
-
-    if (isSquare) {
-      return "right top"
-    }
-
-    return "right top"
+    return isLandscape ? "right" : "right top"
   }
 
   switch (body.promotionType) {
-    case "bebida":
-      return isLandscape ? "right" : "right top"
-    case "plato":
-      return isLandscape ? "right centre" : "right top"
-    case "menu":
-      return isLandscape ? "attention" : isSquare ? "centre" : "top"
-    default:
-      return isLandscape ? "right" : isSquare ? "attention" : "right top"
+    case "bebida": return isLandscape ? "right" : "right top"
+    case "plato":  return isLandscape ? "right centre" : "right top"
+    case "menu":   return isLandscape ? "attention" : isSquare ? "centre" : "top"
+    default:       return isLandscape ? "right" : isSquare ? "attention" : "right top"
   }
 }
 
-async function composePosterImage(base64Image: string, body: PosterRequest) {
-  const dimensions = getDimensions(body.size)
-  const baseBuffer = Buffer.from(base64Image, "base64")
-  const overlayBuffer = Buffer.from(buildPosterOverlay(body, dimensions))
-  const cropPosition = getCropPosition(body)
+// ─── Composición final ────────────────────────────────────────────────────────
 
+async function composePosterImage(base64Image: string, body: PosterRequest): Promise<Buffer> {
+  const dimensions  = getDimensions(body.size)
+  const baseBuffer  = Buffer.from(base64Image, "base64")
+  const overlayBuffer = Buffer.from(buildPosterOverlay(body, dimensions))
+  const cropPosition  = getCropPosition(body)
+
+  // Comprimir el PNG de salida para reducir el tamaño de la respuesta
   return sharp(baseBuffer)
     .resize(dimensions.width, dimensions.height, {
       fit: "cover",
       position: cropPosition,
     })
-    .composite([
-      {
-        input: overlayBuffer,
-        top: 0,
-        left: 0,
-      },
-    ])
-    .png()
+    .composite([{ input: overlayBuffer, top: 0, left: 0 }])
+    .png({ compressionLevel: 8, effort: 10 })
     .toBuffer()
 }
 
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error) {
-    return error.message
-  }
+// ─── Validación de imagen de referencia ──────────────────────────────────────
 
+async function validateReferenceImage(file: File): Promise<string | null> {
+  const buffer = Buffer.from(await file.arrayBuffer())
+
+  try {
+    const meta = await sharp(buffer).metadata()
+
+    // Para PNG, verificar que tiene canal alfa (requerido por images/edits de OpenAI)
+    if (file.type === "image/png" && meta.channels !== 4) {
+      return "El PNG de referencia debe tener canal alfa (transparencia). Exporta el PNG con fondo transparente o usa JPG/WEBP."
+    }
+
+    // Verificar tamaño razonable (máx 20MB para no agotar memoria serverless)
+    if (file.size > 20 * 1024 * 1024) {
+      return "La imagen de referencia supera 20 MB. Usa una imagen más liviana."
+    }
+
+    return null // válida
+  } catch {
+    return "No se pudo leer la imagen de referencia. Verifica que el archivo no esté corrupto."
+  }
+}
+
+// ─── Handler principal ────────────────────────────────────────────────────────
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message
   return String(error)
 }
 
@@ -713,109 +1010,122 @@ export async function POST(request: Request) {
 
   const formData = await request.formData().catch(() => null)
   if (!formData) {
-    return NextResponse.json({ error: "Payload invalido." }, { status: 400 })
+    return NextResponse.json({ error: "Payload inválido." }, { status: 400 })
   }
 
   const body: PosterRequest = {
-    title: String(formData.get("title") || ""),
-    subtitle: String(formData.get("subtitle") || ""),
-    metaText: String(formData.get("metaText") || ""),
+    title:         String(formData.get("title")         || ""),
+    subtitle:      String(formData.get("subtitle")      || ""),
+    metaText:      String(formData.get("metaText")      || ""),
     secondaryText: String(formData.get("secondaryText") || ""),
-    footerText: String(formData.get("footerText") || ""),
-    creativeBrief: String(formData.get("creativeBrief") || ""),
-    mode: formData.get("mode") === "event" ? "event" : "promotion",
+    footerText:    String(formData.get("footerText")    || ""),
+    visualStyle:   isValidVisualStyle(formData.get("visualStyle")) ? (formData.get("visualStyle") as VisualStyleChoice) : "comercial",
+    mode:          formData.get("mode") === "event" ? "event" : "promotion",
     promotionType: String(formData.get("promotionType") || ""),
-    promoDate: String(formData.get("promoDate") || ""),
-    eventDate: String(formData.get("eventDate") || ""),
-    eventText: String(formData.get("eventText") || ""),
+    promoDate:     String(formData.get("promoDate")     || ""),
+    eventDate:     String(formData.get("eventDate")     || ""),
+    eventText:     String(formData.get("eventText")     || ""),
     size:
       formData.get("size") === "1536x1024" || formData.get("size") === "1024x1024" || formData.get("size") === "1024x1536"
         ? (formData.get("size") as PosterRequest["size"])
         : "1024x1536",
-    quality: formData.get("quality") === "high" || formData.get("quality") === "auto" ? (formData.get("quality") as PosterRequest["quality"]) : "medium",
+    quality:
+      formData.get("quality") === "high" || formData.get("quality") === "auto"
+        ? (formData.get("quality") as PosterRequest["quality"])
+        : "medium",
   }
 
   if (!body.title || !body.subtitle) {
-    return NextResponse.json({ error: "Titulo o descripcion invalidos." }, { status: 400 })
+    return NextResponse.json({ error: "Título o descripción inválidos." }, { status: 400 })
   }
 
-  const referenceImage = formData.get("referenceImage")
+  const referenceImage    = formData.get("referenceImage")
   const hasReferenceImage = referenceImage instanceof File && referenceImage.size > 0
 
-  if (hasReferenceImage && !ALLOWED_REFERENCE_IMAGE_TYPES.has(referenceImage.type)) {
-    return NextResponse.json(
-      {
-        error: "La imagen de referencia debe ser PNG, JPG o WEBP.",
-        errorCode: "invalid_reference_image_type",
-      },
-      { status: 400 },
-    )
+  if (hasReferenceImage) {
+    if (!ALLOWED_REFERENCE_IMAGE_TYPES.has(referenceImage.type)) {
+      return NextResponse.json(
+        { error: "La imagen de referencia debe ser PNG, JPG o WEBP.", errorCode: "invalid_reference_image_type" },
+        { status: 400 },
+      )
+    }
+
+    // Validar contenido real del archivo (no solo el MIME type declarado)
+    const validationError = await validateReferenceImage(referenceImage)
+    if (validationError) {
+      return NextResponse.json(
+        { error: validationError, errorCode: "invalid_reference_image_content" },
+        { status: 400 },
+      )
+    }
   }
 
   const clientRequestId = randomUUID()
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), OPENAI_IMAGE_TIMEOUT_MS)
+  const controller      = new AbortController()
+  const timeout         = setTimeout(() => controller.abort(), OPENAI_IMAGE_TIMEOUT_MS)
 
   try {
+    const prompt = buildPrompt(body)
+
     const response = hasReferenceImage
       ? await (async () => {
           const openaiFormData = new FormData()
-          openaiFormData.append("model", "gpt-image-1.5")
-          openaiFormData.append("prompt", buildPrompt(body))
-          openaiFormData.append("size", body.size || "1024x1536")
-          openaiFormData.append("quality", body.quality || "medium")
-          openaiFormData.append("output_format", "png")
+          openaiFormData.append("model",          "gpt-image-1")
+          openaiFormData.append("prompt",         prompt)
+          openaiFormData.append("size",           body.size    || "1024x1536")
+          openaiFormData.append("quality",        body.quality || "medium")
+          openaiFormData.append("output_format",  "png")
           openaiFormData.append("input_fidelity", "high")
-          openaiFormData.append("image", referenceImage)
+          openaiFormData.append("image",          referenceImage)
 
           return fetch("https://api.openai.com/v1/images/edits", {
-            method: "POST",
+            method:  "POST",
             headers: {
-              Authorization: `Bearer ${apiKey}`,
+              Authorization:        `Bearer ${apiKey}`,
               "X-Client-Request-Id": clientRequestId,
             },
-            body: openaiFormData,
-            cache: "no-store",
-            signal: controller.signal,
+            body:    openaiFormData,
+            cache:   "no-store",
+            signal:  controller.signal,
           })
         })()
       : await fetch("https://api.openai.com/v1/images/generations", {
-          method: "POST",
+          method:  "POST",
           headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
+            Authorization:        `Bearer ${apiKey}`,
+            "Content-Type":       "application/json",
             "X-Client-Request-Id": clientRequestId,
           },
           body: JSON.stringify({
-            model: "gpt-image-1.5",
-            prompt: buildPrompt(body),
-            size: body.size || "1024x1536",
-            quality: body.quality || "medium",
+            model:         "gpt-image-1",
+            prompt,
+            size:          body.size    || "1024x1536",
+            quality:       body.quality || "medium",
             output_format: "png",
           }),
-          cache: "no-store",
+          cache:  "no-store",
           signal: controller.signal,
         })
 
-    const requestId = response.headers.get("x-request-id") || undefined
+    const requestId    = response.headers.get("x-request-id")     || undefined
     const processingMs = response.headers.get("openai-processing-ms") || undefined
-    const payload = (await response.json().catch(() => null)) as (OpenAiSuccessPayload & OpenAiErrorPayload) | null
+    const payload      = (await response.json().catch(() => null)) as (OpenAiSuccessPayload & OpenAiErrorPayload) | null
 
     if (!response.ok) {
       return NextResponse.json(
         {
           error: classifyOpenAiError({
-            status: response.status,
-            message: payload?.error?.message,
-            code: payload?.error?.code,
-            type: payload?.error?.type,
+            status:          response.status,
+            message:         payload?.error?.message,
+            code:            payload?.error?.code,
+            type:            payload?.error?.type,
             hasReferenceImage,
           }),
-          errorCode: payload?.error?.code || payload?.error?.type || "openai_request_failed",
+          errorCode:         payload?.error?.code || payload?.error?.type || "openai_request_failed",
           requestId,
           processingMs,
           usedReferenceImage: hasReferenceImage,
-          providerMessage: payload?.error?.message,
+          providerMessage:   payload?.error?.message,
         },
         { status: response.status },
       )
@@ -825,8 +1135,8 @@ export async function POST(request: Request) {
     if (!imageBase64) {
       return NextResponse.json(
         {
-          error: "OpenAI no devolvio una imagen valida.",
-          errorCode: "missing_image_data",
+          error:      "OpenAI no devolvió una imagen válida.",
+          errorCode:  "missing_image_data",
           requestId,
           processingMs,
           usedReferenceImage: hasReferenceImage,
@@ -838,27 +1148,28 @@ export async function POST(request: Request) {
     const finalPosterBuffer = await composePosterImage(imageBase64, body)
 
     return NextResponse.json({
-      imageUrl: `data:image/png;base64,${finalPosterBuffer.toString("base64")}`,
+      imageUrl:           `data:image/png;base64,${finalPosterBuffer.toString("base64")}`,
       requestId,
       processingMs,
       usedReferenceImage: hasReferenceImage,
     })
   } catch (error) {
     const errorMessage = getErrorMessage(error)
+
+    // Log seguro: nunca incluir headers ni el objeto error completo
     console.error("[posters/openai] request failed", {
-      requestId: clientRequestId,
+      requestId:         clientRequestId,
       usedReferenceImage: hasReferenceImage,
-      message: errorMessage,
-      error,
+      message:           errorMessage,
+      name:              error instanceof Error ? error.name : "unknown",
     })
 
     if (error instanceof DOMException && error.name === "AbortError") {
       return NextResponse.json(
         {
-          error:
-            "OpenAI demoro demasiado en responder. Prueba con una imagen de referencia mas ligera o genera el afiche sin imagen.",
-          errorCode: "openai_timeout",
-          requestId: clientRequestId,
+          error:      "OpenAI demoró demasiado en responder. Prueba con una imagen de referencia más liviana o genera el afiche sin imagen.",
+          errorCode:  "openai_timeout",
+          requestId:  clientRequestId,
           usedReferenceImage: hasReferenceImage,
         },
         { status: 504 },
@@ -868,11 +1179,11 @@ export async function POST(request: Request) {
     if (errorMessage.toLowerCase().includes("fetch failed")) {
       return NextResponse.json(
         {
-          error: "No se pudo conectar con OpenAI. Revisa la conexion, la clave API y el acceso saliente del servidor.",
-          errorCode: "openai_fetch_failed",
-          requestId: clientRequestId,
+          error:      "No se pudo conectar con OpenAI. Revisa la conexión, la clave API y el acceso saliente del servidor.",
+          errorCode:  "openai_fetch_failed",
+          requestId:  clientRequestId,
           usedReferenceImage: hasReferenceImage,
-          detail: errorMessage,
+          detail:     errorMessage,
         },
         { status: 502 },
       )
@@ -881,11 +1192,11 @@ export async function POST(request: Request) {
     if (errorMessage.toLowerCase().includes("sharp") || errorMessage.toLowerCase().includes("input buffer")) {
       return NextResponse.json(
         {
-          error: "La imagen fue generada, pero fallo la composicion final del afiche.",
-          errorCode: "poster_composition_failed",
-          requestId: clientRequestId,
+          error:      "La imagen fue generada, pero falló la composición final del afiche.",
+          errorCode:  "poster_composition_failed",
+          requestId:  clientRequestId,
           usedReferenceImage: hasReferenceImage,
-          detail: errorMessage,
+          detail:     errorMessage,
         },
         { status: 502 },
       )
@@ -893,11 +1204,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        error: "No se pudo completar la solicitud a OpenAI.",
-        errorCode: "openai_network_error",
-        requestId: clientRequestId,
+        error:      "No se pudo completar la solicitud a OpenAI.",
+        errorCode:  "openai_network_error",
+        requestId:  clientRequestId,
         usedReferenceImage: hasReferenceImage,
-        detail: errorMessage,
+        detail:     errorMessage,
       },
       { status: 502 },
     )
