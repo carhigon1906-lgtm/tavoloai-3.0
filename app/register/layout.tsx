@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
 
-const title = "Crear cuenta | TavoloAI"
-const description = "Regístrate en TavoloAI y comienza a crear tu menú digital con IA."
+const title = "Crea un account | TavoloAI"
+const description = "Registrati su TavoloAI e inizia a creare il tuo menu digitale con l'IA."
 
 export const metadata: Metadata = {
   title,

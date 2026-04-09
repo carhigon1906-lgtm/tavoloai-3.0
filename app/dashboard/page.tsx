@@ -8,8 +8,8 @@ import { useRouter } from "next/navigation"
 import { AlertTriangle, BarChart3, BookOpen, Image, LayoutTemplate, PenLine, Settings } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import QRCode from "react-qr-code"
-import { supabase } from "@/lib/supabaseClient"
 import { isPublicAdminEmail } from "@/lib/adminAccess"
+import { supabase } from "@/lib/supabaseClient"
 
 const StatsCard = dynamic(() => import("./StatsCard"))
 const MotionLink = motion(Link)
@@ -27,63 +27,58 @@ const item = {
 const dashboardLinks = [
   {
     key: "new-menu",
-    name: "Creación de menú",
-    title: "CREACIÓN DE MENÚ",
-    desc: "Crea tu menú desde cero con secciones y platos sugeridos.",
+    name: "Creazione menu",
+    title: "CREAZIONE MENU",
+    desc: "Crea il tuo menu da zero con sezioni e piatti suggeriti.",
     icon: BookOpen,
     href: "/dashboard/menu/new",
     color: "from-emerald-400 to-lime-600",
   },
   {
     key: "panic",
-    name: "Botón de pánico",
-    title: "BOTÓN DE PÁNICO",
-    desc: "Oculta platos agotados en tiempo real.",
+    name: "Pulsante rapido",
+    title: "PULSANTE RAPIDO",
+    desc: "Nascondi in tempo reale i piatti esauriti.",
     icon: AlertTriangle,
     href: "/dashboard/panic",
     color: "from-amber-400 to-red-600",
   },
   {
     key: "studio",
-    name: "Estudio fotográfico IA",
-    title: "ESTUDIO FOTOGRÁFICO IA",
-    desc: "Fotos pro con ajuste automático.",
+    name: "Studio fotografico IA",
+    title: "STUDIO FOTOGRAFICO IA",
+    desc: "Foto professionali con ottimizzazione automatica.",
     icon: Image,
     href: "/dashboard/media",
     color: "from-violet-500 to-fuchsia-600",
   },
   {
     key: "posters",
-    name: "Diseñador de afiches IA",
-    title: "DISEÑADOR DE AFICHES IA",
-    desc: "Afiches listos para redes y menú.",
+    name: "Creatore poster IA",
+    title: "CREATORE DI POSTER IA",
+    desc: "Poster pronti per social, sala e menu.",
     icon: LayoutTemplate,
     href: "/dashboard/posters",
     color: "from-cyan-500 to-blue-600",
   },
   {
     key: "writer",
-    name: "Diseñador de promocion IA",
-    title: "DISEÑADOR DE PROMOCION IA",
-    desc: "Promociones visuales listas para publicar.",
+    name: "Promozioni IA",
+    title: "PROMOZIONI IA",
+    desc: "Visual promozionali pronti da pubblicare.",
     icon: PenLine,
     href: "/dashboard/writer",
     color: "from-amber-400 to-fuchsia-600",
   },
   {
     key: "stats",
-    name: "Estadísticas",
-    title: "ESTADÍSTICAS",
-    desc: "Estadísticas del menú QR inteligente en tiempo real.",
+    name: "Statistiche",
+    title: "STATISTICHE",
+    desc: "Andamento del menu QR intelligente in tempo reale.",
     icon: BarChart3,
     href: "/dashboard/reports",
     color: "from-sky-400 to-emerald-500",
   },
-]
-
-const quickLinks = [
-  ...dashboardLinks.map(({ key, name, href, icon }) => ({ key, name, href, icon })),
-  { key: "settings", name: "Configuración", href: "/dashboard/settings", icon: Settings },
 ]
 
 type MenuRow = {
@@ -109,24 +104,23 @@ export default function DashboardPage() {
   const [pdfModalOpen, setPdfModalOpen] = useState(false)
   const [selectedMenu, setSelectedMenu] = useState<MenuRow | null>(null)
   const [pdfError, setPdfError] = useState("")
-  const [analyticsLoaded, setAnalyticsLoaded] = useState(false)
   const [dashboardStats, setDashboardStats] = useState([
-    { title: "Scans QR", value: 0, trend: "Sin actividad reciente" },
-    { title: "Menús activos", value: 0, trend: "Sin menús activos" },
-    { title: "Plato más visto", value: "Sin datos", trend: "Sin visualizaciones" },
+    { title: "Scans QR", value: 0, trend: "Nessuna attivita recente" },
+    { title: "Menu attivi", value: 0, trend: "Nessun menu attivo" },
+    { title: "Piatto piu visto", value: "Nessun dato", trend: "Nessuna visualizzazione" },
   ])
   const [weeklyQrScans, setWeeklyQrScans] = useState([
     { day: "Lun", value: 0 },
     { day: "Mar", value: 0 },
-    { day: "Mie", value: 0 },
-    { day: "Jue", value: 0 },
-    { day: "Vie", value: 0 },
+    { day: "Mer", value: 0 },
+    { day: "Gio", value: 0 },
+    { day: "Ven", value: 0 },
     { day: "Sab", value: 0 },
     { day: "Dom", value: 0 },
   ])
   const qrRef = useRef<HTMLDivElement | null>(null)
 
-  const maxQrScans = Math.max(...weeklyQrScans.map((item) => item.value), 1)
+  const maxQrScans = Math.max(...weeklyQrScans.map((entry) => entry.value), 1)
 
   useEffect(() => {
     let mounted = true
@@ -156,14 +150,14 @@ export default function DashboardPage() {
   if (checkingAdminRedirect) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center rounded-[28px] border border-white/10 bg-black/20 text-slate-200">
-        Validando panel...
+        Verifica del pannello in corso...
       </div>
     )
   }
 
   useEffect(() => {
-    const container = statsScrollRef.current
-    if (!container) return
+    const scrollContainer = statsScrollRef.current
+    if (!scrollContainer) return
 
     const media = window.matchMedia("(max-width: 639px)")
     if (!media.matches) return
@@ -173,18 +167,18 @@ export default function DashboardPage() {
     let index = 0
 
     const collectCards = () => {
-      cards = Array.from(container.children) as HTMLElement[]
+      cards = Array.from(scrollContainer.children) as HTMLElement[]
     }
 
     const scrollToIndex = (nextIndex: number) => {
       if (cards.length === 0) return
       const next = cards[nextIndex]
-      const targetLeft = next.offsetLeft - (container.clientWidth - next.clientWidth) / 2
-      container.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" })
+      const targetLeft = next.offsetLeft - (scrollContainer.clientWidth - next.clientWidth) / 2
+      scrollContainer.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" })
     }
 
     const tick = () => {
-      if (container.scrollWidth <= container.clientWidth) return
+      if (scrollContainer.scrollWidth <= scrollContainer.clientWidth) return
       index = (index + 1) % cards.length
       scrollToIndex(index)
     }
@@ -197,6 +191,7 @@ export default function DashboardPage() {
       index = 0
       scrollToIndex(0)
     }
+
     window.addEventListener("resize", resizeHandler)
 
     return () => {
@@ -269,7 +264,7 @@ export default function DashboardPage() {
       } = await supabase.auth.getSession()
 
       if (!session) {
-        setMenusError("Debes iniciar sesion para ver tus menus.")
+        setMenusError("Devi accedere per vedere i tuoi menu.")
         setMenusLoading(false)
         return
       }
@@ -281,7 +276,7 @@ export default function DashboardPage() {
         .order("created_at", { ascending: false })
 
       if (error) {
-        setMenusError("No pudimos cargar tus menus.")
+        setMenusError("Non siamo riusciti a caricare i tuoi menu.")
         setMenusLoading(false)
         return
       }
@@ -304,7 +299,6 @@ export default function DashboardPage() {
       } = await supabase.auth.getSession()
 
       if (!session?.access_token) {
-        setAnalyticsLoaded(true)
         return
       }
 
@@ -315,39 +309,37 @@ export default function DashboardPage() {
       })
 
       if (!response.ok) {
-        setAnalyticsLoaded(true)
         return
       }
 
       const payload = await response.json()
       const summary = payload?.stats || {}
-      const topDish = typeof summary.topDish === "string" && summary.topDish.trim() ? summary.topDish : "Sin datos"
+      const topDish = typeof summary.topDish === "string" && summary.topDish.trim() ? summary.topDish : "Nessun dato"
       const weekly = Array.isArray(payload?.weekly) && payload.weekly.length > 0 ? payload.weekly : weeklyQrScans
 
       setDashboardStats([
         {
           title: "Scans QR",
           value: Number(summary.qrScans || 0),
-          trend: `${Number(summary.visitsToday || 0)} visitas hoy`,
+          trend: `${Number(summary.visitsToday || 0)} visite oggi`,
         },
         {
-          title: "Menús activos",
+          title: "Menu attivi",
           value: Number(summary.activeMenus || 0),
-          trend: Number(summary.activeMenus || 0) > 0 ? "Con actividad disponible" : "Activa tu primer menú",
+          trend: Number(summary.activeMenus || 0) > 0 ? "Attivita disponibile" : "Attiva il tuo primo menu",
         },
         {
-          title: "Plato más visto",
+          title: "Piatto piu visto",
           value: topDish,
-          trend: topDish === "Sin datos" ? "Aún no hay visualizaciones" : "Más consultado del mes",
+          trend: topDish === "Nessun dato" ? "Ancora nessuna visualizzazione" : "Il piu consultato del mese",
         },
       ])
       setWeeklyQrScans(
-        weekly.map((item: { day?: string; value?: number }) => ({
-          day: item?.day || "",
-          value: Number(item?.value || 0),
+        weekly.map((entry: { day?: string; value?: number }) => ({
+          day: entry?.day || "",
+          value: Number(entry?.value || 0),
         })),
       )
-      setAnalyticsLoaded(true)
     }
 
     loadAnalytics()
@@ -361,9 +353,9 @@ export default function DashboardPage() {
   }, [selectedMenu])
 
   const downloadQrImage = () => {
-    const container = qrRef.current
-    if (!container || !selectedMenu) return
-    const svg = container.querySelector("svg") as SVGSVGElement | null
+    const containerNode = qrRef.current
+    if (!containerNode || !selectedMenu) return
+    const svg = containerNode.querySelector("svg") as SVGSVGElement | null
     if (!svg) return
 
     const serializer = new XMLSerializer()
@@ -377,10 +369,10 @@ export default function DashboardPage() {
 
     const svgBlob = new Blob([source], { type: "image/svg+xml;charset=utf-8" })
     const url = URL.createObjectURL(svgBlob)
-    const img = new Image()
+    const image = new Image()
     const size = 512
 
-    img.onload = () => {
+    image.onload = () => {
       const canvas = document.createElement("canvas")
       canvas.width = size
       canvas.height = size
@@ -391,7 +383,7 @@ export default function DashboardPage() {
       }
       ctx.fillStyle = "#ffffff"
       ctx.fillRect(0, 0, size, size)
-      ctx.drawImage(img, 0, 0, size, size)
+      ctx.drawImage(image, 0, 0, size, size)
       URL.revokeObjectURL(url)
 
       const pngUrl = canvas.toDataURL("image/png")
@@ -401,11 +393,11 @@ export default function DashboardPage() {
       link.click()
     }
 
-    img.onerror = () => {
+    image.onerror = () => {
       URL.revokeObjectURL(url)
     }
 
-    img.src = url
+    image.src = url
   }
 
   const openPrintablePdf = () => {
@@ -416,13 +408,12 @@ export default function DashboardPage() {
 
     const printWindow = window.open(printUrl, "_blank", "noopener,noreferrer")
     if (!printWindow) {
-      setPdfError("Tu navegador bloqueó la ventana emergente. Habilita popups e intenta de nuevo.")
-      return
+      setPdfError("Il browser ha bloccato la finestra popup. Abilita i popup e riprova.")
     }
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#070b12] via-[#0a111d] to-[#05070c] text-white pt-[calc(env(safe-area-inset-top)+16px)] pb-[calc(env(safe-area-inset-bottom)+28px)]">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#070b12] via-[#0a111d] to-[#05070c] pb-[calc(env(safe-area-inset-bottom)+28px)] pt-[calc(env(safe-area-inset-top)+16px)] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(59,130,246,0.18),transparent_55%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_20%,rgba(168,85,247,0.16),transparent_55%)]" />
 
@@ -438,16 +429,16 @@ export default function DashboardPage() {
           whileTap={{ scale: 0.99 }}
           className="rounded-[26px] border border-white/10 bg-white/10 px-5 py-6 text-center shadow-[0_24px_60px_rgba(0,0,0,0.5)] backdrop-blur-2xl sm:px-6 sm:py-5 sm:text-center"
         >
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-[18px] bg-gradient-to-br from-blue-600/30 to-indigo-700/40 shadow-lg border border-white/10 sm:h-16 sm:w-16 sm:rounded-3xl">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-[18px] border border-white/10 bg-gradient-to-br from-blue-600/30 to-indigo-700/40 shadow-lg sm:h-16 sm:w-16 sm:rounded-3xl">
             <Settings className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-4xl">Dashboard principal</h1>
-          <p className="mt-2 text-sm font-normal text-slate-300 sm:text-lg">Centro de control de tu restaurante</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-4xl">Dashboard principale</h1>
+          <p className="mt-2 text-sm font-normal text-slate-300 sm:text-lg">Centro di controllo del tuo ristorante</p>
         </motion.section>
 
         <motion.section
           variants={item}
-          className="flex snap-x snap-mandatory scroll-smooth gap-6 overflow-x-auto pb-4 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible xl:grid-cols-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-4 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible xl:grid-cols-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           ref={statsScrollRef}
         >
           {dashboardStats.map(({ title, value, trend }) => (
@@ -462,8 +453,8 @@ export default function DashboardPage() {
           className="rounded-[28px] border border-white/10 bg-[#0a1220]/75 p-7 shadow-[0_30px_70px_rgba(0,0,0,0.5)] backdrop-blur-2xl sm:p-8"
         >
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <h3 className="text-xl font-semibold text-white">Scans del QR (últimos 7 días)</h3>
-            <span className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-slate-200">Semana actual</span>
+            <h3 className="text-xl font-semibold text-white">Scans QR degli ultimi 7 giorni</h3>
+            <span className="rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-slate-200">Settimana corrente</span>
           </div>
 
           <div className="mt-2 grid h-44 grid-cols-7 items-end gap-1.5 sm:gap-3">
@@ -471,7 +462,7 @@ export default function DashboardPage() {
               <div key={`${day}-${index}`} className="flex h-full flex-col items-center justify-end gap-2">
                 <span className="text-xs font-semibold text-teal-100">{value}</span>
                 <div
-                  className="mx-auto w-full max-w-[28px] rounded-2xl bg-gradient-to-t from-teal-500/90 via-cyan-300/70 to-teal-100/35 shadow-[0_12px_30px_rgba(20,184,166,0.55)] sm:max-w-none sm:w-24"
+                  className="mx-auto w-full max-w-[28px] rounded-2xl bg-gradient-to-t from-teal-500/90 via-cyan-300/70 to-teal-100/35 shadow-[0_12px_30px_rgba(20,184,166,0.55)] sm:w-24 sm:max-w-none"
                   style={{ height: `${Math.max(24, (value / maxQrScans) * 100)}%` }}
                 />
                 <span className="text-[10px] uppercase tracking-widest text-slate-400">{day}</span>
@@ -496,44 +487,46 @@ export default function DashboardPage() {
                 whileHover={hoverProps}
                 whileTap={{ scale: 0.98 }}
                 data-card-key={key}
-                className="group relative overflow-hidden rounded-[26px] border border-white/10 bg-white/10 p-7 text-left shadow-[0_25px_60px_rgba(0,0,0,0.5)] transition-all hover:shadow-2xl backdrop-blur-2xl sm:p-6"
+                className="group relative overflow-hidden rounded-[26px] border border-white/10 bg-white/10 p-7 text-left shadow-[0_25px_60px_rgba(0,0,0,0.5)] transition-all backdrop-blur-2xl hover:shadow-2xl sm:p-6"
               >
-              <div
-                className={`pointer-events-none absolute inset-0 rounded-3xl border transition-opacity duration-300 ${
-                  isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100"
-                }`}
-                style={{
-                  borderColor: key === "new-menu"
-                    ? "rgba(52,211,153,0.85)"
-                    : key === "panic"
-                      ? "rgba(251,191,36,0.8)"
-                    : key === "studio"
-                        ? "rgba(139,92,246,0.8)"
-                        : key === "posters"
-                          ? "rgba(34,211,238,0.8)"
-                          : key === "stats"
-                            ? "rgba(56,189,248,0.8)"
-                          : "rgba(251,191,36,0.7)",
-                }}
-              />
-              <div
-                className={`pointer-events-none absolute -inset-1 opacity-15 blur-2xl transition-opacity duration-300 ${
-                  isActive ? "opacity-100" : "group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100"
-                }`}
-                style={{
-                  background: key === "new-menu"
-                    ? "radial-gradient(circle at 20% 20%, rgba(52,211,153,0.85), transparent 55%)"
-                    : key === "panic"
-                      ? "radial-gradient(circle at 20% 20%, rgba(251,191,36,0.85), transparent 55%)"
-                    : key === "studio"
-                        ? "radial-gradient(circle at 20% 20%, rgba(139,92,246,0.85), transparent 55%)"
-                        : key === "posters"
-                          ? "radial-gradient(circle at 20% 20%, rgba(34,211,238,0.85), transparent 55%)"
-                          : key === "stats"
-                            ? "radial-gradient(circle at 20% 20%, rgba(56,189,248,0.85), transparent 55%)"
-                          : "radial-gradient(circle at 20% 20%, rgba(251,191,36,0.75), transparent 55%)",
-                }}
-              />
+                <div
+                  className={`pointer-events-none absolute inset-0 rounded-3xl border transition-opacity duration-300 ${
+                    isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100"
+                  }`}
+                  style={{
+                    borderColor:
+                      key === "new-menu"
+                        ? "rgba(52,211,153,0.85)"
+                        : key === "panic"
+                          ? "rgba(251,191,36,0.8)"
+                          : key === "studio"
+                            ? "rgba(139,92,246,0.8)"
+                            : key === "posters"
+                              ? "rgba(34,211,238,0.8)"
+                              : key === "stats"
+                                ? "rgba(56,189,248,0.8)"
+                                : "rgba(251,191,36,0.7)",
+                  }}
+                />
+                <div
+                  className={`pointer-events-none absolute -inset-1 blur-2xl transition-opacity duration-300 ${
+                    isActive ? "opacity-100" : "opacity-15 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100"
+                  }`}
+                  style={{
+                    background:
+                      key === "new-menu"
+                        ? "radial-gradient(circle at 20% 20%, rgba(52,211,153,0.85), transparent 55%)"
+                        : key === "panic"
+                          ? "radial-gradient(circle at 20% 20%, rgba(251,191,36,0.85), transparent 55%)"
+                          : key === "studio"
+                            ? "radial-gradient(circle at 20% 20%, rgba(139,92,246,0.85), transparent 55%)"
+                            : key === "posters"
+                              ? "radial-gradient(circle at 20% 20%, rgba(34,211,238,0.85), transparent 55%)"
+                              : key === "stats"
+                                ? "radial-gradient(circle at 20% 20%, rgba(56,189,248,0.85), transparent 55%)"
+                                : "radial-gradient(circle at 20% 20%, rgba(251,191,36,0.75), transparent 55%)",
+                  }}
+                />
                 <div
                   className={`mb-4 flex h-12 w-12 items-center justify-center rounded-[18px] bg-gradient-to-br ${color} text-white shadow-[0_12px_30px_rgba(0,0,0,0.35)] ring-1 ring-white/10 transition-all group-hover:-translate-y-0.5 group-hover:shadow-[0_18px_40px_rgba(0,0,0,0.45)] sm:h-14 sm:w-14 sm:rounded-2xl`}
                 >
@@ -556,7 +549,7 @@ export default function DashboardPage() {
               className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-slate-200 transition hover:bg-white/10 hover:text-white"
               onClick={() => setQrModalOpen(true)}
             >
-              Descargar QR (Alta Res)
+              Scarica QR (alta risoluzione)
             </button>
             <button
               type="button"
@@ -566,11 +559,12 @@ export default function DashboardPage() {
                 setPdfModalOpen(true)
               }}
             >
-              Generar PDF para Imprimir
+              Genera PDF da stampare
             </button>
           </div>
         </motion.footer>
       </motion.div>
+
       <AnimatePresence>
         {qrModalOpen && (
           <motion.div
@@ -588,22 +582,22 @@ export default function DashboardPage() {
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Descargar QR</h3>
-                  <p className="mt-1 text-sm text-slate-300">Selecciona el menu para descargar QR o generar PDF imprimible.</p>
+                  <h3 className="text-lg font-semibold text-white">Scarica QR</h3>
+                  <p className="mt-1 text-sm text-slate-300">Seleziona il menu per scaricare il QR o generare un PDF stampabile.</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setQrModalOpen(false)}
                   className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/10"
                 >
-                  Cerrar
+                  Chiudi
                 </button>
               </div>
 
               <div className="mt-5">
                 {menusLoading && (
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-300">
-                    Cargando menus...
+                    Caricamento menu...
                   </div>
                 )}
                 {menusError && !menusLoading && (
@@ -613,7 +607,7 @@ export default function DashboardPage() {
                 )}
                 {!menusLoading && !menusError && menus.length === 0 && (
                   <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-400">
-                    No hay menus creados todavia.
+                    Non hai ancora creato nessun menu.
                   </div>
                 )}
                 {!menusLoading && !menusError && menus.length > 0 && (
@@ -632,9 +626,7 @@ export default function DashboardPage() {
                           }`}
                         >
                           <div className="font-semibold">{menu.nombre}</div>
-                          <div className="mt-1 text-xs text-slate-400">
-                            {(menu.categories ?? []).length} categorias
-                          </div>
+                          <div className="mt-1 text-xs text-slate-400">{(menu.categories ?? []).length} categorie</div>
                         </button>
                       )
                     })}
@@ -657,7 +649,7 @@ export default function DashboardPage() {
                         onClick={downloadQrImage}
                         className="inline-flex items-center justify-center rounded-2xl border border-indigo-300/60 bg-indigo-400/20 px-4 py-2 text-xs font-semibold text-indigo-50 transition hover:bg-indigo-400/30"
                       >
-                        Descargar QR (Alta Res)
+                        Scarica QR (alta risoluzione)
                       </button>
                       <button
                         type="button"
@@ -666,14 +658,14 @@ export default function DashboardPage() {
                         }
                         className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/20"
                       >
-                        Vista previa
+                        Anteprima
                       </button>
                       <button
                         type="button"
                         onClick={openPrintablePdf}
                         className="inline-flex items-center justify-center rounded-2xl border border-emerald-300/60 bg-emerald-400/20 px-4 py-2 text-xs font-semibold text-emerald-50 transition hover:bg-emerald-400/30"
                       >
-                        Generar PDF para Imprimir
+                        Genera PDF da stampare
                       </button>
                     </div>
                     {pdfError && (
@@ -688,6 +680,7 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
       <AnimatePresence>
         {pdfModalOpen && (
           <motion.div
@@ -705,22 +698,22 @@ export default function DashboardPage() {
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Generar PDF para imprimir</h3>
-                  <p className="mt-1 text-sm text-slate-300">Selecciona el menu y abre la vista lista para imprimir o guardar en PDF.</p>
+                  <h3 className="text-lg font-semibold text-white">Genera PDF da stampare</h3>
+                  <p className="mt-1 text-sm text-slate-300">Seleziona il menu e apri la vista pronta per la stampa o il salvataggio in PDF.</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setPdfModalOpen(false)}
                   className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/10"
                 >
-                  Cerrar
+                  Chiudi
                 </button>
               </div>
 
               <div className="mt-5">
                 {menusLoading && (
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-300">
-                    Cargando menus...
+                    Caricamento menu...
                   </div>
                 )}
                 {menusError && !menusLoading && (
@@ -730,7 +723,7 @@ export default function DashboardPage() {
                 )}
                 {!menusLoading && !menusError && menus.length === 0 && (
                   <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-400">
-                    No hay menus creados todavia.
+                    Non hai ancora creato nessun menu.
                   </div>
                 )}
                 {!menusLoading && !menusError && menus.length > 0 && (
@@ -752,9 +745,7 @@ export default function DashboardPage() {
                           }`}
                         >
                           <div className="font-semibold">{menu.nombre}</div>
-                          <div className="mt-1 text-xs text-slate-400">
-                            {(menu.categories ?? []).length} categorias
-                          </div>
+                          <div className="mt-1 text-xs text-slate-400">{(menu.categories ?? []).length} categorie</div>
                         </button>
                       )
                     })}
@@ -773,7 +764,7 @@ export default function DashboardPage() {
                       onClick={openPrintablePdf}
                       className="inline-flex items-center justify-center rounded-2xl border border-emerald-300/60 bg-emerald-400/20 px-4 py-2 text-xs font-semibold text-emerald-50 transition hover:bg-emerald-400/30"
                     >
-                      Generar PDF para Imprimir
+                      Genera PDF da stampare
                     </button>
                     <button
                       type="button"
@@ -782,7 +773,7 @@ export default function DashboardPage() {
                       }
                       className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/20"
                     >
-                      Vista previa
+                      Anteprima
                     </button>
                   </div>
                   {pdfError && (

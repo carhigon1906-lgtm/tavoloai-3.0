@@ -69,7 +69,7 @@ export default function Sidebar() {
           {!isCollapsed && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="min-w-0">
               <h2 className="truncate text-[15px] font-semibold tracking-[-0.02em] text-white">TavoloAI</h2>
-              <p className="text-xs font-medium text-slate-400">{showAdmin ? "Administrador" : "Restaurante"}</p>
+              <p className="text-xs font-medium text-slate-400">{showAdmin ? "Amministrazione" : "Ristorante"}</p>
             </motion.div>
           )}
         </div>
@@ -78,7 +78,7 @@ export default function Sidebar() {
       <nav className="flex-1 p-3">
         {!isCollapsed && (
           <p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
-            {showAdmin ? "Admin" : "Panel"}
+            {showAdmin ? "Admin" : "Pannello"}
           </p>
         )}
         <div className="space-y-1.5">
@@ -120,7 +120,7 @@ export default function Sidebar() {
           className="flex w-full items-center gap-3 rounded-[18px] px-3 py-2.5 text-slate-300 transition-all duration-200 hover:bg-red-500/10 hover:text-red-300"
         >
           <LogOut className="h-[18px] w-[18px] flex-shrink-0" />
-          {!isCollapsed && <span className="font-medium text-[14px] tracking-[-0.01em]">Cerrar Sesion</span>}
+          {!isCollapsed && <span className="font-medium text-[14px] tracking-[-0.01em]">Esci</span>}
         </motion.button>
       </div>
 

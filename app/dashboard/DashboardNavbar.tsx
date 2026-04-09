@@ -8,14 +8,14 @@ import { CalendarDays, Sparkles } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 
 const sectionTitles = [
-  { match: /^\/dashboard$/, title: "Dashboard", subtitle: "Resumen general del negocio" },
-  { match: /^\/dashboard\/menus/, title: "Menus", subtitle: "Gestiona cartas y categorias" },
-  { match: /^\/dashboard\/media/, title: "Laboratorio IA", subtitle: "Mejora visual para platos y bebidas" },
-  { match: /^\/dashboard\/reports/, title: "Estadisticas", subtitle: "Lectura comercial del rendimiento" },
-  { match: /^\/dashboard\/posters/, title: "Afiches IA", subtitle: "Promociones listas para publicar" },
-  { match: /^\/dashboard\/local/, title: "Mi local", subtitle: "Datos visibles del negocio" },
-  { match: /^\/dashboard\/admin/, title: "Administrador", subtitle: "Operacion global de TavoloAI" },
-  { match: /^\/dashboard\/settings/, title: "Configuracion", subtitle: "Preferencias y cuenta" },
+  { match: /^\/dashboard$/, title: "Dashboard", subtitle: "Panoramica generale del locale" },
+  { match: /^\/dashboard\/menus/, title: "Menu", subtitle: "Gestisci menu, sezioni e categorie" },
+  { match: /^\/dashboard\/media/, title: "Laboratorio IA", subtitle: "Migliora immagini di piatti e bevande" },
+  { match: /^\/dashboard\/reports/, title: "Statistiche", subtitle: "Lettura commerciale delle performance" },
+  { match: /^\/dashboard\/posters/, title: "Poster IA", subtitle: "Promozioni pronte da pubblicare" },
+  { match: /^\/dashboard\/local/, title: "Il tuo locale", subtitle: "Informazioni visibili ai clienti" },
+  { match: /^\/dashboard\/admin/, title: "Amministrazione", subtitle: "Controllo operativo globale di TavoloAI" },
+  { match: /^\/dashboard\/settings/, title: "Impostazioni", subtitle: "Preferenze e dati dell'account" },
 ]
 
 export default function DashboardNavbar() {
@@ -47,7 +47,7 @@ export default function DashboardNavbar() {
     }
   }, [])
 
-  const targetText = userLabel ? `Hola Bienvenido ${userLabel}` : "Hola Bienvenido"
+  const targetText = userLabel ? `Benvenuto, ${userLabel}` : "Benvenuto"
 
   useEffect(() => {
     let index = 0
@@ -88,10 +88,10 @@ export default function DashboardNavbar() {
       <div className="ml-4 flex items-center gap-3">
         <div className="hidden items-center gap-2 rounded-full border border-white/[0.05] bg-white/6 px-3 py-2 text-xs text-slate-300 md:flex">
           <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
-          <span>{new Date().toLocaleDateString("es-CO", { day: "numeric", month: "short" })}</span>
+          <span>{new Date().toLocaleDateString("it-IT", { day: "numeric", month: "short" })}</span>
         </div>
         <div className="hidden min-w-0 rounded-full border border-white/[0.05] bg-white/6 px-3 py-2 text-xs md:block">
-          <p className="truncate text-slate-400">Sesion</p>
+          <p className="truncate text-slate-400">Sessione</p>
           <p className="max-w-[180px] truncate font-medium text-white">
             {userLabel || typedText}
             {!userLabel && <span className="ml-1 inline-block h-3 w-0.5 animate-pulse bg-white/70 align-middle" />}

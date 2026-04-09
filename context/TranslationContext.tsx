@@ -119,6 +119,211 @@ type TranslationDictionary = {
   }
 }
 
+const nativeItalianDictionary: TranslationDictionary = {
+  header: {
+    languageButton: "Lingua",
+    login: "Accedi",
+    signup: "Registrati",
+    nav: {
+      features: "Funzionalita",
+      demo: "Demo",
+      howItWorks: "Come funziona",
+      pricing: "Prezzi",
+      cases: "Storie di successo",
+      faq: "FAQ",
+    },
+    languages: {
+      es: "Spagnolo",
+      en: "Inglese",
+      it: "Italiano",
+    },
+  },
+  floatingCta: {
+    label: "Prova gratis",
+  },
+  hero: {
+    tagline: "Demo dal vivo",
+    title: "Il menu digitale che lavora davvero per il tuo ristorante.",
+    description: "Aggiorna il menu in pochi secondi, migliora le foto con l'IA e lancia promozioni pronte da pubblicare.",
+    primaryCta: "Inizia gratis",
+    secondaryCta: "Scopri come funziona",
+    trial: "7 giorni gratis, nessuna carta richiesta, disdici quando vuoi.",
+    liveBadge: "Demo dal vivo",
+  },
+  features: {
+    title: "Solo TavoloAI mette tutto questo nello stesso flusso",
+    items: [
+      {
+        title: "Crea il tuo menu QR in pochi minuti",
+        badge: "Attivalo subito",
+        description: "Importa il menu da foto o PDF e pubblica in pochi minuti un QR pronto da usare al tavolo.",
+      },
+      {
+        title: "Foto valorizzate con l'IA",
+        badge: "Piu conversione",
+        description: "Carica le immagini dal telefono e trasformale in visual piu curati, coerenti e appetitosi.",
+      },
+      {
+        title: "Modifiche immediate",
+        badge: "Risparmia tempo",
+        description: "Aggiorna prezzi, ordine dei piatti e disponibilita in pochi secondi, senza dipendere da nessuno.",
+      },
+      {
+        title: "Promozioni pronte per i social",
+        badge: "Pronte in 5 s",
+        description: "Genera contenuti per Instagram, WhatsApp e schermi interni con copy e visual gia pronti.",
+      },
+      {
+        title: "Piatti nascosti in tempo reale",
+        badge: "Meno errori",
+        description: "Togli subito dalla vista i piatti esauriti e mantieni il menu sempre allineato al servizio.",
+      },
+      {
+        title: "Filtri intelligenti",
+        badge: "Esperienza migliore",
+        description: "Metti in evidenza opzioni senza glutine, vegetariane o vegane con filtri automatici e chiari.",
+      },
+      {
+        title: "Multilingua automatico",
+        badge: "Nessun attrito",
+        description: "Rendi il menu disponibile in italiano, inglese e spagnolo senza rifare ogni testo a mano.",
+      },
+    ],
+    prevLabel: "Precedente",
+    nextLabel: "Successivo",
+    dotAria: "Vai alla slide {{index}}",
+  },
+  howItWorks: {
+    title: "Dalle foto alle vendite in 3 passaggi",
+    steps: [
+      {
+        title: "Crea il menu",
+        description: "Carica foto, nomi, prezzi e categorie.",
+      },
+      {
+        title: "Migliora con l'IA",
+        description: "Testi e immagini vengono rifiniti automaticamente.",
+      },
+      {
+        title: "Condividi e misura",
+        description: "Pubblica il QR, lancia le promo e controlla cosa funziona meglio.",
+      },
+    ],
+    sideNoteTitle: "Un menu curato, senza complicazioni",
+    sideNote:
+      "Trasforma i tuoi piatti in un menu digitale ordinato, moderno e convincente in pochi minuti.",
+    sideNote2Title: "Ogni piatto appare piu desiderabile",
+    sideNote2:
+      "L'IA migliora immagini e descrizioni per dare al menu un aspetto piu professionale e piu vendibile.",
+    sideNote3Title: "Pubblica, osserva, ottimizza",
+    sideNote3:
+      "Condividi il menu con un clic, porta il QR in sala e leggi in tempo reale quali piatti attirano di piu.",
+  },
+  beforeAfter: {
+    title: "L'effetto dell'IA sul tuo menu",
+    beforeLabel: "Prima",
+    afterLabel: "Dopo · +23% clic",
+    sliderAria: "Confronta prima e dopo",
+  },
+  cases: {
+    title: "Ristoranti che stanno gia vendendo di piu",
+    carouselRole: "Carosello di storie di successo",
+    cards: [
+      {
+        name: "Trattoria Roma",
+        result: "+18% sulle vendite del piatto in evidenza in 2 settimane",
+        quote: "Da quando mettiamo in risalto il piatto del giorno, gira molto meglio.",
+      },
+      {
+        name: "Bar Costa",
+        result: "+40% di interazioni sulle promo del weekend",
+        quote: "I contenuti pronti per WhatsApp ci hanno semplificato il venerdi sera.",
+      },
+      {
+        name: "La Esquina",
+        result: "+22% di ordini medi per tavolo in un mese",
+        quote: "Con un menu piu chiaro e sempre aggiornato, anche il servizio scorre meglio.",
+      },
+    ],
+  },
+  pricing: {
+    title: "Un solo piano, tutto incluso",
+    subtitle: "Nessun vincolo. Puoi interrompere quando vuoi.",
+    billingMonthlyLabel: "Piano mensile",
+    billingYearlyLabel: "Piano annuale",
+    priceLabel: "29 €",
+    priceSuffix: "/mese",
+    features: [
+      "Menu illimitati",
+      "IA per testi e immagini",
+      "Nascondi piatti al volo",
+      "Esportazione PDF",
+      "Multilingua",
+      "Promozioni, poster e banner",
+      "Statistiche operative",
+      "QR avanzato",
+      "Condivisione sui social",
+    ],
+    cta: "Inizia gratis",
+    compareTitle: "TavoloAI rispetto alle alternative tradizionali",
+    comparePoints: [
+      "Piu vendite rispetto a carta stampata o PDF statici",
+      "Aggiornamenti in pochi secondi senza passare da grafici esterni",
+      "Materiali gia pronti per WhatsApp e Instagram",
+      "Statistiche e controllo operativo in tempo reale",
+    ],
+    freePlan: {
+      title: "Piano Free",
+      subtitle: "Parti gratis e crea il tuo primo menu digitale.",
+      features: [
+        "1 menu preimpostato",
+        "QR base",
+        "Modifica semplice dei piatti",
+        "Accesso alla dashboard TavoloAI",
+      ],
+      cta: "Inizia gratis",
+    },
+  },
+  demo: {
+    title: "Provalo come farebbe un cliente",
+    description: "Scansiona il QR oppure usa la simulazione per provare le azioni principali.",
+    tasks: [
+      { id: "lang", label: "Cambiare lingua" },
+      { id: "gluten", label: "Attivare il filtro senza glutine" },
+      { id: "dish", label: "Mettere in evidenza il piatto del giorno" },
+      { id: "share", label: "Condividere l'evento su WhatsApp" },
+    ],
+    glutenButton: "Senza glutine",
+    dishHighlight: "Piatto del giorno: Ravioli al limone",
+    shareButton: "Condividi l'evento su WhatsApp",
+    simulationBadge: "Simulazione interattiva",
+    qrAlt: "QR della demo interattiva",
+    progressLabel: "{{value}}% completato",
+  },
+  faq: {
+    title: "Domande frequenti",
+    items: [
+      { question: "Serve un'app?", answer: "No. Funziona come web app accessibile via QR, senza download." },
+      { question: "Funziona anche offline?", answer: "Sì, puoi contare anche su una versione PDF stampabile." },
+      { question: "Posso disdire quando voglio?", answer: "Sì, puoi gestire tutto direttamente dal tuo pannello." },
+      { question: "E conforme al GDPR?", answer: "Sì, i dati sono protetti e gestiti con attenzione alla conformita europea." },
+      { question: "Mi serve un fotografo?", answer: "No, puoi partire dalle tue foto e migliorarle con l'IA." },
+      { question: "Posso personalizzare il design?", answer: "Sì, puoi adattare colori, logo e stile al tuo locale." },
+    ],
+  },
+  finalCta: {
+    title: "Inizia gratis oggi",
+    description: "Passa al piano Premium quando vuoi, senza blocchi e senza attriti.",
+    cta: "Prova gratis",
+    badge: "Puoi interrompere quando vuoi, senza vincoli",
+  },
+  sectionActions: {
+    infoLabel: "Piu info",
+    hideLabel: "Nascondi info",
+    primaryCta: "Prova gratis",
+  },
+}
+
 const dictionaries: Record<LanguageCode, TranslationDictionary> = {
   es: {
     header: {
@@ -709,7 +914,7 @@ export function TranslationProvider({
   }, [language])
 
   const value = useMemo<TranslationContextValue>(() => {
-    const dictionary = dictionaries[language]
+    const dictionary = language === "it" ? nativeItalianDictionary : dictionaries[language]
 
     const resolvePath = (obj: TranslationValue, path: string[]): TranslationValue | undefined => {
       return path.reduce<TranslationValue | undefined>((acc, key) => {
@@ -753,7 +958,7 @@ export function useTranslation() {
 }
 
 export const SUPPORTED_LANGUAGES: Array<{ code: LanguageCode; label: string }> = [
-  { code: "es", label: "Espanol" },
+  { code: "es", label: "Español" },
   { code: "en", label: "English" },
   { code: "it", label: "Italiano" },
 ]

@@ -73,7 +73,7 @@ export default function AuthModal({ open, onClose, mode }: Props) {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
-        setInfoMessage("Sesión iniciada.")
+        setInfoMessage("Accesso effettuato.")
         const redirectTarget = getRedirectTarget()
         onClose()
         router.push(redirectTarget ?? "/dashboard")
@@ -91,18 +91,18 @@ export default function AuthModal({ open, onClose, mode }: Props) {
 
         const payload = await response.json()
         if (!response.ok) {
-          throw new Error(payload.error || "No se pudo crear la cuenta. Intenta de nuevo.")
+          throw new Error(payload.error || "Impossibile creare l'account. Riprova.")
         }
 
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
         if (signInError) throw signInError
-        setInfoMessage("Cuenta creada correctamente.")
+        setInfoMessage("Account creato correttamente.")
         const redirectTarget = getRedirectTarget()
         onClose()
         router.push(redirectTarget ?? "/dashboard")
       }
     } catch (err) {
-      const message = err?.message ?? "No se pudo procesar la solicitud."
+      const message = err?.message ?? "Impossibile completare la richiesta."
       setErrorMessage(message)
     } finally {
       setLoading(false)
@@ -111,7 +111,7 @@ export default function AuthModal({ open, onClose, mode }: Props) {
 
   const handleGoogleAuth = async () => {
     setErrorMessage(null)
-    setInfoMessage("Redirigiendo a Google...")
+    setInfoMessage("Reindirizzamento a Google...")
     try {
       await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -120,7 +120,7 @@ export default function AuthModal({ open, onClose, mode }: Props) {
         },
       })
     } catch (err) {
-      const message = err?.message ?? "No se pudo iniciar sesión con Google."
+      const message = err?.message ?? "Impossibile accedere con Google."
       setErrorMessage(message)
       setInfoMessage(null)
     }
@@ -156,7 +156,7 @@ export default function AuthModal({ open, onClose, mode }: Props) {
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-blue-900/25 pointer-events-none" />
             <motion.button
               onClick={onClose}
-              aria-label="Cerrar"
+              aria-label="Chiudi"
               className="absolute right-4 top-4 w-8 h-8 rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-all duration-200 flex items-center justify-center"
               whileHover={{ scale: 1.1, rotate: 90 }}
               whileTap={{ scale: 0.9 }}
@@ -166,7 +166,6 @@ export default function AuthModal({ open, onClose, mode }: Props) {
               </svg>
             </motion.button>
 
-            {/* Contenido */}
             <div className="relative z-10">
               <motion.h2
                 className={`font-semibold text-white ${mode === "signup" ? "text-2xl mb-1" : "text-3xl mb-2"}`}
@@ -174,7 +173,7 @@ export default function AuthModal({ open, onClose, mode }: Props) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                {mode === "signin" ? "Inicia tu prueba gratis" : "Crea tu cuenta"}
+                {mode === "signin" ? "Inizia la tua prova gratuita" : "Crea il tuo account"}
               </motion.h2>
 
               <motion.p
@@ -184,11 +183,10 @@ export default function AuthModal({ open, onClose, mode }: Props) {
                 transition={{ delay: 0.15 }}
               >
                 {mode === "signin"
-                  ? "Crea tu cuenta o entra para continuar."
-                  : "Completa los datos para registrarte en TavoloAI."}
+                  ? "Accedi o crea un account per continuare."
+                  : "Compila i dati per registrarti su TavoloAI."}
               </motion.p>
 
-              {/* Formulario */}
               <motion.form
                 className={mode === "signup" ? "space-y-4" : "space-y-5"}
                 initial={{ opacity: 0, y: 20 }}
@@ -201,11 +199,11 @@ export default function AuthModal({ open, onClose, mode }: Props) {
               >
                 {mode === "signup" && (
                   <label className="block">
-                    <span className="text-sm font-medium text-slate-300 mb-1.5 block">Nombre completo</span>
+                    <span className="text-sm font-medium text-slate-300 mb-1.5 block">Nome e cognome</span>
                     <input
                       type="text"
                       required
-                      placeholder="Tu nombre"
+                      placeholder="Il tuo nome"
                       value={name}
                       onChange={(event) => setName(event.target.value)}
                       className={`w-full rounded-2xl border border-white/10 bg-white/5 px-4 ${
@@ -216,11 +214,11 @@ export default function AuthModal({ open, onClose, mode }: Props) {
                 )}
 
                 <label className="block">
-                  <span className="text-sm font-medium text-slate-300 mb-1.5 block">Correo electrónico</span>
+                  <span className="text-sm font-medium text-slate-300 mb-1.5 block">Email</span>
                   <input
                     type="email"
                     required
-                    placeholder="tu@correo.com"
+                    placeholder="tuamail@esempio.com"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     className={`w-full rounded-2xl border border-white/10 bg-white/5 px-4 ${
@@ -230,7 +228,7 @@ export default function AuthModal({ open, onClose, mode }: Props) {
                 </label>
 
                 <label className="block">
-                  <span className="text-sm font-medium text-slate-300 mb-1.5 block">Contraseña</span>
+                  <span className="text-sm font-medium text-slate-300 mb-1.5 block">Password</span>
                   <input
                     type="password"
                     required
@@ -245,11 +243,11 @@ export default function AuthModal({ open, onClose, mode }: Props) {
 
                 {mode === "signup" && (
                   <label className="block">
-                    <span className="text-sm font-medium text-slate-300 mb-1.5 block">Nombre del negocio</span>
+                    <span className="text-sm font-medium text-slate-300 mb-1.5 block">Nome del locale</span>
                     <input
                       type="text"
                       required
-                      placeholder="Ej: Restaurante Tavolo"
+                      placeholder="Es: Tavolo Ristorante"
                       value={business}
                       onChange={(event) => setBusiness(event.target.value)}
                       className={`w-full rounded-2xl border border-white/10 bg-white/5 px-4 ${
@@ -268,12 +266,11 @@ export default function AuthModal({ open, onClose, mode }: Props) {
                     className={`w-full text-base font-semibold ${mode === "signup" ? "py-2.5" : "py-3"}`}
                     disabled={loading}
                   >
-                    {loading ? "Procesando..." : mode === "signin" ? "Entrar" : "Crear cuenta"}
+                    {loading ? "Elaborazione..." : mode === "signin" ? "Accedi" : "Crea account"}
                   </Button>
                 </motion.div>
               </motion.form>
 
-              {/* Enlaces */}
               {mode === "signin" && (
                 <div className="mt-4 flex items-center justify-between text-sm text-slate-400">
                   <button
@@ -281,31 +278,30 @@ export default function AuthModal({ open, onClose, mode }: Props) {
                     onClick={() => navigateAndClose("/forgot-password")}
                     className="text-slate-300 hover:text-white underline decoration-dotted transition-colors bg-transparent"
                   >
-                    ¿Olvidaste tu contraseña?
+                    Hai dimenticato la password?
                   </button>
                   <span />
                 </div>
               )}
               {mode === "signup" && (
                 <div className="mt-4 text-center text-sm text-slate-400">
-                  ¿Ya tienes cuenta?
+                  Hai già un account?
                   <button
                     type="button"
                     onClick={handleOpenSignin}
                     className="ml-1 text-blue-300 hover:text-blue-200 font-medium underline bg-transparent"
                   >
-                    Inicia sesión
+                    Accedi
                   </button>
                 </div>
               )}
 
               <div className={mode === "signup" ? "my-5 flex items-center gap-4" : "my-8 flex items-center gap-4"}>
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-                <span className="text-sm text-slate-400 font-medium">o</span>
+                <span className="text-sm text-slate-400 font-medium">oppure</span>
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
               </div>
 
-              {/* Botón Google con brillo real */}
               <div className="flex justify-center">
                 <motion.button
                   onMouseEnter={() => setHovered(true)}
@@ -315,7 +311,6 @@ export default function AuthModal({ open, onClose, mode }: Props) {
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {/* Glow más visible */}
                   <motion.div
                     className="absolute inset-0 rounded-full pointer-events-none"
                     animate={{
@@ -334,7 +329,6 @@ export default function AuthModal({ open, onClose, mode }: Props) {
                     }}
                   />
 
-                  {/* Reflejo deslizante real */}
                   <motion.div
                     className="absolute inset-0 pointer-events-none"
                     animate={hovered ? controls.start({ x: ["-100%", "100%"] }) : controls.stop()}
@@ -350,7 +344,6 @@ export default function AuthModal({ open, onClose, mode }: Props) {
                     }}
                   />
 
-                  {/* Logo Google */}
                   <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true" className="relative z-10">
                     <path
                       fill="#EA4335"

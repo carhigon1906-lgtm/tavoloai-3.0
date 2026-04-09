@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
 
-const title = "Recuperar contraseña | TavoloAI"
-const description = "Recupera el acceso a tu cuenta de TavoloAI con un enlace seguro."
+const title = "Recupera la password | TavoloAI"
+const description = "Recupera l'accesso al tuo account TavoloAI tramite un link sicuro."
 
 export const metadata: Metadata = {
   title,

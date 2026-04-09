@@ -10,11 +10,11 @@ import { supabase } from "@/lib/supabaseClient"
 import { isPublicAdminEmail } from "@/lib/adminAccess"
 
 const items = [
-  { icon: Home, label: "Inicio", href: "/dashboard" },
-  { icon: Menu, label: "Menus", href: "/dashboard/menus" },
+  { icon: Home, label: "Home", href: "/dashboard" },
+  { icon: Menu, label: "Menu", href: "/dashboard/menus" },
   { icon: Image, label: "IA", href: "/dashboard/media" },
-  { icon: BarChart3, label: "Stats", href: "/dashboard/reports" },
-  { icon: Settings, label: "Ajustes", href: "/dashboard/settings" },
+  { icon: BarChart3, label: "Dati", href: "/dashboard/reports" },
+  { icon: Settings, label: "Impost.", href: "/dashboard/settings" },
 ]
 
 const adminItems = [{ icon: Shield, label: "Admin", href: "/dashboard/admin" }]
