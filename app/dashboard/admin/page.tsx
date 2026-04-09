@@ -8,7 +8,11 @@ import {
   BarChart3,
   Building2,
   CircleGauge,
+  ChevronDown,
+  ChevronUp,
+  HeartPulse,
   MenuSquare,
+  Radar,
   Shield,
   TrendingUp,
   UserPlus,
@@ -34,6 +38,18 @@ type AdminPayload = {
     activeBusinesses30d: number
     stickiness: number
   }
+  comparisons: {
+    accounts30dDelta: number
+    scans30dDelta: number
+    visitors30dDelta: number
+    activeBusinesses30dDelta: number
+    stickinessDelta: number
+  }
+  health: {
+    growthScore: number
+    activationScore: number
+    engagementScore: number
+  }
   daily: Array<{ day: string; accounts: number; scans: number; visitors: number }>
   topBusinesses: Array<{
     userId: string
@@ -47,7 +63,6 @@ type AdminPayload = {
   recentUsers: Array<{ id: string; email: string; business: string; createdAt: string }>
   trafficSources: Array<{ source: string; visits: number }>
   generatedAt: string
-  isDemo?: boolean
 }
 
 const container = {
@@ -77,12 +92,23 @@ const emptyPayload: AdminPayload = {
     activeBusinesses30d: 0,
     stickiness: 0,
   },
+  comparisons: {
+    accounts30dDelta: 0,
+    scans30dDelta: 0,
+    visitors30dDelta: 0,
+    activeBusinesses30dDelta: 0,
+    stickinessDelta: 0,
+  },
+  health: {
+    growthScore: 0,
+    activationScore: 0,
+    engagementScore: 0,
+  },
   daily: [],
   topBusinesses: [],
   recentUsers: [],
   trafficSources: [],
   generatedAt: "",
-  isDemo: false,
 }
 
 function MetricCard({
@@ -90,20 +116,33 @@ function MetricCard({
   title,
   value,
   detail,
+  delta,
 }: {
   icon: any
   title: string
   value: string | number
   detail: string
+  delta: number
 }) {
+  const positive = delta >= 0
   return (
     <div className="rounded-[28px] border border-white/10 bg-white/[0.045] p-5 shadow-[0_22px_55px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] uppercase tracking-[0.32em] text-slate-400">{title}</p>
           <p className="mt-3 text-3xl font-semibold tracking-tight text-white">
             {typeof value === "number" ? value.toLocaleString() : value}
           </p>
+          <div
+            className={`mt-3 inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+              positive
+                ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-200"
+                : "border-rose-300/20 bg-rose-400/10 text-rose-200"
+            }`}
+          >
+            {positive ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {Math.abs(delta)}% vs periodo previo
+          </div>
         </div>
         <div className="flex h-12 w-12 items-center justify-center rounded-[18px] border border-white/10 bg-cyan-400/10">
           <Icon className="h-5 w-5 text-cyan-100" />
@@ -112,6 +151,18 @@ function MetricCard({
       <p className="mt-3 text-sm text-slate-300">{detail}</p>
     </div>
   )
+}
+
+function scoreTone(value: number) {
+  if (value >= 75) return "from-emerald-300 to-cyan-300"
+  if (value >= 55) return "from-amber-300 to-yellow-300"
+  return "from-rose-300 to-orange-300"
+}
+
+function scoreLabel(value: number) {
+  if (value >= 75) return "Fuerte"
+  if (value >= 55) return "Estable"
+  return "Debil"
 }
 
 export default function AdminDashboardPage() {
@@ -175,11 +226,25 @@ export default function AdminDashboardPage() {
   const activationRate = data.overview.totalMenus > 0
     ? Math.round((data.overview.activeMenus / data.overview.totalMenus) * 100)
     : 0
+  const accountGrowthRate = data.overview.totalAccounts > 0
+    ? Math.round((data.overview.newAccounts30d / data.overview.totalAccounts) * 100)
+    : 0
+  const visitorMix = data.overview.scans30d > 0
+    ? Math.round((data.overview.visitors30d / data.overview.scans30d) * 100)
+    : 0
+  const linePoints = data.daily
+    .map((entry, index) => {
+      const x = data.daily.length <= 1 ? 0 : (index / (data.daily.length - 1)) * 100
+      const y = 100 - (entry.scans / chartMax) * 100
+      return `${x},${Number.isFinite(y) ? y : 100}`
+    })
+    .join(" ")
 
   return (
     <RequireAdmin>
       <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#04060d] via-[#07111c] to-[#03050b] text-white">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(34,211,238,0.16),transparent_36%),radial-gradient(circle_at_90%_12%,rgba(16,185,129,0.16),transparent_30%),radial-gradient(circle_at_52%_100%,rgba(14,165,233,0.12),transparent_30%)]" />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:32px_32px]" />
 
         <motion.div
           initial="hidden"
@@ -189,36 +254,60 @@ export default function AdminDashboardPage() {
         >
           <motion.section
             variants={item}
-            className="rounded-[30px] border border-cyan-300/15 bg-[linear-gradient(135deg,rgba(6,182,212,0.14),rgba(15,23,42,0.88))] p-7 shadow-[0_28px_80px_rgba(0,0,0,0.48)]"
+            className="overflow-hidden rounded-[34px] border border-cyan-300/15 bg-[linear-gradient(135deg,rgba(10,18,31,0.98),rgba(7,18,29,0.92)_55%,rgba(8,95,111,0.42))] p-7 shadow-[0_28px_80px_rgba(0,0,0,0.48)]"
           >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_22%,rgba(34,211,238,0.22),transparent_24%),radial-gradient(circle_at_18%_78%,rgba(16,185,129,0.14),transparent_28%)]" />
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="max-w-3xl">
                 <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs uppercase tracking-[0.25em] text-cyan-100">
                   <Shield className="h-3.5 w-3.5" />
-                  Admin privado
+                  Control Admin
                 </div>
-                {data.isDemo && (
-                  <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-400/10 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-amber-100">
-                    Datos de ejemplo
-                  </div>
-                )}
                 <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-                  Centro de control global
+                  Estado general de la plataforma
                 </h1>
                 <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
-                  Vista operativa de TavoloAI: cuentas creadas, negocios activos, scans QR y uso real de la plataforma.
+                  Lectura ejecutiva de TavoloAI con crecimiento, adopcion, actividad comercial y negocios con mayor traccion.
                 </p>
+                <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="rounded-[22px] border border-white/10 bg-white/[0.045] px-4 py-3">
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Crecimiento</div>
+                    <div className="mt-2 text-2xl font-semibold text-white">{accountGrowthRate}%</div>
+                    <div className="mt-1 text-xs text-slate-400">de las cuentas llegaron en los ultimos 30 dias</div>
+                  </div>
+                  <div className="rounded-[22px] border border-white/10 bg-white/[0.045] px-4 py-3">
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Activacion</div>
+                    <div className="mt-2 text-2xl font-semibold text-white">{activationRate}%</div>
+                    <div className="mt-1 text-xs text-slate-400">de los menus registrados siguen activos</div>
+                  </div>
+                  <div className="rounded-[22px] border border-white/10 bg-white/[0.045] px-4 py-3">
+                    <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Calidad de trafico</div>
+                    <div className="mt-2 text-2xl font-semibold text-white">{visitorMix}%</div>
+                    <div className="mt-1 text-xs text-slate-400">de los scans del mes provienen de visitantes unicos</div>
+                  </div>
+                </div>
               </div>
 
-              <div className="rounded-[24px] border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-200">
+              <div className="w-full max-w-[320px] rounded-[28px] border border-white/10 bg-black/25 p-5 text-sm text-slate-200 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
                 <div className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Ultima actualizacion</div>
-                <div className="mt-2 font-medium">
+                <div className="mt-2 font-medium text-white">
                   {data.generatedAt
-                    ? new Date(data.generatedAt).toLocaleString("es-CO", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })
+                    ? new Date(data.generatedAt).toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" })
                     : "Cargando..."}
+                </div>
+                <div className="mt-5 space-y-3">
+                  <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
+                    <span className="text-slate-400">Negocios activos 30d</span>
+                    <span className="font-semibold text-emerald-100">{data.overview.activeBusinesses30d.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
+                    <span className="text-slate-400">Scans mensuales</span>
+                    <span className="font-semibold text-cyan-100">{data.overview.scans30d.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
+                    <span className="text-slate-400">Visitantes mensuales</span>
+                    <span className="font-semibold text-white">{data.overview.visitors30d.toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -243,39 +332,83 @@ export default function AdminDashboardPage() {
               <motion.section variants={item} className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <MetricCard
                   icon={Users}
-                  title="Cuentas"
+                  title="Cuentas Totales"
                   value={data.overview.totalAccounts}
-                  detail={`+${data.overview.newAccounts7d} en 7 dias, +${data.overview.newAccounts30d} en 30 dias`}
+                  detail={`${data.overview.newAccounts7d} nuevas en 7 dias y ${data.overview.newAccounts30d} nuevas en 30 dias`}
+                  delta={data.comparisons.accounts30dDelta}
                 />
                 <MetricCard
                   icon={MenuSquare}
-                  title="Menus"
-                  value={data.overview.totalMenus}
-                  detail={`${data.overview.activeMenus} activos, ${activationRate}% de activacion`}
+                  title="Menus Activos"
+                  value={data.overview.activeMenus}
+                  detail={`${data.overview.activeMenus} activos sobre ${data.overview.totalMenus} creados`}
+                  delta={data.comparisons.activeBusinesses30dDelta}
                 />
                 <MetricCard
                   icon={Activity}
-                  title="Visitantes"
+                  title="Visitantes Unicos"
                   value={data.overview.visitors30d}
-                  detail={`${data.overview.visitors24h} en 24h, ${data.overview.visitors7d} en 7 dias`}
+                  detail={`${data.overview.visitors24h} en 24h y ${data.overview.visitors7d} en los ultimos 7 dias`}
+                  delta={data.comparisons.visitors30dDelta}
                 />
                 <MetricCard
                   icon={CircleGauge}
                   title="Stickiness"
                   value={`${data.overview.stickiness}%`}
-                  detail={`${data.overview.activeBusinesses30d} negocios activos en 30 dias`}
+                  detail={`${data.overview.activeBusinesses30d} negocios generaron actividad en 30 dias`}
+                  delta={data.comparisons.stickinessDelta}
                 />
               </motion.section>
 
-              <motion.section variants={item} className="grid grid-cols-1 gap-4 xl:grid-cols-[1.5fr_1fr]">
+              <motion.section variants={item} className="grid grid-cols-1 gap-4 xl:grid-cols-[1.45fr_0.55fr]">
                 <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
                   <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h2 className="text-xl font-semibold text-white">Pulso diario</h2>
-                      <p className="mt-1 text-sm text-slate-400">Ultimos 14 dias de altas, scans y visitantes unicos.</p>
+                      <p className="mt-1 text-sm text-slate-400">Evolucion de adquisicion, trafico y visitas unicas durante las ultimas dos semanas.</p>
                     </div>
                     <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-300">
-                      Escala relativa
+                      Ultimos 14 dias
+                    </div>
+                  </div>
+
+                  <div className="mb-5 grid grid-cols-3 gap-3">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                      <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Scans 30d</div>
+                      <div className="mt-2 text-2xl font-semibold text-white">{data.overview.scans30d.toLocaleString()}</div>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                      <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Delta mensual</div>
+                      <div className={`mt-2 text-2xl font-semibold ${data.comparisons.scans30dDelta >= 0 ? "text-emerald-200" : "text-rose-200"}`}>
+                        {data.comparisons.scans30dDelta >= 0 ? "+" : ""}{data.comparisons.scans30dDelta}%
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                      <div className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Visitantes</div>
+                      <div className="mt-2 text-2xl font-semibold text-white">{data.overview.visitors30d.toLocaleString()}</div>
+                    </div>
+                  </div>
+
+                  <div className="relative mb-6 h-28 overflow-hidden rounded-[24px] border border-cyan-300/10 bg-[linear-gradient(180deg,rgba(8,145,178,0.12),rgba(255,255,255,0.02))] px-4 py-4">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+                      <defs>
+                        <linearGradient id="adminScansLine" x1="0%" x2="100%" y1="0%" y2="0%">
+                          <stop offset="0%" stopColor="rgba(34,211,238,0.85)" />
+                          <stop offset="100%" stopColor="rgba(16,185,129,0.85)" />
+                        </linearGradient>
+                      </defs>
+                      <polyline
+                        fill="none"
+                        stroke="url(#adminScansLine)"
+                        strokeWidth="2.5"
+                        points={linePoints}
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </svg>
+                    <div className="relative z-10 flex h-full items-end justify-between text-[10px] uppercase tracking-[0.18em] text-slate-500">
+                      <span>{data.daily[0] ? new Date(`${data.daily[0].day}T00:00:00`).toLocaleDateString("es-CO", { day: "2-digit", month: "short" }) : ""}</span>
+                      <span>Tendencia</span>
+                      <span>{data.daily[data.daily.length - 1] ? new Date(`${data.daily[data.daily.length - 1].day}T00:00:00`).toLocaleDateString("es-CO", { day: "2-digit", month: "short" }) : ""}</span>
                     </div>
                   </div>
 
@@ -324,6 +457,33 @@ export default function AdminDashboardPage() {
 
                 <div className="grid grid-cols-1 gap-4">
                   <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-white">Salud de plataforma</h2>
+                      <HeartPulse className="h-4 w-4 text-cyan-200" />
+                    </div>
+                    <div className="space-y-4">
+                      {[
+                        { label: "Crecimiento", value: data.health.growthScore },
+                        { label: "Activacion", value: data.health.activationScore },
+                        { label: "Engagement", value: data.health.engagementScore },
+                      ].map((metric) => (
+                        <div key={metric.label}>
+                          <div className="flex items-center justify-between text-sm text-slate-300">
+                            <span>{metric.label}</span>
+                            <span className="font-medium text-white">{scoreLabel(metric.value)} · {metric.value}/100</span>
+                          </div>
+                          <div className="mt-2 h-2.5 rounded-full bg-white/10">
+                            <div
+                              className={`h-2.5 rounded-full bg-gradient-to-r ${scoreTone(metric.value)}`}
+                              style={{ width: `${Math.max(6, metric.value)}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
                     <div className="flex items-center justify-between">
                       <h2 className="text-lg font-semibold text-white">Actividad reciente</h2>
                       <TrendingUp className="h-4 w-4 text-emerald-200" />
@@ -342,6 +502,10 @@ export default function AdminDashboardPage() {
                         <div className="mt-1 text-2xl font-semibold text-emerald-100">
                           {data.overview.activeBusinesses7d.toLocaleString()}
                         </div>
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.26em] text-slate-500">Menus activos</div>
+                        <div className="mt-1 text-2xl font-semibold text-white">{data.overview.activeMenus.toLocaleString()}</div>
                       </div>
                     </div>
                   </div>
@@ -375,7 +539,7 @@ export default function AdminDashboardPage() {
               <motion.section variants={item} className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
                 <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-white">Negocios con mas traccion</h2>
+                    <h2 className="text-xl font-semibold text-white">Negocios con mayor traccion</h2>
                     <Building2 className="h-4 w-4 text-cyan-100" />
                   </div>
                   <div className="mt-6 overflow-hidden rounded-[22px] border border-white/10">
@@ -404,25 +568,52 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
 
-                <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-white">Ultimos registros</h2>
-                    <UserPlus className="h-4 w-4 text-violet-200" />
-                  </div>
-                  <div className="mt-5 space-y-3">
-                    {data.recentUsers.length === 0 && <p className="text-sm text-slate-400">Aun no hay cuentas registradas.</p>}
-                    {data.recentUsers.map((user) => (
-                      <div key={user.id} className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-3">
-                        <div className="truncate font-medium text-white">{user.business}</div>
-                        <div className="mt-1 truncate text-xs text-slate-400">{user.email}</div>
-                        <div className="mt-2 text-xs text-cyan-100">
-                          {new Date(user.createdAt).toLocaleString("es-CO", {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          })}
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-semibold text-white">Altas recientes</h2>
+                      <UserPlus className="h-4 w-4 text-violet-200" />
+                    </div>
+                    <div className="mt-5 space-y-3">
+                      {data.recentUsers.length === 0 && <p className="text-sm text-slate-400">Aun no hay cuentas registradas.</p>}
+                      {data.recentUsers.map((user) => (
+                        <div key={user.id} className="rounded-[22px] border border-white/10 bg-white/5 px-4 py-3">
+                          <div className="truncate font-medium text-white">{user.business}</div>
+                          <div className="mt-1 truncate text-xs text-slate-400">{user.email}</div>
+                          <div className="mt-2 text-xs text-cyan-100">
+                            {new Date(user.createdAt).toLocaleString("es-CO", {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })}
+                          </div>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6 shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-semibold text-white">Radar ejecutivo</h2>
+                      <Radar className="h-4 w-4 text-cyan-200" />
+                    </div>
+                    <div className="mt-5 grid grid-cols-2 gap-3">
+                      <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                        <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Growth</div>
+                        <div className="mt-2 text-2xl font-semibold text-white">{data.comparisons.accounts30dDelta >= 0 ? "+" : ""}{data.comparisons.accounts30dDelta}%</div>
                       </div>
-                    ))}
+                      <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                        <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Traffic</div>
+                        <div className="mt-2 text-2xl font-semibold text-white">{data.comparisons.scans30dDelta >= 0 ? "+" : ""}{data.comparisons.scans30dDelta}%</div>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                        <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Visitors</div>
+                        <div className="mt-2 text-2xl font-semibold text-white">{data.comparisons.visitors30dDelta >= 0 ? "+" : ""}{data.comparisons.visitors30dDelta}%</div>
+                      </div>
+                      <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+                        <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Stickiness</div>
+                        <div className="mt-2 text-2xl font-semibold text-white">{data.comparisons.stickinessDelta >= 0 ? "+" : ""}{data.comparisons.stickinessDelta} pts</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </motion.section>

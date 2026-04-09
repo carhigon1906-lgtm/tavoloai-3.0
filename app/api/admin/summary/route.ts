@@ -26,6 +26,11 @@ type EventRow = {
   created_at: string
 }
 
+function pctChange(current: number, previous: number) {
+  if (previous <= 0) return current > 0 ? 100 : 0
+  return Math.round(((current - previous) / previous) * 100)
+}
+
 function getDayKey(value: string) {
   return new Date(value).toISOString().slice(0, 10)
 }
@@ -103,6 +108,18 @@ function buildDemoPayload() {
       activeBusinesses30d: 17,
       stickiness: 39,
     },
+    comparisons: {
+      accounts30dDelta: 24,
+      scans30dDelta: 18,
+      visitors30dDelta: 15,
+      activeBusinesses30dDelta: 12,
+      stickinessDelta: 6,
+    },
+    health: {
+      growthScore: 78,
+      activationScore: 71,
+      engagementScore: 74,
+    },
     daily,
     topBusinesses: [
       { userId: "demo-1", email: "roma@example.com", business: "Roma Burger", menusTotal: 4, activeMenus: 3, scans30d: 148, visitors30d: 87 },
@@ -121,7 +138,6 @@ function buildDemoPayload() {
       { source: "Google", visits: 92 },
     ],
     generatedAt: new Date().toISOString(),
-    isDemo: true,
   }
 }
 
@@ -194,9 +210,18 @@ export async function GET(request: Request) {
     const events24h = allEvents.filter((event) => now - new Date(event.created_at).getTime() <= dayMs)
     const events7d = allEvents.filter((event) => now - new Date(event.created_at).getTime() <= 7 * dayMs)
     const events30d = allEvents.filter((event) => now - new Date(event.created_at).getTime() <= 30 * dayMs)
+    const eventsPrev30d = allEvents.filter((event) => {
+      const age = now - new Date(event.created_at).getTime()
+      return age > 30 * dayMs && age <= 60 * dayMs
+    })
 
     const users7d = users.filter((entry) => entry.created_at && now - new Date(entry.created_at).getTime() <= 7 * dayMs)
     const users30d = users.filter((entry) => entry.created_at && now - new Date(entry.created_at).getTime() <= 30 * dayMs)
+    const usersPrev30d = users.filter((entry) => {
+      if (!entry.created_at) return false
+      const age = now - new Date(entry.created_at).getTime()
+      return age > 30 * dayMs && age <= 60 * dayMs
+    })
     const activeMenus = menus.filter((menu) => !!menu.activo)
 
     const usersMap = new Map(
@@ -280,6 +305,14 @@ export async function GET(request: Request) {
 
     const visitors7d = uniqueSessions(events7d)
     const visitors30d = uniqueSessions(events30d)
+    const visitorsPrev30d = uniqueSessions(eventsPrev30d)
+    const activeBusinessesPrev30d = new Set(eventsPrev30d.map((event) => event.user_id)).size
+    const stickiness = visitors30d > 0 ? Math.round((visitors7d / visitors30d) * 100) : 0
+    const stickinessPrev = visitorsPrev30d > 0 ? Math.round((uniqueSessions(eventsPrev30d.filter((event) => now - new Date(event.created_at).getTime() <= 37 * dayMs && now - new Date(event.created_at).getTime() > 30 * dayMs)) / visitorsPrev30d) * 100) : 0
+
+    const activationRate = menus.length > 0 ? Math.round((activeMenus.length / menus.length) * 100) : 0
+    const growthRate = users.length > 0 ? Math.min(100, Math.round((users30d.length / users.length) * 100)) : 0
+    const engagementRate = events30d.length > 0 ? Math.min(100, Math.round((visitors30d / events30d.length) * 100)) : 0
 
     return NextResponse.json({
       overview: {
@@ -296,14 +329,25 @@ export async function GET(request: Request) {
         visitors30d,
         activeBusinesses7d: new Set(events7d.map((event) => event.user_id)).size,
         activeBusinesses30d: new Set(events30d.map((event) => event.user_id)).size,
-        stickiness: visitors30d > 0 ? Math.round((visitors7d / visitors30d) * 100) : 0,
+        stickiness,
+      },
+      comparisons: {
+        accounts30dDelta: pctChange(users30d.length, usersPrev30d.length),
+        scans30dDelta: pctChange(events30d.length, eventsPrev30d.length),
+        visitors30dDelta: pctChange(visitors30d, visitorsPrev30d),
+        activeBusinesses30dDelta: pctChange(new Set(events30d.map((event) => event.user_id)).size, activeBusinessesPrev30d),
+        stickinessDelta: stickiness - stickinessPrev,
+      },
+      health: {
+        growthScore: growthRate,
+        activationScore: activationRate,
+        engagementScore: engagementRate,
       },
       daily: Array.from(dailyMap.values()),
       topBusinesses,
       recentUsers,
       trafficSources,
       generatedAt: new Date().toISOString(),
-      isDemo: false,
     })
   } catch {
     return NextResponse.json(buildDemoPayload())
