@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+﻿import type { Metadata } from "next"
 import type { ReactNode } from "react"
 
 type LayoutProps = {
@@ -7,8 +7,8 @@ type LayoutProps = {
 }
 
 export function generateMetadata({ params }: LayoutProps): Metadata {
-  const title = "Detalle del plato | TavoloAI"
-  const description = "Consulta ingredientes y precio del plato en el menú digital."
+  const title = "Dettaglio del piatto | TavoloAI"
+  const description = "Consulta ingredienti e prezzo del piatto nel menu digitale."
   const canonical = `/menu/burgers/${params.id}`
 
   return {
@@ -32,3 +32,8 @@ export function generateMetadata({ params }: LayoutProps): Metadata {
 export default function MenuBurgerDetailLayout({ children }: LayoutProps) {
   return children
 }
+
+
+
+
+

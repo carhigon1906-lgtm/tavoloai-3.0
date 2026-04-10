@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 "use client"
 
 import Link from "next/link"
@@ -36,9 +36,7 @@ export default function MediaLabPage() {
   const [selected, setSelected] = useState<MediaImage | null>(null)
   const [enhancing, setEnhancing] = useState(false)
   const [enhanceError, setEnhanceError] = useState("")
-  const [pendingUpdates, setPendingUpdates] = useState<
-    Record<string, { image: MediaImage; originalUrl: string; tmpUrl: string }>
-  >({})
+  const [pendingUpdates, setPendingUpdates] = useState<Record<string, { image: MediaImage; originalUrl: string; tmpUrl: string }>>({})
   const [savingChanges, setSavingChanges] = useState(false)
   const [saveError, setSaveError] = useState("")
   const [saveSuccess, setSaveSuccess] = useState("")
@@ -53,18 +51,15 @@ export default function MediaLabPage() {
       } = await supabase.auth.getSession()
 
       if (!session) {
-        setError("Debes iniciar sesión para ver tus imágenes.")
+        setError("Devi accedere per vedere le tue immagini.")
         setLoading(false)
         return
       }
 
-      const { data, error } = await supabase
-        .from("menus")
-        .select("id, logo_url, categories")
-        .eq("user_id", session.user.id)
+      const { data, error } = await supabase.from("menus").select("id, logo_url, categories").eq("user_id", session.user.id)
 
       if (error) {
-        setError("No pudimos cargar tus imágenes.")
+        setError("Non siamo riusciti a caricare le tue immagini.")
         setLoading(false)
         return
       }
@@ -88,9 +83,9 @@ export default function MediaLabPage() {
         }
 
         const categories = Array.isArray(menu.categories) ? menu.categories : []
-        categories.forEach((category, categoryIndex) => {
+        categories.forEach((category) => {
           const dishes = Array.isArray(category.platos) ? category.platos : []
-          dishes.forEach((dish, dishIndex) => {
+          dishes.forEach((dish) => {
             if (!dish?.foto_url) return
             const existing = imagesByUrl.get(dish.foto_url)
             const dishId = typeof dish.id === "number" ? dish.id : undefined
@@ -100,7 +95,7 @@ export default function MediaLabPage() {
               imagesByUrl.set(dish.foto_url, {
                 id: `media-${imagesByUrl.size + 1}`,
                 url: dish.foto_url,
-                label: "Plato",
+                label: "Piatto",
                 sources: [{ menuId: menu.id, kind: "dish", dishId }],
               })
             }
@@ -147,12 +142,12 @@ export default function MediaLabPage() {
     })
 
     if (!response.ok) {
-      throw new Error("No se pudo subir la imagen mejorada.")
+      throw new Error("Non e stato possibile caricare l'immagine migliorata.")
     }
 
     const result = await response.json()
     if (!result?.publicUrl) {
-      throw new Error("No se pudo obtener la URL de la imagen mejorada.")
+      throw new Error("Non e stato possibile ottenere l'URL dell'immagine migliorata.")
     }
 
     return result.publicUrl as string
@@ -168,7 +163,7 @@ export default function MediaLabPage() {
       const originalUrl = selected.url
       const sourceResponse = await fetch(selected.url)
       if (!sourceResponse.ok) {
-        throw new Error("No se pudo descargar la imagen.")
+        throw new Error("Non e stato possibile scaricare l'immagine.")
       }
       const sourceBlob = await sourceResponse.blob()
       const fileName = `media-${Date.now()}.png`
@@ -184,19 +179,17 @@ export default function MediaLabPage() {
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}))
-        const message = payload?.error || "No se pudo mejorar la imagen."
+        const message = payload?.error || "Non e stato possibile migliorare l'immagine."
         const status = payload?.status
         const requestId = payload?.requestId
-        const details = [status ? `status ${status}` : "", requestId ? `request ${requestId}` : ""]
-          .filter(Boolean)
-          .join(" · ")
+        const details = [status ? `status ${status}` : "", requestId ? `request ${requestId}` : ""].filter(Boolean).join(" · ")
         throw new Error(details ? `${message} (${details})` : message)
       }
 
       const payload = await response.json()
       const tmpUrl = payload?.tmpUrl
       if (!tmpUrl || typeof tmpUrl !== "string") {
-        throw new Error("Respuesta inválida del servicio de mejora.")
+        throw new Error("Risposta non valida del servizio di miglioramento.")
       }
 
       setSelected((prev) => (prev ? { ...prev, url: tmpUrl } : prev))
@@ -206,7 +199,7 @@ export default function MediaLabPage() {
         [selected.id]: { image: selected, originalUrl, tmpUrl },
       }))
     } catch (err) {
-      const message = err instanceof Error ? err.message : "No se pudo mejorar la imagen."
+      const message = err instanceof Error ? err.message : "Non e stato possibile migliorare l'immagine."
       setEnhanceError(message)
     } finally {
       setEnhancing(false)
@@ -225,7 +218,7 @@ export default function MediaLabPage() {
       } = await supabase.auth.getSession()
 
       if (!session) {
-        throw new Error("Debes iniciar sesión para guardar cambios.")
+        throw new Error("Devi accedere per salvare le modifiche.")
       }
 
       const updates = Object.values(pendingUpdates)
@@ -247,7 +240,7 @@ export default function MediaLabPage() {
         const { image, originalUrl, tmpUrl } = update
         const enhancedResponse = await fetch(tmpUrl)
         if (!enhancedResponse.ok) {
-          throw new Error("No se pudo descargar la imagen mejorada.")
+          throw new Error("Non e stato possibile scaricare l'immagine migliorata.")
         }
         const blob = await enhancedResponse.blob()
         const file = new File([blob], `media-${Date.now()}.png`, { type: blob.type || "image/png" })
@@ -274,9 +267,7 @@ export default function MediaLabPage() {
             menu.categories = categories.map((category) => ({
               ...category,
               platos: Array.isArray(category.platos)
-                ? category.platos.map((dish) =>
-                    dish.id === source.dishId ? { ...dish, foto_url: publicUrl } : dish,
-                  )
+                ? category.platos.map((dish) => (dish.id === source.dishId ? { ...dish, foto_url: publicUrl } : dish))
                 : [],
             }))
             touchedMenus.add(source.menuId)
@@ -301,7 +292,7 @@ export default function MediaLabPage() {
           })
           .eq("id", menuId)
         if (error) {
-          throw new Error("No se pudieron guardar los cambios en el menú.")
+          throw new Error("Non e stato possibile salvare le modifiche nel menu.")
         }
       }
 
@@ -309,9 +300,9 @@ export default function MediaLabPage() {
       setImages(nextImages)
       setSelected(nextSelected)
       setPendingUpdates({})
-      setSaveSuccess("Cambios guardados.")
+      setSaveSuccess("Modifiche salvate.")
     } catch (err) {
-      const message = err instanceof Error ? err.message : "No se pudieron guardar los cambios."
+      const message = err instanceof Error ? err.message : "Non e stato possibile salvare le modifiche."
       setSaveError(message)
     } finally {
       setSavingChanges(false)
@@ -325,44 +316,32 @@ export default function MediaLabPage() {
 
       <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-12">
         <section className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_35px_90px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
-          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-200/80">
-            ✨ Estudio Fotográfico IA
-          </span>
-          <h1 className="mt-3 text-3xl font-bold text-white sm:text-4xl">Estudio fotográfico IA</h1>
-          <p className="mt-2 text-base text-slate-300">
-            Fotos de platos con acabado profesional, listas para publicar.
-          </p>
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-200/80">Studio fotografico IA</span>
+          <h1 className="mt-3 text-3xl font-bold text-white sm:text-4xl">Studio fotografico IA</h1>
+          <p className="mt-2 text-base text-slate-300">Foto dei piatti con finitura professionale, pronte da pubblicare.</p>
           <Link
             href="/dashboard"
             className="mt-6 inline-flex items-center rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white"
           >
-            Volver al dashboard
+            Torna alla dashboard
           </Link>
         </section>
 
         <section className="grid gap-6">
-          {loading && (
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-300">
-              Cargando imágenes...
-            </div>
-          )}
+          {loading && <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-300">Caricamento immagini...</div>}
 
-          {error && (
-            <div className="rounded-2xl border border-rose-400/40 bg-rose-500/10 p-6 text-sm text-rose-200">
-              {error}
-            </div>
-          )}
+          {error && <div className="rounded-2xl border border-rose-400/40 bg-rose-500/10 p-6 text-sm text-rose-200">{error}</div>}
 
           {!loading && !error && !hasImages && (
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-300">
-              Aún no tienes imágenes guardadas.
+              Non hai ancora immagini salvate.
             </div>
           )}
 
           {!loading && !error && hasImages && (
             <div className="grid gap-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-slate-300">Selecciona una imagen para verla y mejorarla.</p>
+                <p className="text-sm text-slate-300">Seleziona un'immagine per visualizzarla e migliorarla.</p>
                 {hasPendingChanges && (
                   <button
                     type="button"
@@ -371,20 +350,12 @@ export default function MediaLabPage() {
                     className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-cyan-300/40 bg-gradient-to-r from-cyan-500/25 via-white/5 to-cyan-500/25 px-4 py-2 text-xs font-semibold text-cyan-100 shadow-[0_0_18px_rgba(56,189,248,0.4)] transition hover:border-cyan-300/70 hover:text-white hover:shadow-[0_0_28px_rgba(56,189,248,0.7)] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-cyan-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                    <span className="relative">{savingChanges ? "Guardando..." : "Guardar cambios"}</span>
+                    <span className="relative">{savingChanges ? "Salvataggio..." : "Salva modifiche"}</span>
                   </button>
                 )}
               </div>
-              {saveError && (
-                <div className="rounded-2xl border border-rose-400/40 bg-rose-500/10 p-4 text-xs text-rose-200">
-                  {saveError}
-                </div>
-              )}
-              {saveSuccess && (
-                <div className="rounded-2xl border border-emerald-300/30 bg-emerald-400/10 p-4 text-xs text-emerald-100">
-                  {saveSuccess}
-                </div>
-              )}
+              {saveError && <div className="rounded-2xl border border-rose-400/40 bg-rose-500/10 p-4 text-xs text-rose-200">{saveError}</div>}
+              {saveSuccess && <div className="rounded-2xl border border-emerald-300/30 bg-emerald-400/10 p-4 text-xs text-emerald-100">{saveSuccess}</div>}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {images.map((img) => (
                   <button
@@ -394,11 +365,7 @@ export default function MediaLabPage() {
                     className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 text-left transition hover:-translate-y-1 hover:border-white/30"
                   >
                     <div className="aspect-[16/10] w-full overflow-hidden bg-black/20">
-                      <img
-                        src={img.url}
-                        alt={img.label}
-                        className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.02]"
-                      />
+                      <img src={img.url} alt={img.label} className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.02]" />
                     </div>
                     <div className="px-4 py-3 text-xs text-slate-300">{img.label}</div>
                   </button>
@@ -411,12 +378,7 @@ export default function MediaLabPage() {
 
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent px-4" role="dialog">
-          <button
-            type="button"
-            className="absolute inset-0 cursor-default"
-            aria-label="Cerrar"
-            onClick={() => setSelected(null)}
-          />
+          <button type="button" className="absolute inset-0 cursor-default" aria-label="Chiudi" onClick={() => setSelected(null)} />
           <div className="photo-modal relative z-10 max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-[#0b0f1f]/95 shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
               <p className="text-sm font-semibold text-white">{selected.label}</p>
@@ -430,14 +392,14 @@ export default function MediaLabPage() {
                   <span className="rainbow-orbit pointer-events-none absolute -inset-[2px] rounded-full bg-[conic-gradient(from_180deg,rgba(59,130,246,0.6),rgba(236,72,153,0.6),rgba(250,204,21,0.6),rgba(34,197,94,0.6),rgba(59,130,246,0.6))] opacity-70 blur-[6px] transition-opacity duration-300 group-hover:opacity-100" />
                   <span className="pointer-events-none absolute -inset-px rounded-full border border-white/30 opacity-30" />
                   <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                  <span className="relative">{enhancing ? "Mejorando..." : "Mejorar con IA"}</span>
+                  <span className="relative">{enhancing ? "Miglioramento..." : "Migliora con IA"}</span>
                 </button>
                 <button
                   type="button"
                   className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-200 transition hover:bg-white/10"
                   onClick={() => setSelected(null)}
                 >
-                  Cerrar
+                  Chiudi
                 </button>
               </div>
             </div>
@@ -446,17 +408,9 @@ export default function MediaLabPage() {
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(56,189,248,0.28),transparent_55%)]" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(59,130,246,0.22),transparent_60%)]" />
               </div>
-              <img
-                src={selected.url}
-                alt={selected.label}
-                className="photo-image relative z-10 max-h-[80vh] w-auto max-w-full object-contain"
-              />
+              <img src={selected.url} alt={selected.label} className="photo-image relative z-10 max-h-[80vh] w-auto max-w-full object-contain" />
             </div>
-            {enhanceError && (
-              <div className="border-t border-rose-400/30 bg-rose-500/10 px-6 py-3 text-xs text-rose-100">
-                {enhanceError}
-              </div>
-            )}
+            {enhanceError && <div className="border-t border-rose-400/30 bg-rose-500/10 px-6 py-3 text-xs text-rose-100">{enhanceError}</div>}
             <style>{`
               @keyframes photoModalEnter {
                 0% { opacity: 0; transform: translateY(16px) scale(0.96); }

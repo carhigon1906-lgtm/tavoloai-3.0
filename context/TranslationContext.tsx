@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import type { ReactNode } from "react"
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
@@ -151,7 +151,7 @@ const nativeItalianDictionary: TranslationDictionary = {
     liveBadge: "Demo dal vivo",
   },
   features: {
-    title: "Solo TavoloAI mette tutto questo nello stesso flusso",
+    title: "Solo TavoloAI riunisce tutto questo in un unico flusso",
     items: [
       {
         title: "Crea il tuo menu QR in pochi minuti",
@@ -160,7 +160,7 @@ const nativeItalianDictionary: TranslationDictionary = {
       },
       {
         title: "Foto valorizzate con l'IA",
-        badge: "Piu conversione",
+        badge: "Piu conversioni",
         description: "Carica le immagini dal telefono e trasformale in visual piu curati, coerenti e appetitosi.",
       },
       {
@@ -251,7 +251,7 @@ const nativeItalianDictionary: TranslationDictionary = {
     subtitle: "Nessun vincolo. Puoi interrompere quando vuoi.",
     billingMonthlyLabel: "Piano mensile",
     billingYearlyLabel: "Piano annuale",
-    priceLabel: "29 €",
+    priceLabel: "29 EUR",
     priceSuffix: "/mese",
     features: [
       "Menu illimitati",
@@ -304,11 +304,11 @@ const nativeItalianDictionary: TranslationDictionary = {
     title: "Domande frequenti",
     items: [
       { question: "Serve un'app?", answer: "No. Funziona come web app accessibile via QR, senza download." },
-      { question: "Funziona anche offline?", answer: "Sì, puoi contare anche su una versione PDF stampabile." },
-      { question: "Posso disdire quando voglio?", answer: "Sì, puoi gestire tutto direttamente dal tuo pannello." },
-      { question: "E conforme al GDPR?", answer: "Sì, i dati sono protetti e gestiti con attenzione alla conformita europea." },
+      { question: "Funziona anche offline?", answer: "Si, puoi contare anche su una versione PDF stampabile." },
+      { question: "Posso disdire quando voglio?", answer: "Si, puoi gestire tutto direttamente dal tuo pannello." },
+      { question: "E conforme al GDPR?", answer: "Si, i dati sono protetti e gestiti con attenzione alla conformita europea." },
       { question: "Mi serve un fotografo?", answer: "No, puoi partire dalle tue foto e migliorarle con l'IA." },
-      { question: "Posso personalizzare il design?", answer: "Sì, puoi adattare colori, logo e stile al tuo locale." },
+      { question: "Posso personalizzare il design?", answer: "Si, puoi adattare colori, logo e stile al tuo locale." },
     ],
   },
   finalCta: {
@@ -318,7 +318,7 @@ const nativeItalianDictionary: TranslationDictionary = {
     badge: "Puoi interrompere quando vuoi, senza vincoli",
   },
   sectionActions: {
-    infoLabel: "Piu info",
+    infoLabel: "Altre info",
     hideLabel: "Nascondi info",
     primaryCta: "Prova gratis",
   },
@@ -350,7 +350,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
     hero: {
       tagline: "Demo en vivo",
       title: "Gestion inteligente para tu carta digital",
-      description: "Mas que un MENU QR, inteligencia artificial y presentación moderna para tu restaurante",
+      description: "Mas que un MENU QR, inteligencia artificial y presentaciÃ³n moderna para tu restaurante",
       primaryCta: "Empezar gratis",
       secondaryCta: "Ver como funciona",
       trial: "7 dias gratis, sin tarjeta, cancela cuando quieras.",
@@ -457,16 +457,16 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       subtitle: "Sin contratos. Cancela cuando quieras.",
       billingMonthlyLabel: "Plan mensual",
       billingYearlyLabel: "Plan anual",
-      priceLabel: "29 â‚¬",
+      priceLabel: "29 Ã¢â€šÂ¬",
       priceSuffix: "/mes",
       features: [
-        "Menús ilimitados",
-        "IA para textos e imágenes",
+        "MenÃºs ilimitados",
+        "IA para textos e imÃ¡genes",
         "Ocultar platos",
         "Descarga en PDF",
         "Multiidioma",
         "Promociones y afiches",
-        "Estadísticas",
+        "EstadÃ­sticas",
         "QR avanzado",
         "Comparte en redes",
       ],
@@ -482,9 +482,9 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
           title: "Plan Free",
           subtitle: "Empieza gratis y crea tu primera carta digital.",
           features: [
-            "1 menú prediseñado",
-            "QR básico",
-            "Edición simple de platos",
+            "1 menÃº prediseÃ±ado",
+            "QR bÃ¡sico",
+            "EdiciÃ³n simple de platos",
             "Acceso al panel TavoloAI",
           ],
           cta: "Empezar gratis",
@@ -509,12 +509,12 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
     faq: {
       title: "Respuestas rapidas",
       items: [
-        { question: "¿Necesito app?", answer: "No, funciona como web app QR sin descargas." },
-        { question: "¿Funciona sin internet?", answer: "Si, incluye version PDF imprimible." },
-        { question: "¿Puedo cancelar cuando quiera?", answer: "Si, con un clic desde tu panel." },
-        { question: "¿Cumple GDPR?", answer: "Sí, los datos están protegidos y alojados en la UE." },
-        { question: "¿Necesito fotógrafo?", answer: "No, la IA genera imágenes por ti." },
-        { question: "¿Puedo personalizar diseño?", answer: "Sí, puedes cambiar colores, logo y tipografía." },
+        { question: "Â¿Necesito app?", answer: "No, funciona como web app QR sin descargas." },
+        { question: "Â¿Funciona sin internet?", answer: "Si, incluye version PDF imprimible." },
+        { question: "Â¿Puedo cancelar cuando quiera?", answer: "Si, con un clic desde tu panel." },
+        { question: "Â¿Cumple GDPR?", answer: "SÃ­, los datos estÃ¡n protegidos y alojados en la UE." },
+        { question: "Â¿Necesito fotÃ³grafo?", answer: "No, la IA genera imÃ¡genes por ti." },
+        { question: "Â¿Puedo personalizar diseÃ±o?", answer: "SÃ­, puedes cambiar colores, logo y tipografÃ­a." },
       ],
     },
     finalCta: {
@@ -654,7 +654,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       subtitle: "No contracts. Cancel anytime.",
       billingMonthlyLabel: "Monthly plan",
       billingYearlyLabel: "Annual plan",
-      priceLabel: "29 â‚¬",
+      priceLabel: "29 Ã¢â€šÂ¬",
       priceSuffix: "/month",
       features: [
         "Unlimited menus",
@@ -815,7 +815,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       subtitle: "Senza contratti. Puoi annullare quando vuoi.",
       billingMonthlyLabel: "Piano mensile",
       billingYearlyLabel: "Piano annuale",
-      priceLabel: "29 â‚¬",
+      priceLabel: "29 Ã¢â€šÂ¬",
       priceSuffix: "/mese",
       features: [
         "Menu illimitati",
@@ -875,7 +875,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       badge: "Promozione disponibile solo questo mese",
     },
     sectionActions: {
-      infoLabel: "Piu info",
+      infoLabel: "Altre info",
       hideLabel: "Nascondi info",
       primaryCta: "Prova gratis",
     },
@@ -892,7 +892,7 @@ type TranslationContextValue = {
 const TranslationContext = createContext<TranslationContextValue | undefined>(undefined)
 
 export function TranslationProvider({
-  initialLanguage = "es",
+  initialLanguage = "it",
   children,
 }: {
   initialLanguage?: LanguageCode
@@ -958,9 +958,14 @@ export function useTranslation() {
 }
 
 export const SUPPORTED_LANGUAGES: Array<{ code: LanguageCode; label: string }> = [
-  { code: "es", label: "Español" },
-  { code: "en", label: "English" },
   { code: "it", label: "Italiano" },
+  { code: "en", label: "English" },
+  { code: "es", label: "Espanol" },
 ]
+
+
+
+
+
 
 

@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 "use client"
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
@@ -26,13 +26,13 @@ const carouselImages: { id: string; alt: string; image: StaticImageData; tags: s
         image: tripleBbqBeef,
         tags: ["protein-plus"],
     },
-    { id: "triple-bbq-plantain", alt: "Triple BBQ Ribs burger with patacón", image: tripleBbqPlantain },
+    { id: "triple-bbq-plantain", alt: "Triple BBQ Ribs burger with platano", image: tripleBbqPlantain },
     { id: "four-meat-regular", alt: "4 Carnes burger", image: fourMeatRegular },
-    { id: "four-meat-plantain", alt: "4 Carnes burger with patacón", image: fourMeatPlantain },
+    { id: "four-meat-plantain", alt: "4 Carnes burger with platano", image: fourMeatPlantain },
     { id: "onion-rings-regular", alt: "Onion Rings burger", image: burgerOnionRegular },
-    { id: "onion-rings-plantain", alt: "Onion Rings burger with patacón", image: burgerOnionPlantain },
+    { id: "onion-rings-plantain", alt: "Onion Rings burger with platano", image: burgerOnionPlantain },
     { id: "crispy-bacon-regular", alt: "Crispy Bacon burger", image: crispyBaconRegular },
-    { id: "crispy-bacon-plantain", alt: "Crispy Bacon burger with patacón", image: crispyBaconPlantain },
+    { id: "crispy-bacon-plantain", alt: "Crispy Bacon burger with platano", image: crispyBaconPlantain },
 ]
 
 const MotionImage = motion(Image)
@@ -56,13 +56,13 @@ type Category = {
 
 const iconForCategory = (name: string) => {
     const n = name.toLowerCase()
-    if (n.includes("burger")) return "🍔"
-    if (n.includes("pizza")) return "🍕"
-    if (n.includes("artesan")) return "🥨"
-    if (n.includes("smooth")) return "🥤"
-    if (n.includes("soda") || n.includes("bebida")) return "🥤"
-    if (n.includes("special") || n.includes("especial")) return "⭐"
-    return "🍽️"
+    if (n.includes("burger")) return "BG"
+    if (n.includes("pizza")) return "PZ"
+    if (n.includes("artesan")) return "AR"
+    if (n.includes("smooth")) return "SM"
+    if (n.includes("soda") || n.includes("bebida")) return "DR"
+    if (n.includes("special") || n.includes("especial")) return "ST"
+    return "MN"
 }
 
 const getAnalyticsSessionId = () => {
@@ -100,7 +100,7 @@ export default function HomePage() {
     const [menuError, setMenuError] = useState("")
 
     const formatEuro = (value: number) =>
-        new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(value)
+        new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(value)
     const [cachedMenu, setCachedMenu] = useState<{ name: string; logo_url: string }>({ name: "", logo_url: "" })
 
     const handleCategoryClick = (categoryId: string) => {
@@ -157,7 +157,7 @@ export default function HomePage() {
                 const params = menuIdParam ? `?menu=${encodeURIComponent(menuIdParam)}` : ""
                 const response = await fetch(`/api/menu/public${params}`, { cache: "no-store" })
                 if (!response.ok) {
-                    setMenuError("No pudimos cargar tu menú.")
+                    setMenuError("Non siamo riusciti a caricare il tuo menu.")
                     setMenuLoading(false)
                     return
                 }
@@ -181,7 +181,7 @@ export default function HomePage() {
                     }
                 }
             } catch {
-                setMenuError("No pudimos cargar tu menú.")
+                setMenuError("Non siamo riusciti a caricare il tuo menu.")
             } finally {
                 setMenuLoading(false)
             }
@@ -323,7 +323,7 @@ export default function HomePage() {
                                     {restaurantLogo ? (
                                         <motion.img
                                             src={restaurantLogo}
-                                            alt="Logo del menú"
+                                            alt="Logo del menu"
                                             style={styles.introBadgeImage}
                                             initial={{ scale: 0.92, opacity: 0 }}
                                             animate={{ scale: 1, opacity: 1 }}
@@ -360,7 +360,7 @@ export default function HomePage() {
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.4, duration: 0.45, ease: "easeOut" }}
                             >
-                                Encendemos tu menú digital
+                                Accendiamo il tuo menu digitale
                             </motion.p>
                             <motion.div
                                 style={styles.introAccentBar}
@@ -391,7 +391,7 @@ export default function HomePage() {
                     transition={{ type: 'spring', stiffness: 120 }}
                 >
                     {restaurantLogo ? (
-                        <img src={restaurantLogo} alt="Logo del menú" style={styles.brandLogo} />
+                        <img src={restaurantLogo} alt="Logo del menu" style={styles.brandLogo} />
                     ) : !menuLoading ? (
                         <Image src={logoBlanco} alt="Taboloai" style={styles.brandLogo} />
                     ) : (
@@ -447,8 +447,8 @@ export default function HomePage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
                     >
-                        <h1 style={styles.title}>¿QUÉ TE LLEVAMOS?</h1>
-                        <h2 style={styles.subtitle}>SELECCIONA UNA CATEGORÍA</h2>
+                        <h1 style={styles.title}>COSA TI PORTIAMO?</h1>
+                        <h2 style={styles.subtitle}>SELEZIONA UNA CATEGORIA</h2>
                     </motion.div>
 
                     <motion.div
@@ -459,17 +459,17 @@ export default function HomePage() {
                     >
                         <input
                             type="text"
-                            placeholder="Buscar categoría..."
+                            placeholder="Cerca categoria..."
                             value={searchQuery}
                             onChange={(event) => setSearchQuery(event.target.value)}
                             style={styles.searchInput}
                         />
                     </motion.div>
 
-                    {menuLoading && <div style={styles.statusCard}>Cargando menú...</div>}
+                    {menuLoading && <div style={styles.statusCard}>Caricamento menu...</div>}
                     {menuError && <div style={styles.statusError}>{menuError}</div>}
                     {!menuLoading && !menuError && effectiveCategories.length === 0 && (
-                        <div style={styles.statusCard}>Aún no tienes un menú creado.</div>
+                        <div style={styles.statusCard}>Non hai ancora creato nessun menu.</div>
                     )}
 
                     <motion.div
@@ -542,7 +542,7 @@ export default function HomePage() {
                                         </motion.div>
                                     ))
                                 ) : (
-                                    <div style={styles.emptyProducts}>No hay platos en esta categoría.</div>
+                                    <div style={styles.emptyProducts}>Non ci sono piatti in questa categoria.</div>
                                 )}
                             </div>
                         </motion.div>
@@ -565,9 +565,9 @@ export default function HomePage() {
                                 repeatType: 'reverse',
                             }}
                         >
-                            ¡DALE!
+                            DAI!
                         </motion.span>{' '}
-                        <span style={styles.motivationWhite}>SIN MIEDO</span>
+                        <span style={styles.motivationWhite}>SENZA PAURA</span>
                     </motion.div>
                 </main>
 
@@ -580,7 +580,7 @@ export default function HomePage() {
                     <div style={styles.footerContent}>
                         <div style={styles.orderInfo}>
                             <span style={styles.orderText}>{restaurantName || "\u00a0"}</span>
-                            <span style={styles.orderSubtext}>Crea tu carta inteligente en minutos</span>
+                            <span style={styles.orderSubtext}>Crea il tuo menu intelligente in pochi minuti</span>
                         </div>
                         <motion.div
                             style={styles.cartIcon}
@@ -590,8 +590,8 @@ export default function HomePage() {
                             <ShoppingBag size={28} strokeWidth={2.4} />
                         </motion.div>
                         <div style={styles.priceInfo}>
-                            <span style={styles.priceAmount}>Menu inteligente con IA</span>
-                            <span style={styles.priceText}>Personaliza ofertas y actualiza tu carta en tiempo real</span>
+                            <span style={styles.priceAmount}>Menu intelligente con IA</span>
+                            <span style={styles.priceText}>Personalizza le offerte e aggiorna il menu in tempo reale</span>
                         </div>
                     </div>
                 </motion.footer>
@@ -1045,5 +1045,11 @@ const styles: { [key: string]: React.CSSProperties } = {
         textAlign: 'right',
     },
 }
+
+
+
+
+
+
 
 

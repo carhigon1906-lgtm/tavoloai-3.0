@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 "use client"
 
 import { motion } from "framer-motion"
@@ -392,7 +392,7 @@ export default function DishDetailPage() {
   const [isMobile, setIsMobile] = useState(false)
 
   const formatEuro = (value: number) =>
-    new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(value)
+    new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(value)
 
   useEffect(() => {
     const loadDish = async () => {
@@ -402,7 +402,7 @@ export default function DishDetailPage() {
         const params = menuIdParam ? `?menu=${encodeURIComponent(menuIdParam)}` : ""
         const response = await fetch(`/api/menu/public${params}`, { cache: "no-store" })
         if (!response.ok) {
-          setMenuError("No pudimos cargar el plato.")
+          setMenuError("Non siamo riusciti a caricare il piatto.")
           setMenuLoading(false)
           return
         }
@@ -415,10 +415,10 @@ export default function DishDetailPage() {
         if (found) {
           setDish(found)
         } else {
-          setMenuError("No encontramos este plato.")
+          setMenuError("Non abbiamo trovato questo piatto.")
         }
       } catch {
-        setMenuError("No pudimos cargar el plato.")
+        setMenuError("Non siamo riusciti a caricare il piatto.")
       } finally {
         setMenuLoading(false)
       }
@@ -493,12 +493,12 @@ export default function DishDetailPage() {
         })
         return
       } catch (error) {
-        console.error("Error al compartir el plato:", error)
+        console.error("Errore durante la condivisione del piatto:", error)
       }
     }
 
     if (typeof window !== "undefined") {
-      window.alert("La función de compartir no está disponible en este dispositivo.")
+      window.alert("La funzione di condivisione non e disponibile su questo dispositivo.")
     }
   }
 
@@ -533,7 +533,7 @@ export default function DishDetailPage() {
             </motion.button>
           </motion.header>
 
-          {menuLoading && <div style={styles.statusCard}>Cargando plato...</div>}
+          {menuLoading && <div style={styles.statusCard}>Caricamento piatto...</div>}
           {menuError && <div style={styles.statusError}>{menuError}</div>}
 
           {!menuLoading && dish && (
@@ -597,7 +597,7 @@ export default function DishDetailPage() {
                     }}
                   />
                 ) : (
-                  <div style={styles.placeholderImage}>Sin foto</div>
+                  <div style={styles.placeholderImage}>Nessuna foto</div>
                 )}
 
                 {ingredientItems.map((ingredient, index) => {
@@ -658,7 +658,7 @@ export default function DishDetailPage() {
           transition={{ duration: 0.5, delay: 0.5 }}
         >
           <div style={styles.ratingContainer}>
-            <span style={styles.ratingLabel}>Calificar</span>
+            <span style={styles.ratingLabel}>Valuta</span>
             <div style={styles.starsContainer}>
               {[1, 2, 3, 4, 5].map((starIndex) => (
                 <motion.span
@@ -685,7 +685,7 @@ export default function DishDetailPage() {
                   onMouseLeave={() => setHoveredStar(0)}
                   onClick={() => setRating(starIndex)}
                 >
-                  {starIndex <= activeStars ? "⭐" : "☆"}
+                  {starIndex <= activeStars ? "?" : "?"}
                 </motion.span>
               ))}
             </div>
@@ -707,4 +707,8 @@ export default function DishDetailPage() {
     </div>
   )
 }
+
+
+
+
 

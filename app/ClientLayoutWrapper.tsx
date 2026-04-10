@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { usePathname, useSearchParams } from "next/navigation"
 import dynamic from "next/dynamic"
@@ -10,7 +10,7 @@ import { TranslationProvider, type LanguageCode } from "@/context/TranslationCon
 const Header = dynamic(() => import("@/components/layout/Header"))
 const FloatingCTA = dynamic(() => import("@/components/ui/FloatingCTA"), { ssr: false })
 
-const FALLBACK_LANGUAGE: LanguageCode = "es"
+const FALLBACK_LANGUAGE: LanguageCode = "it"
 const LANGUAGE_SET = new Set<LanguageCode>(["es", "en", "it"])
 
 export default function ClientLayoutWrapper({ children }: { children: ReactNode }) {
@@ -29,7 +29,7 @@ export default function ClientLayoutWrapper({ children }: { children: ReactNode 
         if (prefersReducedMotion || isAppleLike) return
 
         const lenis = new Lenis({
-            duration: 0.7,      // scroll suave pero sin sensación de lag
+            duration: 0.7,      // scroll suave pero sin sensaciÃ³n de lag
             smoothWheel: true,  // aplica suavizado al scroll con rueda/trackpad
             // Ojo: smoothTouch no existe en LenisOptions de @studio-freight/lenis, por eso lo quitamos
         })
@@ -87,3 +87,4 @@ export default function ClientLayoutWrapper({ children }: { children: ReactNode 
         </TranslationProvider>
     )
 }
+

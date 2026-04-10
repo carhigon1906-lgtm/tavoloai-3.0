@@ -1,8 +1,8 @@
-import type { Metadata } from "next"
+﻿import type { Metadata } from "next"
 import type { ReactNode } from "react"
 
-const title = "Categorías del menú | TavoloAI"
-const description = "Navega por las categorías del menú digital y encuentra tus platos favoritos."
+const title = "Categorie del menu | TavoloAI"
+const description = "Sfoglia le categorie del menu digitale e trova i tuoi piatti preferiti."
 
 export const metadata: Metadata = {
   title,
@@ -24,3 +24,9 @@ export const metadata: Metadata = {
 export default function MenuBurgersLayout({ children }: { children: ReactNode }) {
   return children
 }
+
+
+
+
+
+

@@ -28,7 +28,7 @@ type MenuPayload = {
 
 const formatPrice = (value?: number) => {
   if (typeof value !== "number" || Number.isNaN(value)) return "-"
-  return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(value)
+  return new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(value)
 }
 
 export default function PrintMenuPage() {
@@ -48,7 +48,7 @@ export default function PrintMenuPage() {
         const params = menuId ? `?menu=${encodeURIComponent(menuId)}` : ""
         const response = await fetch(`/api/menu/public${params}`, { cache: "no-store" })
         if (!response.ok) {
-          setError("No se pudo cargar el menu para impresion.")
+          setError("Non e stato possibile caricare il menu per la stampa.")
           setLoading(false)
           return
         }
@@ -56,7 +56,7 @@ export default function PrintMenuPage() {
         const result = await response.json()
         setMenu(result?.menu ?? null)
       } catch {
-        setError("No se pudo cargar el menu para impresion.")
+        setError("Non e stato possibile caricare il menu per la stampa.")
       } finally {
         setLoading(false)
       }
@@ -115,13 +115,13 @@ export default function PrintMenuPage() {
       <main className="print-page min-h-screen bg-gradient-to-b from-[#071425] via-[#0b1a2f] to-[#081120] text-[#f2e6c9]">
         <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8">
           <div className="no-print mb-5 flex items-center justify-between gap-3 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-slate-100 backdrop-blur">
-            <span>Vista lista para imprimir en PDF</span>
+            <span>Vista pronta per la stampa in PDF</span>
             <button
               type="button"
               onClick={() => window.print()}
               className="rounded-full border border-white/20 bg-black/25 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-100 transition hover:bg-black/40"
             >
-              Imprimir / Guardar PDF
+              Stampa / Salva PDF
             </button>
           </div>
 
@@ -130,21 +130,21 @@ export default function PrintMenuPage() {
               {menu?.logo_url ? (
                 <img src={menu.logo_url} alt="Logo" className="h-16 w-16 rounded-2xl border border-white/20 bg-white/95 object-contain p-2" />
               ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-xl">🍽️</div>
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-xl">TL</div>
               )}
               <div>
                 <p className="text-[11px] uppercase tracking-[0.28em] text-[#d9b87b]">Tavolo Menu</p>
                 <h1 className="text-2xl font-bold leading-tight text-white sm:text-3xl">{menu?.nombre || "Menu"}</h1>
-                <p className="mt-1 text-sm text-slate-200">Catalogo imprimible con imagenes y precios</p>
+                <p className="mt-1 text-sm text-slate-200">Catalogo stampabile con immagini e prezzi</p>
               </div>
             </div>
           </header>
 
-          {loading && <p className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm">Cargando menu...</p>}
+          {loading && <p className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm">Caricamento menu...</p>}
           {!loading && error && <p className="rounded-2xl border border-red-300/35 bg-red-400/15 px-4 py-3 text-sm text-red-100">{error}</p>}
 
           {!loading && !error && printableCategories.length === 0 && (
-            <p className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-slate-200">No hay categorias activas para imprimir.</p>
+            <p className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-slate-200">Non ci sono categorie attive da stampare.</p>
           )}
 
           {!loading &&
@@ -159,13 +159,13 @@ export default function PrintMenuPage() {
                       className="print-card grid grid-cols-[88px_1fr] gap-3 rounded-2xl border border-white/15 bg-white/10 p-3 shadow-[0_10px_28px_rgba(0,0,0,0.35)]"
                     >
                       {dish.foto_url ? (
-                        <img src={dish.foto_url} alt={dish.nombre || "Plato"} className="h-[88px] w-[88px] rounded-xl object-cover" />
+                        <img src={dish.foto_url} alt={dish.nombre || "Piatto"} className="h-[88px] w-[88px] rounded-xl object-cover" />
                       ) : (
-                        <div className="flex h-[88px] w-[88px] items-center justify-center rounded-xl bg-white/10 text-xl">🍔</div>
+                        <div className="flex h-[88px] w-[88px] items-center justify-center rounded-xl bg-white/10 text-xl">PI</div>
                       )}
                       <div className="min-w-0">
                         <div className="flex items-start justify-between gap-3">
-                          <h3 className="text-sm font-semibold leading-tight text-white">{dish.nombre || "Plato"}</h3>
+                          <h3 className="text-sm font-semibold leading-tight text-white">{dish.nombre || "Piatto"}</h3>
                           <span className="shrink-0 text-sm font-bold text-[#f3d79e]">{formatPrice(dish.precio)}</span>
                         </div>
                         {dish.descripcion ? <p className="mt-1 text-xs text-slate-200/90">{dish.descripcion}</p> : null}
@@ -181,3 +181,6 @@ export default function PrintMenuPage() {
     </>
   )
 }
+
+
+

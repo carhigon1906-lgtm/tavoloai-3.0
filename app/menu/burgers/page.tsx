@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 // @ts-nocheck
 
 import { motion } from "framer-motion"
@@ -33,7 +33,7 @@ export default function BurgersPage() {
     const searchParams = useSearchParams()
     const categoryId = searchParams.get("category") ?? ""
     const menuIdParam = searchParams.get("menu") ?? ""
-    const [categoryName, setCategoryName] = useState("Categoría")
+    const [categoryName, setCategoryName] = useState("Categoria")
     const [dishes, setDishes] = useState<Dish[]>([])
     const [menuLoading, setMenuLoading] = useState(true)
     const [menuError, setMenuError] = useState("")
@@ -44,7 +44,7 @@ export default function BurgersPage() {
     const [selectedAllergies, setSelectedAllergies] = useState<string[]>([])
 
     const formatEuro = (value: number) =>
-        new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(value)
+        new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(value)
 
     const normalizeText = (value: string) =>
         value
@@ -72,13 +72,13 @@ export default function BurgersPage() {
     }, [dishes])
 
     const ALLERGY_OPTIONS = [
-        { key: "ajo", label: "Ajo", terms: ["ajo", "garlic"] },
-        { key: "cebolla", label: "Cebolla", terms: ["cebolla", "onion"] },
-        { key: "lacteos", label: "Lácteos", terms: ["queso", "leche", "crema", "mantequilla", "yogur"] },
+        { key: "ajo", label: "Aglio", terms: ["ajo", "garlic"] },
+        { key: "cebolla", label: "Cipolla", terms: ["cebolla", "onion"] },
+        { key: "lacteos", label: "Latticini", terms: ["queso", "leche", "crema", "mantequilla", "yogur"] },
         { key: "gluten", label: "Gluten", terms: ["pan", "harina", "trigo", "pasta"] },
-        { key: "huevo", label: "Huevo", terms: ["huevo", "mayonesa"] },
-        { key: "mariscos", label: "Mariscos", terms: ["camaron", "camarón", "marisco", "shrimp"] },
-        { key: "frutos-secos", label: "Frutos secos", terms: ["nuez", "almendra", "mani", "maní", "cacahuate"] },
+        { key: "huevo", label: "Uovo", terms: ["huevo", "mayonesa"] },
+        { key: "mariscos", label: "Frutti di mare", terms: ["camaron", "camarÃ³n", "marisco", "shrimp"] },
+        { key: "frutos-secos", label: "Frutta secca", terms: ["nuez", "almendra", "mani", "manÃ­", "cacahuate"] },
         { key: "soya", label: "Soya", terms: ["soya", "soja"] },
     ]
 
@@ -122,7 +122,7 @@ export default function BurgersPage() {
                 const params = menuIdParam ? `?menu=${encodeURIComponent(menuIdParam)}` : ""
                 const response = await fetch(`/api/menu/public${params}`, { cache: "no-store" })
                 if (!response.ok) {
-                    setMenuError("No pudimos cargar tu menú.")
+                    setMenuError("Non siamo riusciti a caricare il tuo menu.")
                     setMenuLoading(false)
                     return
                 }
@@ -138,7 +138,7 @@ export default function BurgersPage() {
                     setDishes((categories[0].platos ?? []).filter((dish) => dish.activo !== false))
                 }
             } catch {
-                setMenuError("No pudimos cargar tu menú.")
+                setMenuError("Non siamo riusciti a caricare il tuo menu.")
             } finally {
                 setMenuLoading(false)
             }
@@ -637,13 +637,13 @@ export default function BurgersPage() {
                         <h1 style={styles.title}>{categoryName.toUpperCase()}</h1>
                     </motion.header>
 
-                    {menuLoading && <div style={styles.statusCard}>Cargando platos...</div>}
+                    {menuLoading && <div style={styles.statusCard}>Caricamento piatti...</div>}
                     {menuError && <div style={styles.statusError}>{menuError}</div>}
 
                     <div style={styles.searchBar}>
                         <input
                             type="text"
-                            placeholder="Buscar plato o ingrediente..."
+                            placeholder="Cerca piatto o ingrediente..."
                             value={searchQuery}
                             onChange={(event) => setSearchQuery(event.target.value)}
                             style={styles.searchInput}
@@ -655,17 +655,17 @@ export default function BurgersPage() {
                             <div style={styles.filterModalCard} onClick={(event) => event.stopPropagation()}>
                                 <div style={styles.filterHandle} />
                                 <div style={styles.filterModalHeader}>
-                                    <span style={styles.filterModalTitle}>Filtros</span>
-                                    <button style={styles.filterModalClose} onClick={() => setFilterOpen(false)} aria-label="Cerrar filtros">
+                                    <span style={styles.filterModalTitle}>Filtri</span>
+                                    <button style={styles.filterModalClose} onClick={() => setFilterOpen(false)} aria-label="Chiudi filtri">
                                         <X size={24} />
                                     </button>
                                 </div>
 
                                 <div style={styles.filterBody}>
-                                    <div style={{ ...styles.filterSummary, textAlign: "left" }}>Ingredientes (excluir)</div>
+                                    <div style={{ ...styles.filterSummary, textAlign: "left" }}>Ingredienti (escludi)</div>
                                     <div style={styles.filterBar}>
                                         {ingredientOptions.length === 0 && (
-                                            <div style={styles.filterSummary}>No hay ingredientes para filtrar.</div>
+                                            <div style={styles.filterSummary}>Non ci sono ingredienti da filtrare.</div>
                                         )}
                                         {ingredientOptions.map((item) => {
                                             const active = selectedIngredients.includes(item.key)
@@ -679,7 +679,7 @@ export default function BurgersPage() {
                                                     }}
                                                     onClick={() => toggleIngredient(item.key)}
                                                 >
-                                                    <span style={styles.filterChipIcon}>🥗</span>
+                                                    <span style={styles.filterChipIcon}>IN</span>
                                                     <span style={styles.filterChipCopy}>
                                                         <span style={styles.filterChipLabel}>{item.label}</span>
                                                     </span>
@@ -690,7 +690,7 @@ export default function BurgersPage() {
 
                                     <div style={styles.filterDivider} />
 
-                                    <div style={{ ...styles.filterSummary, textAlign: "left" }}>Alergias</div>
+                                    <div style={{ ...styles.filterSummary, textAlign: "left" }}>Allergie</div>
                                     <div style={styles.filterBar}>
                                         {ALLERGY_OPTIONS.map((item) => {
                                             const active = selectedAllergies.includes(item.key)
@@ -704,7 +704,7 @@ export default function BurgersPage() {
                                                     }}
                                                     onClick={() => toggleAllergy(item.key)}
                                                 >
-                                                    <span style={styles.filterChipIcon}>⚠️</span>
+                                                    <span style={styles.filterChipIcon}>AL</span>
                                                     <span style={styles.filterChipCopy}>
                                                         <span style={styles.filterChipLabel}>{item.label}</span>
                                                     </span>
@@ -716,10 +716,10 @@ export default function BurgersPage() {
 
                                 <div style={styles.filterModalActions}>
                                     <button type="button" style={styles.filterReset} onClick={resetFilters}>
-                                        Limpiar
+                                        Cancella
                                     </button>
                                     <button type="button" style={styles.filterModalApply} onClick={() => setFilterOpen(false)}>
-                                        Aplicar
+                                        Applica
                                     </button>
                                 </div>
                             </div>
@@ -755,17 +755,17 @@ export default function BurgersPage() {
                                 >
                                     <h3 style={styles.productName}>{dish.nombre}</h3>
                                     <p style={styles.productIngredients}>
-                                        {dish.descripcion || dish.tagline || "Descripción por definir"}
+                                        {dish.descripcion || dish.tagline || "Descrizione da definire"}
                                     </p>
                                     <div style={styles.productImageWrapper}>
                                         {dish.foto_url ? (
                                             <img
                                                 src={dish.foto_url}
-                                                alt={dish.nombre || "Foto del plato"}
+                                                alt={dish.nombre || "Foto del piatto"}
                                                 style={styles.productImage}
                                             />
                                         ) : (
-                                            <div style={styles.productImagePlaceholder}>Sin foto</div>
+                                            <div style={styles.productImagePlaceholder}>Nessuna foto</div>
                                         )}
                                     </div>
                                     <p style={styles.price}>{formatEuro(dish.precio)}</p>
@@ -773,8 +773,8 @@ export default function BurgersPage() {
                             ))
                         ) : (
                             <div style={styles.emptyState}>
-                                <p style={styles.emptyTitle}>Sin coincidencias</p>
-                                <p style={styles.emptySubtitle}>Agrega platos o ajusta la búsqueda.</p>
+                                <p style={styles.emptyTitle}>Nessun risultato</p>
+                                <p style={styles.emptySubtitle}>Aggiungi piatti o modifica la ricerca.</p>
                             </div>
                         )}
                     </div>
@@ -797,7 +797,7 @@ export default function BurgersPage() {
                         onClick={handleSearch}
                     >
                         <Search style={styles.buttonIcon} />
-                        <span style={styles.buttonText}>Buscar</span>
+                        <span style={styles.buttonText}>Cerca</span>
                     </motion.button>
 
                     <motion.button
@@ -811,7 +811,7 @@ export default function BurgersPage() {
                         onClick={handleFilter}
                     >
                         <SlidersHorizontal style={styles.buttonIcon} />
-                        <span style={styles.buttonText}>Filtrar</span>
+                        <span style={styles.buttonText}>Filtra</span>
                     </motion.button>
 
                     <motion.button
@@ -825,20 +825,27 @@ export default function BurgersPage() {
                         onClick={handleShare}
                     >
                         <Share2 style={styles.buttonIcon} />
-                        <span style={styles.buttonText}>Compartir</span>
+                        <span style={styles.buttonText}>Condividi</span>
                     </motion.button>
                 </motion.footer>
                 {menuLoading && (
                     <div style={styles.loadingWrap}>
                         <div style={styles.loadingCard}>
                             <div style={styles.loadingRing} />
-                            <div style={styles.loadingLabel}>Cargando platos</div>
+                            <div style={styles.loadingLabel}>Caricamento piatti</div>
                         </div>
                     </div>
                 )}
         </div>
     )
 }
+
+
+
+
+
+
+
 
 
 

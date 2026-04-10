@@ -11,10 +11,10 @@ const bingVerification = process.env["BING_SITE_VERIFICATION"]
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.tavoloai.it"),
-  title: "TavoloAI - El menú inteligente que vende más",
+  title: "TavoloAI - Il menu intelligente che vende di piu",
   description:
-    "Actualiza precios, mejora fotos y lanza promos en segundos con IA. El menú digital que trabaja por ti las 24 horas.",
-  keywords: ["menú digital", "restaurante", "IA", "inteligencia artificial", "hostelería"],
+    "Aggiorna prezzi, migliora le foto e lancia promozioni in pochi secondi con l'IA. Il menu digitale che lavora per te 24 ore su 24.",
+  keywords: ["menu digitale", "ristorante", "IA", "intelligenza artificiale", "ospitalita"],
   applicationName: "TavoloAI",
   category: "restaurant software",
   robots: {
@@ -32,15 +32,15 @@ export const metadata: Metadata = {
     icon: "/logoblanco.png",
   },
   openGraph: {
-    title: "TavoloAI - El menú inteligente que vende más",
-    description: "Actualiza precios, mejora fotos y lanza promos en segundos con IA",
+    title: "TavoloAI - Il menu intelligente che vende di piu",
+    description: "Aggiorna prezzi, migliora le foto e lancia promozioni in pochi secondi con l'IA",
     images: ["/og-image.png"],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "TavoloAI - El menú inteligente que vende más",
-    description: "Actualiza precios, mejora fotos y lanza promos en segundos con IA",
+    title: "TavoloAI - Il menu intelligente che vende di piu",
+    description: "Aggiorna prezzi, migliora le foto e lancia promozioni in pochi secondi con l'IA",
     images: ["/og-image.png"],
   },
   alternates: { canonical: "/" },
@@ -67,7 +67,7 @@ const inter = Inter({
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es" className={inter.variable}>
+    <html lang="it" className={inter.variable}>
       <body className={`${inter.className} antialiased bg-[#050505] text-slate-100`}>
         <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
         <Analytics />
@@ -75,4 +75,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     </html>
   )
 }
+
+
 

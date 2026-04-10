@@ -8,17 +8,17 @@ import { supabase } from "@/lib/supabaseClient"
 
 export default function ReportsPage() {
   const [stats, setStats] = useState([
-    { label: "Visitas hoy", value: "0", delta: "Sin tráfico", icon: Eye },
-    { label: "Escaneos QR", value: "0", delta: "Sin escaneos", icon: QrCode },
-    { label: "Menús activos", value: "0", delta: "Sin menús activos", icon: UtensilsCrossed },
-    { label: "Plato más visto", value: "Sin datos", delta: "Aún sin ranking", icon: TrendingUp },
+    { label: "Visite oggi", value: "0", delta: "Nessun traffico", icon: Eye },
+    { label: "Scansioni QR", value: "0", delta: "Nessuna scansione", icon: QrCode },
+    { label: "Menu attivi", value: "0", delta: "Nessun menu attivo", icon: UtensilsCrossed },
+    { label: "Piatto piu visto", value: "Nessun dato", delta: "Nessuna classifica", icon: TrendingUp },
   ])
   const [topDishes, setTopDishes] = useState<Array<{ name: string; views: number; trend: string }>>([])
   const [weekly, setWeekly] = useState([
     { day: "L", value: 0 },
     { day: "M", value: 0 },
-    { day: "X", value: 0 },
-    { day: "J", value: 0 },
+    { day: "M", value: 0 },
+    { day: "G", value: 0 },
     { day: "V", value: 0 },
     { day: "S", value: 0 },
     { day: "D", value: 0 },
@@ -58,25 +58,31 @@ export default function ReportsPage() {
       const dishes = Array.isArray(payload?.topDishes) ? payload.topDishes : []
       const weeklyRows = Array.isArray(payload?.weekly) ? payload.weekly : []
       const nextContext = payload?.context || {}
-      const topDish = typeof summary.topDish === "string" && summary.topDish.trim() ? summary.topDish : "Sin datos"
+      const topDish =
+        typeof summary.topDish === "string" && summary.topDish.trim() ? summary.topDish : "Nessun dato"
 
       setStats([
-        { label: "Visitas hoy", value: String(Number(summary.visitsToday || 0)), delta: "Menú abierto hoy", icon: Eye },
-        { label: "Escaneos QR", value: String(Number(summary.qrScans || 0)), delta: "Sesiones únicas 30 días", icon: QrCode },
+        { label: "Visite oggi", value: String(Number(summary.visitsToday || 0)), delta: "Menu aperto oggi", icon: Eye },
         {
-          label: "Menús activos",
+          label: "Scansioni QR",
+          value: String(Number(summary.qrScans || 0)),
+          delta: "Sessioni uniche ultimi 30 giorni",
+          icon: QrCode,
+        },
+        {
+          label: "Menu attivi",
           value: String(Number(summary.activeMenus || 0)),
-          delta: Number(summary.activeMenus || 0) > 0 ? "Publicados ahora" : "Sin publicaciones activas",
+          delta: Number(summary.activeMenus || 0) > 0 ? "Pubblicati ora" : "Nessuna pubblicazione attiva",
           icon: UtensilsCrossed,
         },
-        { label: "Plato más visto", value: topDish, delta: "Ranking mensual", icon: TrendingUp },
+        { label: "Piatto piu visto", value: topDish, delta: "Classifica mensile", icon: TrendingUp },
       ])
 
       setTopDishes(
         dishes.map((dish: { name?: string; views?: number }, index: number) => ({
-          name: dish?.name || `Plato ${index + 1}`,
+          name: dish?.name || `Piatto ${index + 1}`,
           views: Number(dish?.views || 0),
-          trend: index === 0 ? "Top actual" : "En ranking",
+          trend: index === 0 ? "Top attuale" : "In classifica",
         })),
       )
 
@@ -92,14 +98,14 @@ export default function ReportsPage() {
       setAnalyticsContext({
         topMenu: nextContext?.topMenu
           ? {
-              menuName: nextContext.topMenu.menuName || "Sin datos",
+              menuName: nextContext.topMenu.menuName || "Nessun dato",
               views: Number(nextContext.topMenu.views || 0),
             }
           : null,
         topDishByMenu: Array.isArray(nextContext?.topDishByMenu)
           ? nextContext.topDishByMenu.map((item: { menuName?: string; dishName?: string; views?: number }) => ({
               menuName: item?.menuName || "Menu",
-              dishName: item?.dishName || "Sin datos",
+              dishName: item?.dishName || "Nessun dato",
               views: Number(item?.views || 0),
             }))
           : [],
@@ -111,7 +117,7 @@ export default function ReportsPage() {
           : null,
         trafficSources: Array.isArray(nextContext?.trafficSources)
           ? nextContext.trafficSources.map((item: { source?: string; visits?: number }) => ({
-              source: item?.source || "Directo / QR",
+              source: item?.source || "Diretto / QR",
               visits: Number(item?.visits || 0),
             }))
           : [],
@@ -146,23 +152,26 @@ export default function ReportsPage() {
   const maxWeekly = Math.max(...weekly.map((item) => item.value), 1)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#05070d] via-[#070f1c] to-[#03040a] p-4 md:p-6 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-[#05070d] via-[#070f1c] to-[#03040a] p-4 text-white md:p-6">
       <motion.div variants={container} initial="hidden" animate="visible" className="mx-auto max-w-6xl space-y-8">
-        <motion.div variants={card} className="rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8 shadow-[0_35px_90px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+        <motion.div
+          variants={card}
+          className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_35px_90px_rgba(0,0,0,0.55)] backdrop-blur-2xl md:p-8"
+        >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/30 bg-emerald-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-emerald-200">
                 <Sparkles className="h-3.5 w-3.5" />
-                Estadísticas en vivo
+                Statistiche in tempo reale
               </div>
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white md:text-4xl">Estadísticas</h1>
+              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white md:text-4xl">Statistiche</h1>
               <p className="mt-2 text-sm text-slate-300 md:text-base">
-                Revisa el rendimiento del menú, visitas y platos más vistos.
+                Controlla l'andamento del menu, le visite e i piatti piu visualizzati.
               </p>
             </div>
             <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs uppercase tracking-widest text-slate-300">
               <BarChart3 className="h-4 w-4 text-emerald-300" />
-              Últimos 7 días
+              Ultimi 7 giorni
             </div>
           </div>
         </motion.div>
@@ -195,11 +204,11 @@ export default function ReportsPage() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-white">Tendencia semanal</h2>
-                <p className="mt-1 text-sm text-slate-400">Visitas por día</p>
+                <h2 className="text-lg font-semibold text-white">Andamento settimanale</h2>
+                <p className="mt-1 text-sm text-slate-400">Visite per giorno</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
-                Semana actual
+                Settimana attuale
               </div>
             </div>
 
@@ -223,18 +232,18 @@ export default function ReportsPage() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-white">Platos más vistos</h2>
-                <p className="mt-1 text-sm text-slate-400">Top 4 del mes</p>
+                <h2 className="text-lg font-semibold text-white">Piatti piu visualizzati</h2>
+                <p className="mt-1 text-sm text-slate-400">Top 4 del mese</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
-                Actualizado hoy
+                Aggiornato oggi
               </div>
             </div>
 
             <div className="mt-6 space-y-3">
               {topDishes.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-white/10 bg-[#0a1220] px-4 py-6 text-sm text-slate-400">
-                  Aún no hay suficientes visualizaciones de platos para mostrar un ranking.
+                  Non ci sono ancora abbastanza visualizzazioni per mostrare una classifica.
                 </div>
               ) : (
                 topDishes.map((dish) => (
@@ -244,7 +253,7 @@ export default function ReportsPage() {
                   >
                     <div>
                       <p className="text-sm font-semibold text-white">{dish.name}</p>
-                      <p className="mt-1 text-xs text-slate-400">{dish.views} vistas</p>
+                      <p className="mt-1 text-xs text-slate-400">{dish.views} visualizzazioni</p>
                     </div>
                     <span className="rounded-full border border-emerald-300/30 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200">
                       {dish.trend}
@@ -263,45 +272,57 @@ export default function ReportsPage() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-white">Contexto de rendimiento</h2>
-                <p className="mt-1 text-sm text-slate-400">Menu más visto, horario pico y comparación de periodos</p>
+                <h2 className="text-lg font-semibold text-white">Contesto delle performance</h2>
+                <p className="mt-1 text-sm text-slate-400">Menu piu visto, fascia migliore e confronto tra periodi</p>
               </div>
             </div>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-white/10 bg-[#0a1220] p-4">
-                <p className="text-xs uppercase tracking-widest text-slate-400">Menu mas visto</p>
-                <p className="mt-3 text-lg font-semibold text-white">{analyticsContext.topMenu?.menuName || "Sin datos"}</p>
-                <p className="mt-1 text-sm text-slate-400">{analyticsContext.topMenu ? `${analyticsContext.topMenu.views} visitas en 30 dias` : "Aun sin visitas registradas"}</p>
+                <p className="text-xs uppercase tracking-widest text-slate-400">Menu piu visto</p>
+                <p className="mt-3 text-lg font-semibold text-white">{analyticsContext.topMenu?.menuName || "Nessun dato"}</p>
+                <p className="mt-1 text-sm text-slate-400">
+                  {analyticsContext.topMenu
+                    ? `${analyticsContext.topMenu.views} visite in 30 giorni`
+                    : "Ancora nessuna visita registrata"}
+                </p>
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-[#0a1220] p-4">
-                <p className="text-xs uppercase tracking-widest text-slate-400">Horario con mas escaneos</p>
-                <p className="mt-3 text-lg font-semibold text-white">{analyticsContext.peakHour?.label || "Sin datos"}</p>
-                <p className="mt-1 text-sm text-slate-400">{analyticsContext.peakHour ? `${analyticsContext.peakHour.visits} aperturas en la franja` : "Aun no hay suficientes eventos"}</p>
+                <p className="text-xs uppercase tracking-widest text-slate-400">Fascia con piu scansioni</p>
+                <p className="mt-3 text-lg font-semibold text-white">{analyticsContext.peakHour?.label || "Nessun dato"}</p>
+                <p className="mt-1 text-sm text-slate-400">
+                  {analyticsContext.peakHour
+                    ? `${analyticsContext.peakHour.visits} aperture in questa fascia`
+                    : "Non ci sono ancora abbastanza eventi"}
+                </p>
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-[#0a1220] p-4">
-                <p className="text-xs uppercase tracking-widest text-slate-400">Comparacion 7 vs 30 dias</p>
+                <p className="text-xs uppercase tracking-widest text-slate-400">Confronto 7 vs 30 giorni</p>
                 <p className="mt-3 text-lg font-semibold text-white">
-                  {analyticsContext.comparison ? `${analyticsContext.comparison.scans7d} / ${analyticsContext.comparison.scans30d}` : "Sin datos"}
+                  {analyticsContext.comparison
+                    ? `${analyticsContext.comparison.scans7d} / ${analyticsContext.comparison.scans30d}`
+                    : "Nessun dato"}
                 </p>
                 <p className="mt-1 text-sm text-slate-400">
                   {analyticsContext.comparison
-                    ? `Escaneos unicos en 7 dias frente a 30 dias`
-                    : "Esperando actividad para comparar periodos"}
+                    ? "Scansioni uniche in 7 giorni rispetto a 30 giorni"
+                    : "In attesa di attivita per confrontare i periodi"}
                 </p>
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-[#0a1220] p-4">
-                <p className="text-xs uppercase tracking-widest text-slate-400">Periodo anterior</p>
+                <p className="text-xs uppercase tracking-widest text-slate-400">Periodo precedente</p>
                 <p className="mt-3 text-lg font-semibold text-white">
-                  {analyticsContext.comparison ? `${analyticsContext.comparison.scansPrev7d} / ${analyticsContext.comparison.scansPrev30d}` : "Sin datos"}
+                  {analyticsContext.comparison
+                    ? `${analyticsContext.comparison.scansPrev7d} / ${analyticsContext.comparison.scansPrev30d}`
+                    : "Nessun dato"}
                 </p>
                 <p className="mt-1 text-sm text-slate-400">
                   {analyticsContext.comparison
-                    ? `Escaneos unicos del periodo previo de referencia`
-                    : "Sin base historica para comparar"}
+                    ? "Scansioni uniche del periodo precedente di riferimento"
+                    : "Nessuna base storica disponibile"}
                 </p>
               </div>
             </div>
@@ -313,22 +334,25 @@ export default function ReportsPage() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-white">Fuente de trafico</h2>
-                <p className="mt-1 text-sm text-slate-400">Origen principal de aperturas del menu</p>
+                <h2 className="text-lg font-semibold text-white">Origine del traffico</h2>
+                <p className="mt-1 text-sm text-slate-400">Origine principale delle aperture del menu</p>
               </div>
             </div>
 
             <div className="mt-6 space-y-3">
               {analyticsContext.trafficSources.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-white/10 bg-[#0a1220] px-4 py-6 text-sm text-slate-400">
-                  Aun no hay suficientes referencias para identificar fuentes de trafico.
+                  Non ci sono ancora abbastanza riferimenti per identificare le fonti di traffico.
                 </div>
               ) : (
                 analyticsContext.trafficSources.map((source) => (
-                  <div key={source.source} className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#0a1220] px-4 py-3">
+                  <div
+                    key={source.source}
+                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#0a1220] px-4 py-3"
+                  >
                     <p className="text-sm font-semibold text-white">{source.source}</p>
                     <span className="rounded-full border border-emerald-300/30 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200">
-                      {source.visits} visitas
+                      {source.visits} visite
                     </span>
                   </div>
                 ))
@@ -343,22 +367,22 @@ export default function ReportsPage() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-white">Plato mas visto por menu</h2>
-              <p className="mt-1 text-sm text-slate-400">Que plato lidera el interes dentro de cada menu</p>
+              <h2 className="text-lg font-semibold text-white">Piatto piu visto per menu</h2>
+              <p className="mt-1 text-sm text-slate-400">Quale piatto guida l'interesse all'interno di ogni menu</p>
             </div>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             {analyticsContext.topDishByMenu.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-white/10 bg-[#0a1220] px-4 py-6 text-sm text-slate-400 md:col-span-2">
-                Aun no hay suficientes visualizaciones de platos para segmentar por menu.
+                Non ci sono ancora abbastanza visualizzazioni per segmentare per menu.
               </div>
             ) : (
               analyticsContext.topDishByMenu.map((item) => (
                 <div key={`${item.menuName}-${item.dishName}`} className="rounded-2xl border border-white/10 bg-[#0a1220] p-4">
                   <p className="text-xs uppercase tracking-widest text-slate-400">{item.menuName}</p>
                   <p className="mt-3 text-lg font-semibold text-white">{item.dishName}</p>
-                  <p className="mt-1 text-sm text-slate-400">{item.views} visualizaciones del plato</p>
+                  <p className="mt-1 text-sm text-slate-400">{item.views} visualizzazioni del piatto</p>
                 </div>
               ))
             )}

@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 "use client"
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react"
@@ -92,7 +92,7 @@ export default function Page() {
   const footerColumns = useMemo(
     () => [
       {
-        title: "Producto",
+        title: "Prodotto",
         links: [
           { label: navLinks.features, href: "#features" },
           { label: navLinks.demo, href: "#demo" },
@@ -103,14 +103,14 @@ export default function Page() {
         ],
       },
       {
-        title: "Soluciones",
+        title: "Soluzioni",
         links: dictionary.features.items.map((item) => ({
           label: item.title,
           href: "#features",
         })),
       },
       {
-        title: "Recursos",
+        title: "Risorse",
         links: [
           { label: dictionary.demo.title, href: "#demo" },
           { label: dictionary.beforeAfter.title, href: "#before-after" },
@@ -119,12 +119,12 @@ export default function Page() {
         ],
       },
       {
-        title: "Soporte",
+        title: "Supporto",
         links: [
           { label: dictionary.pricing.title, href: "#pricing" },
           { label: dictionary.faq.title, href: "#faq" },
           { label: dictionary.sectionActions.infoLabel, href: "#faq" },
-          { label: "Contacto", href: "#final-cta" },
+          { label: "Contatto", href: "#final-cta" },
         ],
       },
     ],
@@ -360,13 +360,13 @@ export default function Page() {
                     style={{ opacity: 1, transform: "translateY(-4px)" }}
                   >
                     <h3 className="text-[46px] font-black leading-[1.05] tracking-tight sm:text-[58px] lg:text-[68px]">
-                      La tecnología
+                      La tecnologia
                       <br />
-                      en tu mano.
+                      nelle tue mani.
                     </h3>
                     <div className="flex flex-col gap-4 sm:flex-row">
                       <button className="rounded-full bg-white px-6 py-2 text-sm font-semibold text-black shadow-lg shadow-white/20 transition hover:-translate-y-0.5 hover:bg-white/90">
-                        empezar ya
+                        inizia ora
                       </button>
                     </div>
                   </div>
@@ -466,12 +466,12 @@ export default function Page() {
 
         <div className="relative z-10 mx-auto mt-12 flex w-full flex-col gap-4 border-t border-white/10 pt-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {new Date().getFullYear()} TavoloAI. {dictionary.finalCta.badge}
+            Â© {new Date().getFullYear()} TavoloAI. {dictionary.finalCta.badge}
           </p>
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-3 text-slate-400">
               <a href="https://twitter.com" aria-label="X" className="transition-colors hover:text-white">
-                <span className="text-base font-semibold">??</span>
+                <span className="text-base font-semibold">X</span>
               </a>
               <a href="https://youtube.com" aria-label="YouTube" className="transition-colors hover:text-white">
                 <YoutubeIcon className="h-4 w-4" />
@@ -488,13 +488,13 @@ export default function Page() {
             </div>
             <div className="flex flex-wrap gap-4">
               <a href="#" className="transition-colors duration-150 hover:text-white">
-                Términos de uso
+                Termini d'uso
               </a>
               <a href="#" className="transition-colors duration-150 hover:text-white">
-                Política de privacidad
+                Informativa sulla privacy
               </a>
               <a href="#final-cta" className="transition-colors duration-150 hover:text-white">
-                Contacto
+                Contatto
               </a>
             </div>
           </div>
@@ -503,4 +503,8 @@ export default function Page() {
     </motion.div>
   )
 }
+
+
+
+
 

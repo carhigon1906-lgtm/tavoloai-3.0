@@ -64,7 +64,7 @@ export default function PanicPage() {
       } = await supabase.auth.getSession()
 
       if (!session) {
-        setMenuError("Debes iniciar sesion para ver tus menus.")
+        setMenuError("Devi accedere per vedere i tuoi menu.")
         setMenusLoading(false)
         return
       }
@@ -76,13 +76,12 @@ export default function PanicPage() {
         .order("created_at", { ascending: false })
 
       if (error) {
-        setMenuError("No pudimos cargar tus menus.")
+        setMenuError("Non siamo riusciti a caricare i tuoi menu.")
         setMenusLoading(false)
         return
       }
 
-      const list = Array.isArray(data) ? data : []
-      setMenus(list)
+      setMenus(Array.isArray(data) ? data : [])
       setMenusLoading(false)
     }
 
@@ -99,7 +98,7 @@ export default function PanicPage() {
       } = await supabase.auth.getSession()
 
       if (!session) {
-        setMenuError("Debes iniciar sesion para ver tus menus.")
+        setMenuError("Devi accedere per vedere i tuoi menu.")
         setMenuLoading(false)
         return
       }
@@ -112,7 +111,7 @@ export default function PanicPage() {
         .maybeSingle()
 
       if (error) {
-        setMenuError("No pudimos cargar tu menu.")
+        setMenuError("Non siamo riusciti a caricare il tuo menu.")
         setMenuLoading(false)
         return
       }
@@ -137,10 +136,7 @@ export default function PanicPage() {
     loadMenuDetails()
   }, [selectedMenuId])
 
-  const totalDishes = useMemo(
-    () => categories.reduce((acc, category) => acc + (category.platos?.length ?? 0), 0),
-    [categories],
-  )
+  const totalDishes = useMemo(() => categories.reduce((acc, category) => acc + (category.platos?.length ?? 0), 0), [categories])
   const hiddenDishes = useMemo(
     () =>
       categories.reduce(
@@ -156,15 +152,15 @@ export default function PanicPage() {
     setIsSaving(true)
     setSaveError("")
     setSaveSuccess("")
-    showToast("info", "Actualizando visibilidad del plato...")
+    showToast("info", "Aggiornamento della visibilita del piatto...")
 
     const {
       data: { session },
     } = await supabase.auth.getSession()
 
     if (!session || !selectedMenuId) {
-      setSaveError("Debes iniciar sesion para guardar cambios.")
-      showToast("error", "Debes iniciar sesión para guardar cambios.")
+      setSaveError("Devi accedere per salvare le modifiche.")
+      showToast("error", "Devi accedere per salvare le modifiche.")
       setIsSaving(false)
       return
     }
@@ -177,8 +173,8 @@ export default function PanicPage() {
       .maybeSingle()
 
     if (error || !data) {
-      setSaveError("No pudimos cargar tu menu para actualizarlo.")
-      showToast("error", "No pudimos cargar tu menú para actualizarlo.")
+      setSaveError("Non siamo riusciti a caricare il menu da aggiornare.")
+      showToast("error", "Non siamo riusciti a caricare il menu da aggiornare.")
       setIsSaving(false)
       return
     }
@@ -200,8 +196,8 @@ export default function PanicPage() {
     })
 
     if (!baseCategories.length || baseTotal === 0) {
-      setSaveError("Aún no hay platos cargados para actualizar.")
-      showToast("error", "Aún no hay platos cargados para actualizar.")
+      setSaveError("Non ci sono ancora piatti caricati da aggiornare.")
+      showToast("error", "Non ci sono ancora piatti caricati da aggiornare.")
       setIsSaving(false)
       return
     }
@@ -209,8 +205,8 @@ export default function PanicPage() {
     const targetCategory = baseCategories.find((cat) => String(cat.id) === String(categoryId))
     const targetDish = targetCategory?.platos?.find((dish) => String(dish.id) === String(dishId))
     if (!targetCategory || !targetDish) {
-      setSaveError("No encontramos el plato seleccionado.")
-      showToast("error", "No encontramos el plato seleccionado.")
+      setSaveError("Non abbiamo trovato il piatto selezionato.")
+      showToast("error", "Non abbiamo trovato il piatto selezionato.")
       setIsSaving(false)
       return
     }
@@ -233,15 +229,12 @@ export default function PanicPage() {
 
     if (updateError) {
       setCategories(baseCategories)
-      setSaveError("No se pudo actualizar el menu. Intenta nuevamente.")
-      showToast("error", "No se pudo actualizar el menú. Intenta nuevamente.")
+      setSaveError("Non e stato possibile aggiornare il menu. Riprova.")
+      showToast("error", "Non e stato possibile aggiornare il menu. Riprova.")
       console.log("[panic] update error", updateError)
     } else {
-      setSaveSuccess("Actualizado.")
-      showToast(
-        "success",
-        targetDish.activo === false ? "Plato visible" : "Plato oculto",
-      )
+      setSaveSuccess("Aggiornato.")
+      showToast("success", targetDish.activo === false ? "Piatto visibile" : "Piatto nascosto")
       const nextTotal = nextCategories.reduce((acc, cat) => acc + (cat.platos?.length ?? 0), 0)
       console.log("[panic] updated categories", {
         menuId: selectedMenuId,
@@ -279,6 +272,7 @@ export default function PanicPage() {
             {toast.message}
           </div>
         )}
+
         <motion.section variants={card} className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link
@@ -288,16 +282,16 @@ export default function PanicPage() {
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Boton de panico</h1>
+              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Pulsante rapido</h1>
               <p className="mt-1 text-sm text-slate-300 sm:text-base">
-                Oculta platos agotados del menu QR con un solo toque.
+                Nascondi i piatti esauriti del menu QR con un solo tocco.
               </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
               <AlertTriangle className="h-4 w-4 text-amber-300" />
-              {totalDishes} platos · {hiddenDishes} ocultos
+              {totalDishes} piatti · {hiddenDishes} nascosti
             </div>
           </div>
         </motion.section>
@@ -308,31 +302,31 @@ export default function PanicPage() {
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-white">Selecciona un menu</h2>
-              <p className="text-sm text-slate-400">Elige el menu donde quieres ocultar platos.</p>
+              <h2 className="text-xl font-semibold text-white">Seleziona un menu</h2>
+              <p className="text-sm text-slate-400">Scegli il menu in cui vuoi nascondere i piatti.</p>
             </div>
             <span
               className={`rounded-full border border-white/10 px-4 py-2 text-xs font-semibold ${
                 isSaving ? "bg-amber-400/20 text-amber-200" : "bg-white/5 text-slate-300"
               }`}
             >
-              {isSaving ? "Guardando..." : "Listo para editar"}
+              {isSaving ? "Salvataggio..." : "Pronto per modificare"}
             </span>
           </div>
 
           <div className="mt-5">
             <div className="flex items-center justify-between border-b border-white/10 pb-3 text-xs font-semibold uppercase tracking-widest text-slate-400">
-              <span>Nombre</span>
-              <span className="pr-2">Accion</span>
+              <span>Nome</span>
+              <span className="pr-2">Azione</span>
             </div>
 
             {menusLoading ? (
               <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-300">
-                Cargando menus...
+                Caricamento menu...
               </div>
             ) : menus.length === 0 ? (
               <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-300">
-                No hay menus creados.
+                Non hai ancora creato nessun menu.
               </div>
             ) : (
               <div className="divide-y divide-white/5">
@@ -342,14 +336,12 @@ export default function PanicPage() {
                     type="button"
                     onClick={() => setSelectedMenuId(String(menu.id))}
                     className={`flex w-full items-center justify-between gap-4 py-4 text-left transition ${
-                      selectedMenuId === String(menu.id)
-                        ? "text-white"
-                        : "text-slate-200 hover:text-white"
+                      selectedMenuId === String(menu.id) ? "text-white" : "text-slate-200 hover:text-white"
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`h-9 w-9 rounded-2xl border flex items-center justify-center ${
+                        className={`flex h-9 w-9 items-center justify-center rounded-2xl border ${
                           selectedMenuId === String(menu.id)
                             ? "border-amber-300/40 bg-amber-400/15"
                             : "border-white/20 bg-white/10"
@@ -364,7 +356,7 @@ export default function PanicPage() {
                         selectedMenuId === String(menu.id) ? "text-amber-200" : "text-slate-400"
                       }`}
                     >
-                      Seleccionar
+                      Seleziona
                     </span>
                   </button>
                 ))}
@@ -380,9 +372,9 @@ export default function PanicPage() {
           >
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-semibold text-white">Platos del menu</h2>
+                <h2 className="text-xl font-semibold text-white">Piatti del menu</h2>
                 <p className="text-sm text-slate-400">
-                  Cambia el estado para ocultar o mostrar cada plato en tiempo real.
+                  Cambia lo stato per nascondere o mostrare ogni piatto in tempo reale.
                 </p>
               </div>
             </div>
@@ -390,7 +382,7 @@ export default function PanicPage() {
             <div className="mt-6 space-y-5">
               {menuLoading && (
                 <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-300">
-                  Cargando platos...
+                  Caricamento piatti...
                 </div>
               )}
               {menuError && (
@@ -400,7 +392,7 @@ export default function PanicPage() {
               )}
               {!menuLoading && !menuError && categories.length === 0 && (
                 <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-300">
-                  Aun no hay platos en tu menu.
+                  Non ci sono ancora piatti nel tuo menu.
                 </div>
               )}
 
@@ -414,14 +406,14 @@ export default function PanicPage() {
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <h3 className="text-lg font-semibold text-white">{category.nombre}</h3>
                       <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
-                        {category.platos.length} platos
+                        {category.platos.length} piatti
                       </span>
                     </div>
 
                     <div className="mt-4 space-y-3">
                       {category.platos.length === 0 && (
                         <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-400">
-                          Esta categoria todavia no tiene platos.
+                          Questa categoria non ha ancora piatti.
                         </div>
                       )}
                       {category.platos.map((dish) => {
@@ -435,7 +427,7 @@ export default function PanicPage() {
                               {dish.foto_url ? (
                                 <img
                                   src={dish.foto_url}
-                                  alt={dish.nombre ? `Foto de ${dish.nombre}` : "Foto del plato"}
+                                  alt={dish.nombre ? `Foto di ${dish.nombre}` : "Foto del piatto"}
                                   className="h-12 w-12 rounded-xl border border-white/10 object-cover shadow-[0_8px_20px_rgba(0,0,0,0.35)]"
                                   loading="lazy"
                                   decoding="async"
@@ -446,10 +438,8 @@ export default function PanicPage() {
                                 </div>
                               )}
                               <div>
-                                <p className="text-sm font-semibold text-white">{dish.nombre || "Plato sin nombre"}</p>
-                                <p className="text-xs text-slate-400">
-                                  {dish.ingredientes || "Ingredientes por definir"}
-                                </p>
+                                <p className="text-sm font-semibold text-white">{dish.nombre || "Piatto senza nome"}</p>
+                                <p className="text-xs text-slate-400">{dish.ingredientes || "Ingredienti da definire"}</p>
                               </div>
                             </div>
 
@@ -462,7 +452,7 @@ export default function PanicPage() {
                                 }`}
                               >
                                 {isActive ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                                {isActive ? "Visible" : "Oculto"}
+                                {isActive ? "Visibile" : "Nascosto"}
                               </span>
                               <button
                                 type="button"
@@ -476,7 +466,7 @@ export default function PanicPage() {
                                 }`}
                               >
                                 <span
-                                  className={`absolute top-1 left-1 h-7 w-7 rounded-full bg-white shadow-[0_6px_16px_rgba(0,0,0,0.35)] transition-all duration-300 ${
+                                  className={`absolute left-1 top-1 h-7 w-7 rounded-full bg-white shadow-[0_6px_16px_rgba(0,0,0,0.35)] transition-all duration-300 ${
                                     isActive ? "translate-x-7" : "translate-x-0"
                                   }`}
                                 />

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { motion } from "framer-motion"
 import Image, { type StaticImageData } from "next/image"
@@ -51,8 +51,8 @@ const burgers: Burger[] = [
         id: "1",
         name: "Triple BBQ Ribs",
         description:
-            "Tres jugosas carnes bañadas en salsa BBQ ahumada, queso mozzarella fundido y cebolla caramelizada.",
-        price: "40,00 €",
+            "Tres jugosas carnes baÃ±adas en salsa BBQ ahumada, queso mozzarella fundido y cebolla caramelizada.",
+        price: "40,00 â‚¬",
         image: tripleBbqBeef,
         ingredients: [
             {
@@ -79,7 +79,7 @@ const burgers: Burger[] = [
             },
             {
                 label: "210 gr de Carne",
-                sublabel: "Desmechada bañada en salsa BBQ",
+                sublabel: "Desmechada baÃ±ada en salsa BBQ",
                 position: { top: "-14%", left: "50%", transform: "translateX(-50%)" },
                 lineStart: { x: 225, y: 32 },
                 lineEnd: { x: 225, y: 162 },
@@ -116,7 +116,7 @@ const burgers: Burger[] = [
         id: "2",
         name: "4 Carnes",
         description: "Cuatro capas de carne premium con quesos selectos y vegetales frescos.",
-        price: "40,00 €",
+        price: "40,00 â‚¬",
         image: fourMeatRegular,
         ingredients: [
             {
@@ -169,7 +169,7 @@ const burgers: Burger[] = [
         id: "3",
         name: "Onion Rings",
         description: "Carne 100% res con aros de cebolla dorados y crujientes.",
-        price: "26,00 €",
+        price: "26,00 â‚¬",
         image: burgerOnionRegular,
         ingredients: [
             {
@@ -211,7 +211,7 @@ const burgers: Burger[] = [
         id: "4",
         name: "Crispy Bacon",
         description: "Carne premium coronada con bacon extra crujiente y queso fundido.",
-        price: "28,00 €",
+        price: "28,00 â‚¬",
         image: crispyBaconRegular,
         ingredients: [
             {
@@ -477,7 +477,7 @@ export default function BurgerDetailClient({ burgerId }: BurgerDetailClientProps
     const [hoveredStar, setHoveredStar] = useState(0)
     const [isMobile, setIsMobile] = useState(false)
 
-    // Seleccionar burger según el id de la URL
+    // Seleccionar burger segÃºn el id de la URL
     useEffect(() => {
         if (!burgerId) {
             setCurrentBurger(burgers[0] ?? null)
@@ -494,7 +494,7 @@ export default function BurgerDetailClient({ burgerId }: BurgerDetailClientProps
         setCurrentBurger(found)
     }, [burgerId, router])
 
-    // Detectar viewport móvil
+    // Detectar viewport mÃ³vil
     useEffect(() => {
         const evaluateViewport = () => {
             if (typeof window === "undefined") return
@@ -534,7 +534,7 @@ export default function BurgerDetailClient({ burgerId }: BurgerDetailClientProps
         }
 
         if (typeof window !== "undefined") {
-            window.alert("La función de compartir no está disponible en este dispositivo.")
+            window.alert("La funzione di condivisione non e disponibile su questo dispositivo.")
         }
     }
 
@@ -678,7 +678,7 @@ export default function BurgerDetailClient({ burgerId }: BurgerDetailClientProps
                 transition={{ duration: 0.5, delay: 0.5 }}
             >
                 <div style={styles.ratingContainer}>
-                    <span style={styles.ratingLabel}>Calificar</span>
+                    <span style={styles.ratingLabel}>Valuta</span>
                     <div style={styles.starsContainer}>
                         {[1, 2, 3, 4, 5].map((starIndex) => (
                             <motion.span
@@ -705,7 +705,7 @@ export default function BurgerDetailClient({ burgerId }: BurgerDetailClientProps
                                 onMouseLeave={() => setHoveredStar(0)}
                                 onClick={() => handleStarClick(starIndex)}
                             >
-                                {starIndex <= activeStars ? "⭐" : "☆"}
+                                {starIndex <= activeStars ? "â­" : "â˜†"}
                             </motion.span>
                         ))}
                     </div>
@@ -721,10 +721,14 @@ export default function BurgerDetailClient({ burgerId }: BurgerDetailClientProps
                     whileTap={{ scale: 0.9 }}
                     onClick={handleShare}
                 >
-                    <span style={styles.shareIcon}>📤</span>
+                    <span style={styles.shareIcon}>ðŸ“¤</span>
                 </motion.button>
             </motion.footer>
         </div>
     )
 }
+
+
+
+
 

@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -53,6 +53,7 @@ export default function MenusPage() {
   const [deleteError, setDeleteError] = useState("")
   const [qrMenu, setQrMenu] = useState<MenuRow | null>(null)
   const qrRef = useRef<HTMLDivElement | null>(null)
+
   useEffect(() => {
     const loadMenus = async () => {
       setLoading(true)
@@ -63,7 +64,7 @@ export default function MenusPage() {
       } = await supabase.auth.getSession()
 
       if (!session) {
-        setError("Debes iniciar sesion para ver tus menus.")
+        setError("Devi accedere per vedere i tuoi menu.")
         setLoading(false)
         return
       }
@@ -75,7 +76,7 @@ export default function MenusPage() {
         .order("created_at", { ascending: false })
 
       if (error) {
-        setError("No pudimos cargar tus menus.")
+        setError("Non siamo riusciti a caricare i tuoi menu.")
         setLoading(false)
         return
       }
@@ -150,6 +151,7 @@ export default function MenusPage() {
 
     img.src = url
   }
+
   const toggleMenuActive = async (menuId: number | string) => {
     const current = menus.find((m) => String(m.id) == String(menuId))
     if (!current) return
@@ -170,19 +172,20 @@ export default function MenusPage() {
       data: { session },
     } = await supabase.auth.getSession()
     if (!session) {
-      setDeleteError("Debes iniciar sesión para eliminar el menú.")
+      setDeleteError("Devi accedere per eliminare il menu.")
       setIsDeleting(false)
       return
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("menus")
       .delete()
       .eq("id", menuId)
       .eq("user_id", session.user.id)
       .select("id")
+
     if (error) {
-      setDeleteError(error.message || "No se pudo eliminar el menú. Intenta nuevamente.")
+      setDeleteError(error.message || "Non e stato possibile eliminare il menu. Riprova.")
       setIsDeleting(false)
       return
     }
@@ -195,12 +198,12 @@ export default function MenusPage() {
       .maybeSingle()
 
     if (checkError) {
-      setDeleteError(checkError.message || "No se pudo verificar la eliminación. Intenta nuevamente.")
+      setDeleteError(checkError.message || "Non e stato possibile verificare l'eliminazione. Riprova.")
       setIsDeleting(false)
       return
     }
     if (check?.id) {
-      setDeleteError("No se pudo eliminar el menú. Verifica tus permisos.")
+      setDeleteError("Non e stato possibile eliminare il menu. Verifica i permessi.")
       setIsDeleting(false)
       return
     }
@@ -225,13 +228,13 @@ export default function MenusPage() {
           variants={card}
           className="rounded-3xl border border-white/15 bg-white/5 px-6 py-8 text-left shadow-[0_35px_90px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
         >
-          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Mis menus</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">I miei menu</h1>
           <p className="mt-2 text-sm text-slate-300 sm:text-base">
-            Administra tus menus, decide cuales mostrar y edita cuando lo necesites.
+            Gestisci i tuoi menu, scegli quali mostrare e modificali quando vuoi.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">{menus.length} menus</span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">{totalDishes} platos</span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">{menus.length} menu</span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1">{totalDishes} piatti</span>
           </div>
         </motion.section>
 
@@ -241,8 +244,8 @@ export default function MenusPage() {
         >
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-white">Lista de menus</h2>
-              <p className="text-sm text-slate-400">Activa o desactiva menus desde aqui.</p>
+              <h2 className="text-xl font-semibold text-white">Elenco menu</h2>
+              <p className="text-sm text-slate-400">Attiva o disattiva i menu da qui.</p>
             </div>
             <motion.button
               type="button"
@@ -252,19 +255,19 @@ export default function MenusPage() {
               className="inline-flex items-center gap-2 rounded-2xl border border-emerald-300/40 bg-emerald-400/20 px-4 py-2 text-sm font-semibold text-emerald-100 shadow-lg transition hover:bg-emerald-400/30"
             >
               <Plus className="h-4 w-4" />
-              Añadir menú
+              Aggiungi menu
             </motion.button>
           </div>
 
           <div className="mt-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-3 text-xs font-semibold uppercase tracking-widest text-slate-400">
-              <span>Nombre</span>
-              <span className="pr-2">Accion</span>
+              <span>Nome</span>
+              <span className="pr-2">Azione</span>
             </div>
 
             {loading && (
               <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-300">
-                Cargando menus...
+                Caricamento menu...
               </div>
             )}
 
@@ -276,7 +279,7 @@ export default function MenusPage() {
 
             {!loading && !error && menus.length == 0 && (
               <div className="mt-4 rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-center text-sm text-slate-400">
-                No hay menus creados todavia.
+                Non hai ancora creato nessun menu.
               </div>
             )}
 
@@ -285,12 +288,12 @@ export default function MenusPage() {
                 {menus.map((m) => (
                   <div key={m.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-2xl border border-white/20 bg-white/10 flex items-center justify-center">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/20 bg-white/10">
                         <Layers className="h-4 w-4 text-emerald-200" />
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-white">{m.nombre}</p>
-                        <p className="text-xs text-slate-400">{(m.categories ?? []).length} categorias</p>
+                        <p className="text-xs text-slate-400">{(m.categories ?? []).length} categorie</p>
                       </div>
                     </div>
 
@@ -307,46 +310,46 @@ export default function MenusPage() {
                         }`}
                       >
                         <span
-                          className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow-[0_6px_16px_rgba(0,0,0,0.35)] transition-all duration-300 ${
+                          className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white shadow-[0_6px_16px_rgba(0,0,0,0.35)] transition-all duration-300 ${
                             m.activo ? "translate-x-5" : "translate-x-0"
                           }`}
                         />
                       </button>
                       <button
                         type="button"
-                        title="Ver QR"
+                        title="Vedi QR"
                         onClick={() => setQrMenu(m)}
-                        className="h-9 w-9 rounded-xl border border-indigo-300/30 bg-indigo-400/15 text-indigo-100 hover:bg-indigo-400/25 transition"
+                        className="h-9 w-9 rounded-xl border border-indigo-300/30 bg-indigo-400/15 text-indigo-100 transition hover:bg-indigo-400/25"
                       >
-                        <QrCodeIcon className="h-4 w-4 mx-auto" />
+                        <QrCodeIcon className="mx-auto h-4 w-4" />
                       </button>
 
                       <button
                         type="button"
-                        title="Vista previa"
+                        title="Anteprima"
                         onClick={() => router.push(`/menu?menu=${encodeURIComponent(String(m.id))}`)}
-                        className="h-9 w-9 rounded-xl border border-white/15 bg-white/10 text-slate-200 hover:bg-white/20 transition"
+                        className="h-9 w-9 rounded-xl border border-white/15 bg-white/10 text-slate-200 transition hover:bg-white/20"
                       >
-                        <Eye className="h-4 w-4 mx-auto" />
+                        <Eye className="mx-auto h-4 w-4" />
                       </button>
                       <button
                         type="button"
-                        title="Editar"
+                        title="Modifica"
                         onClick={() => router.push(`/dashboard/menu/edit?menu=${encodeURIComponent(String(m.id))}`)}
-                        className="h-9 w-9 rounded-xl border border-white/15 bg-white/10 text-slate-200 hover:bg-white/20 transition"
+                        className="h-9 w-9 rounded-xl border border-white/15 bg-white/10 text-slate-200 transition hover:bg-white/20"
                       >
-                        <Edit3 className="h-4 w-4 mx-auto" />
+                        <Edit3 className="mx-auto h-4 w-4" />
                       </button>
                       <button
                         type="button"
-                        title="Eliminar"
+                        title="Elimina"
                         onClick={() => {
                           setMenuToDelete(m)
                           setDeleteError("")
                         }}
-                        className="h-9 w-9 rounded-xl border border-red-300/30 bg-red-500/15 text-red-200 hover:bg-red-500/25 transition"
+                        className="h-9 w-9 rounded-xl border border-red-300/30 bg-red-500/15 text-red-200 transition hover:bg-red-500/25"
                       >
-                        <Trash2 className="h-4 w-4 mx-auto" />
+                        <Trash2 className="mx-auto h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -356,6 +359,7 @@ export default function MenusPage() {
           </div>
         </motion.section>
       </motion.div>
+
       <AnimatePresence>
         {qrMenu && (
           <motion.div
@@ -373,15 +377,15 @@ export default function MenusPage() {
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-white">QR del menú</h3>
-                  <p className="mt-1 text-sm text-slate-300">Escanéalo o compártelo para abrir este menú.</p>
+                  <h3 className="text-lg font-semibold text-white">QR del menu</h3>
+                  <p className="mt-1 text-sm text-slate-300">Scansionalo o condividilo per aprire questo menu.</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setQrMenu(null)}
                   className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200 transition hover:bg-white/10"
                 >
-                  Cerrar
+                  Chiudi
                 </button>
               </div>
 
@@ -399,7 +403,7 @@ export default function MenusPage() {
                       onClick={() => router.push(`/menu?menu=${encodeURIComponent(String(qrMenu.id))}`)}
                       className="inline-flex items-center justify-center rounded-2xl border border-cyan-300/70 bg-cyan-400/20 px-4 py-2 text-xs font-semibold text-cyan-50 transition hover:bg-cyan-400/30"
                     >
-                      Abrir menú
+                      Apri menu
                     </button>
                     <button
                       type="button"
@@ -413,14 +417,14 @@ export default function MenusPage() {
                       }}
                       className="inline-flex items-center justify-center rounded-2xl border border-emerald-300/50 bg-emerald-400/20 px-4 py-2 text-xs font-semibold text-emerald-50 transition hover:bg-emerald-400/30"
                     >
-                      Copiar link
+                      Copia link
                     </button>
                     <button
                       type="button"
                       onClick={downloadQrImage}
                       className="inline-flex items-center justify-center rounded-2xl border border-indigo-300/60 bg-indigo-400/20 px-4 py-2 text-xs font-semibold text-indigo-50 transition hover:bg-indigo-400/30"
                     >
-                      Descargar QR
+                      Scarica QR
                     </button>
                   </div>
                 </div>
@@ -428,6 +432,7 @@ export default function MenusPage() {
             </motion.div>
           </motion.div>
         )}
+
         {menuToDelete && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6 py-10 backdrop-blur-sm"
@@ -447,10 +452,9 @@ export default function MenusPage() {
                   <Trash2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Eliminar menú</h3>
+                  <h3 className="text-lg font-semibold text-white">Elimina menu</h3>
                   <p className="mt-1 text-sm text-slate-300">
-                    Estás por borrar <span className="font-semibold text-white">{menuToDelete.nombre}</span>. Esta acción
-                    no se puede deshacer.
+                    Stai per eliminare <span className="font-semibold text-white">{menuToDelete.nombre}</span>. Questa azione non puo essere annullata.
                   </p>
                 </div>
               </div>
@@ -467,7 +471,7 @@ export default function MenusPage() {
                   onClick={() => setMenuToDelete(null)}
                   className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"
                 >
-                  Cancelar
+                  Annulla
                 </button>
                 <motion.button
                   type="button"
@@ -478,7 +482,7 @@ export default function MenusPage() {
                   className="group relative inline-flex items-center gap-2 overflow-hidden rounded-2xl border border-red-300/50 bg-gradient-to-r from-red-500/40 via-red-400/20 to-red-500/40 px-4 py-2 text-sm font-semibold text-red-100 shadow-[0_0_22px_rgba(239,68,68,0.55)] transition hover:border-red-300/90 hover:text-white hover:shadow-[0_0_32px_rgba(239,68,68,0.9)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-red-300/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                  <span className="relative">{isDeleting ? "Eliminando..." : "Eliminar"}</span>
+                  <span className="relative">{isDeleting ? "Eliminazione..." : "Elimina"}</span>
                 </motion.button>
               </div>
             </motion.div>
