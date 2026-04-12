@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -35,7 +35,7 @@ const card = {
   visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 280, damping: 26 } },
 }
 
-const CATEGORY_ICON_OPTIONS = ["🍔", "\u{1F355}", "\u{1F32E}", "\u{1F957}", "\u{1F363}", "\u{1F964}", "\u{2615}", "\u{1F370}", "🍽️", "\u{2B50}"]
+const CATEGORY_ICON_OPTIONS = ["ðŸ”", "\u{1F355}", "\u{1F32E}", "\u{1F957}", "\u{1F363}", "\u{1F964}", "\u{2615}", "\u{1F370}", "ðŸ½ï¸", "\u{2B50}"]
 
 export default function EditMenuPage() {
   const searchParams = useSearchParams()
@@ -82,7 +82,7 @@ export default function EditMenuPage() {
   } | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
   const [newCategoryName, setNewCategoryName] = useState<string>("")
-  const [newCategoryIcon, setNewCategoryIcon] = useState<string>("🍽️")
+  const [newCategoryIcon, setNewCategoryIcon] = useState<string>("ðŸ½ï¸")
   const [ingredientDrafts, setIngredientDrafts] = useState<Record<number, string>>({})
   const logoInputRef = useRef<HTMLInputElement | null>(null)
   const rembgSessionRef = useRef<Promise<unknown> | null>(null)
@@ -109,7 +109,7 @@ export default function EditMenuPage() {
       setMenuError("")
 
       if (!menuIdParam) {
-        setMenuError("Selecciona un menú desde Mis menús.")
+        setMenuError("Seleziona un menu da I miei menu.")
         setMenuLoading(false)
         return
       }
@@ -118,7 +118,7 @@ export default function EditMenuPage() {
         data: { session },
       } = await supabase.auth.getSession()
       if (!session) {
-        setMenuError("Debes iniciar sesion para editar.")
+        setMenuError("Devi accedere per modificare.")
         setMenuLoading(false)
         return
       }
@@ -131,7 +131,7 @@ export default function EditMenuPage() {
         .maybeSingle()
 
       if (error) {
-        setMenuError("No pudimos cargar tu menú.")
+        setMenuError("Non siamo riusciti a caricare il tuo menu.")
         setMenuLoading(false)
         return
       }
@@ -147,7 +147,7 @@ export default function EditMenuPage() {
         if (Array.isArray(data.categories)) {
           const normalized = data.categories.map((cat) => ({
             ...cat,
-            icono: typeof cat.icono === "string" ? cat.icono : "🍽️",
+            icono: typeof cat.icono === "string" ? cat.icono : "ðŸ½ï¸",
             platos: Array.isArray(cat.platos)
               ? cat.platos.map((dish) => {
                   const { tagline, ...rest } = dish
@@ -162,7 +162,7 @@ export default function EditMenuPage() {
           setCategories(normalized)
         }
       } else {
-        setMenuError("No encontramos este menú.")
+        setMenuError("Non abbiamo trovato questo menu.")
       }
 
       setMenuLoading(false)
@@ -226,7 +226,7 @@ export default function EditMenuPage() {
       setLogoUrl("")
       setLogoName("")
       setLogoFile(null)
-      setLogoError("El logo debe ser un archivo PNG.")
+      setLogoError("Il logo deve essere un file PNG.")
       return
     }
 
@@ -241,20 +241,20 @@ export default function EditMenuPage() {
   }
 
   const addCategory = () => {
-    if (!newCategoryName.trim()) return alert("Ingresa un nombre de categoría.")
+    if (!newCategoryName.trim()) return alert("Inserisci un nome per la categoria.")
     setCategories((prev) => [
       ...prev,
-      { id: Date.now(), nombre: newCategoryName.trim(), icono: newCategoryIcon.trim() || "🍽️", platos: [] },
+      { id: Date.now(), nombre: newCategoryName.trim(), icono: newCategoryIcon.trim() || "ðŸ½ï¸", platos: [] },
     ])
     setNewCategoryName("")
-    setNewCategoryIcon("🍽️")
+    setNewCategoryIcon("ðŸ½ï¸")
   }
 
   const requestRemoveCategory = (categoryId: number) => {
     const category = categories.find((cat) => cat.id === categoryId)
     setConfirmCategoryDelete({
       categoryId,
-      categoryName: category?.nombre?.trim() || "esta categoría",
+      categoryName: category?.nombre?.trim() || "questa categoria",
     })
   }
 
@@ -293,7 +293,7 @@ export default function EditMenuPage() {
     setConfirmDishDelete({
       categoryId,
       dishId,
-      dishName: dish?.nombre?.trim() || "este plato",
+      dishName: dish?.nombre?.trim() || "questo piatto",
     })
   }
 
@@ -404,7 +404,7 @@ export default function EditMenuPage() {
 
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}))
-      const message = payload?.error || "No se pudo mejorar la imagen."
+      const message = payload?.error || "Non e stato possibile migliorare l'immagine."
       const status = payload?.status
       const requestId = payload?.requestId
       const details = [
@@ -412,19 +412,19 @@ export default function EditMenuPage() {
         requestId ? `request ${requestId}` : "",
       ]
         .filter(Boolean)
-        .join(" · ")
+        .join(" Â· ")
       throw new Error(details ? `${message} (${details})` : message)
     }
 
     const payload = await response.json()
     const tmpUrl = payload?.tmpUrl
     if (!tmpUrl || typeof tmpUrl !== "string") {
-      throw new Error("Respuesta inválida del servicio de mejora.")
+      throw new Error("Respuesta invÃ¡lida del servicio de mejora.")
     }
 
     const enhancedResponse = await fetch(tmpUrl)
     if (!enhancedResponse.ok) {
-      throw new Error("No se pudo descargar la imagen mejorada.")
+      throw new Error("Non e stato possibile scaricare l'immagine migliorata.")
     }
     const blob = await enhancedResponse.blob()
     const baseName = file.name.replace(/\.[^/.]+$/, "")
@@ -453,7 +453,7 @@ export default function EditMenuPage() {
         },
       }))
     } catch (error) {
-      const message = error instanceof Error ? error.message : "No se pudo mejorar la imagen."
+      const message = error instanceof Error ? error.message : "Non e stato possibile migliorare l'immagine."
       setProcessingError(message)
     } finally {
       setEnhancingWithAi(false)
@@ -473,7 +473,7 @@ export default function EditMenuPage() {
       "image/webp": true,
     }
     if (!allowedTypes[file.type]) {
-      setSaveError("La foto del plato debe ser PNG, JPG o WEBP.")
+      setSaveError("La foto del piatto deve essere PNG, JPG o WEBP.")
       return
     }
 
@@ -481,7 +481,7 @@ export default function EditMenuPage() {
       data: { session },
     } = await supabase.auth.getSession()
     if (!session) {
-      setSaveError("Debes iniciar sesión para subir imágenes.")
+      setSaveError("Devi accedere per caricare immagini.")
       return
     }
 
@@ -529,7 +529,7 @@ export default function EditMenuPage() {
         previewReader.readAsDataURL(backgroundRemoved)
       })
     } catch (error) {
-      const message = error instanceof Error ? error.message : "No se pudo procesar la imagen."
+      const message = error instanceof Error ? error.message : "Non e stato possibile elaborare l'immagine."
       setSaveError(message)
       setProcessingError(message)
       setUploadingDish((prev) => ({ ...prev, [dishId]: false }))
@@ -554,19 +554,19 @@ export default function EditMenuPage() {
 
   const saveMenu = async () => {
     if (!hasExistingMenu) {
-      setSaveError("No hay menú para editar.")
+      setSaveError("Non c'e alcun menu da modificare.")
       return
     }
     if (menuLoading) {
-      setSaveError("Espera a que el menú termine de cargar antes de guardar.")
+      setSaveError("Attendi che il menu finisca di caricarsi prima di salvare.")
       return
     }
     if (menuError) {
-      setSaveError("No se puede guardar mientras hay un error cargando el menú.")
+      setSaveError("Non e possibile salvare mentre e presente un errore nel caricamento del menu.")
       return
     }
     if (!menuName.trim()) {
-      setSaveError("El nombre del menú es obligatorio.")
+      setSaveError("Il nome del menu e obbligatorio.")
       return
     }
     setSaveError("")
@@ -578,7 +578,7 @@ export default function EditMenuPage() {
         data: { session },
       } = await supabase.auth.getSession()
       if (!session) {
-        setSaveError("Debes iniciar sesión para guardar.")
+      setSaveError("Devi accedere per salvare.")
         return
       }
 
@@ -596,13 +596,13 @@ export default function EditMenuPage() {
         })
 
         if (!response.ok) {
-          setSaveError("No se pudo subir el logo. Revisa el bucket en Supabase.")
+          setSaveError("Non e stato possibile caricare il logo. Controlla il bucket in Supabase.")
           return
         }
 
         const result = await response.json()
         if (!result?.publicUrl) {
-          setSaveError("No se pudo obtener la URL del logo.")
+          setSaveError("Non e stato possibile ottenere l'URL del logo.")
           return
         }
 
@@ -628,13 +628,13 @@ export default function EditMenuPage() {
         })
 
         if (!response.ok) {
-          setSaveError("No se pudo subir una foto del plato. Revisa el bucket en Supabase.")
+          setSaveError("Non e stato possibile caricare una foto del piatto. Controlla il bucket in Supabase.")
           return
         }
 
         const result = await response.json()
         if (!result?.publicUrl) {
-          setSaveError("No se pudo obtener la URL de una foto del plato.")
+          setSaveError("Non e stato possibile ottenere l'URL di una foto del piatto.")
           return
         }
 
@@ -664,7 +664,7 @@ export default function EditMenuPage() {
 
       const payload = {
         user_id: session.user.id,
-        nombre: menuName.trim() || "Menú sin nombre",
+        nombre: menuName.trim() || "MenÃº sin nombre",
         slug: slugify(menuName),
         logo_url: finalLogoUrl,
         categories: updatedCategories,
@@ -674,7 +674,7 @@ export default function EditMenuPage() {
       const { data, error } = await supabase.from("menus").update(payload).eq("id", menuIdParam).select("id").single()
 
       if (error) {
-        setSaveError("No se pudo guardar el menú. Intenta nuevamente.")
+        setSaveError("Non e stato possibile salvare il menu. Riprova.")
         return
       }
 
@@ -683,7 +683,7 @@ export default function EditMenuPage() {
         setCategories(updatedCategories)
         setPendingDishUploads({})
       }
-      setSaveSuccess("Menú guardado correctamente.")
+      setSaveSuccess("MenÃº guardado correctamente.")
     } finally {
       setIsSaving(false)
     }
@@ -711,9 +711,9 @@ export default function EditMenuPage() {
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Edición de menú</h1>
+              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Modifica menu</h1>
               <p className="mt-1 text-sm text-slate-300 sm:text-base">
-                Edita categorías, platos y precios del menú activo.
+                Modifica categorie, piatti e prezzi del menu attivo.
               </p>
             </div>
           </div>
@@ -724,11 +724,11 @@ export default function EditMenuPage() {
               aria-disabled={!menuId}
             >
               <span className="absolute inset-0 -z-10 rounded-2xl bg-[radial-gradient(circle_at_20%_20%,rgba(34,211,238,0.6),transparent_60%),radial-gradient(circle_at_80%_20%,rgba(20,184,166,0.5),transparent_60%)]" />
-              Ver mi menú
+              Vedi il mio menu
             </Link>
             <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
               <UtensilsCrossed className="h-4 w-4 text-emerald-300" />
-              {categories.length} categorías - {totalDishes} platos
+              {categories.length} categorÃ­as - {totalDishes} platos
             </div>
           </div>
         </motion.section>
@@ -739,7 +739,7 @@ export default function EditMenuPage() {
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-semibold text-white">Datos del menú</h2>
+              <h2 className="text-xl font-semibold text-white">Dati del menu</h2>
               <p className="text-sm text-slate-400">Actualiza el nombre cuando sea necesario.</p>
             </div>
           </div>
@@ -762,7 +762,7 @@ export default function EditMenuPage() {
             variants={card}
             className="rounded-[26px] border border-white/10 bg-white/5 p-6 text-slate-300"
           >
-            Cargando menú...
+            Caricamento menu...
           </motion.section>
         )}
 
@@ -771,13 +771,13 @@ export default function EditMenuPage() {
             variants={card}
             className="rounded-[26px] border border-amber-300/30 bg-amber-400/10 p-6 text-amber-100 shadow-[0_25px_60px_rgba(0,0,0,0.5)]"
           >
-            <h3 className="text-lg font-semibold text-white">No hay menú para editar</h3>
+            <h3 className="text-lg font-semibold text-white">No hay menÃº para editar</h3>
             <p className="mt-1 text-sm text-amber-100/80">{menuError}</p>
             <Link
               href="/dashboard/menu/new"
               className="mt-4 inline-flex items-center rounded-2xl border border-amber-200/40 bg-amber-400/20 px-4 py-2 text-sm font-semibold text-amber-100 transition hover:bg-amber-400/30"
             >
-              Crear menú ahora
+              Crea menu ora
             </Link>
           </motion.section>
         )}
@@ -787,14 +787,14 @@ export default function EditMenuPage() {
             variants={card}
             className="flex h-full min-h-[300px] flex-col rounded-[28px] border border-white/10 bg-white/5 p-7 shadow-[0_30px_80px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
           >
-            <h2 className="text-xl font-semibold text-white">Agregar categoría</h2>
+            <h2 className="text-xl font-semibold text-white">Aggiungi categoria</h2>
             <p className="mt-1 text-sm text-slate-400">Ej. Entradas, Platos fuertes, Bebidas, Postres.</p>
 
             <div className="mt-5 flex flex-col gap-3">
               <input
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="Nombre de la categoría"
+                placeholder="Nome della categoria"
                 className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
               />
               <div className="grid gap-3 sm:grid-cols-[140px_1fr]">
@@ -812,7 +812,7 @@ export default function EditMenuPage() {
                 <input
                   value={newCategoryIcon}
                   onChange={(e) => setNewCategoryIcon(e.target.value)}
-                  placeholder="Emoji personalizado (ej: 🍔)"
+                  placeholder="Emoji personalizado (ej: ðŸ”)"
                   className="w-full rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
                 />
               </div>
@@ -824,13 +824,13 @@ export default function EditMenuPage() {
                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30"
               >
                 <Plus className="h-4 w-4" />
-                Añadir categoría
+                Aggiungi categoria
               </motion.button>
             </div>
 
             <div className="mt-6 space-y-3 text-sm text-slate-300">
               <p className="rounded-2xl border border-white/10 bg-[#0d1424] px-4 py-3">
-                Recuerda: cada categoría puede tener varios platos con ingredientes y precios.
+                Ricorda: ogni categoria puo includere piatti con ingredienti e prezzi.
               </p>
             </div>
           </motion.section>
@@ -839,9 +839,9 @@ export default function EditMenuPage() {
         <div className={editLocked ? "pointer-events-none opacity-60" : ""}>
         <motion.section variants={card} className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-2xl font-semibold text-white">Categorías y platos</h2>
+            <h2 className="text-2xl font-semibold text-white">Categorie e piatti</h2>
             <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-300">
-              Completa cada plato antes de publicar
+              Completa ogni piatto prima di pubblicare
             </span>
           </div>
 
@@ -861,14 +861,14 @@ export default function EditMenuPage() {
                       <input
                         value={category.icono ?? ""}
                         onChange={(e) => updateCategoryIcon(category.id, e.target.value)}
-                        placeholder="🍽️"
+                        placeholder="ðŸ½ï¸"
                         className="w-16 rounded-2xl border border-white/20 bg-white/5 px-3 py-3 text-center text-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
                       />
                       <input
                         value={category.nombre}
                         onChange={(e) => updateCategoryName(category.id, e.target.value)}
                         className="flex-1 rounded-2xl border border-white/20 bg-white/5 px-4 py-3 text-lg font-semibold text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
-                placeholder="Nombre de la categoría"
+                placeholder="Nome della categoria"
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -880,7 +880,7 @@ export default function EditMenuPage() {
                         className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-emerald-400/20 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-400/30"
                       >
                         <Plus className="h-4 w-4" />
-                        Añadir plato
+                        Aggiungi piatto
                       </motion.button>
                       <motion.button
                         type="button"
@@ -898,7 +898,7 @@ export default function EditMenuPage() {
                   <div className="mt-5 space-y-4">
                     {category.platos.length === 0 && (
                       <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-6 text-center text-sm text-slate-400">
-                        Esta categoría no tiene platos aún. Agrega el primero.
+                        Questa categoria non ha ancora piatti. Aggiungi il primo.
                       </div>
                     )}
 
@@ -910,7 +910,7 @@ export default function EditMenuPage() {
                         <input
                           value={dish.nombre}
                           onChange={(e) => updateDish(category.id, dish.id, "nombre", e.target.value)}
-                          placeholder="Nombre del plato"
+                          placeholder="Nome del piatto"
                           disabled={editLocked}
                           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
                         />
@@ -926,7 +926,7 @@ export default function EditMenuPage() {
                         <input
                           value={dish.descripcion ?? ""}
                           onChange={(e) => updateDish(category.id, dish.id, "descripcion", e.target.value)}
-                          placeholder="Descripción (ej: Hamburguesa con salsa BBQ)"
+                          placeholder="DescripciÃ³n (ej: Hamburguesa con salsa BBQ)"
                           disabled={editLocked}
                           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
                         />
@@ -995,7 +995,7 @@ export default function EditMenuPage() {
                             />
                             <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                             <span className="relative text-slate-200">
-                              {dish.foto_url ? "Reemplazar foto" : "Subir foto"}
+                              {dish.foto_url ? "Sostituisci foto" : "Carica foto"}
                             </span>
                           </label>
                           <label className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-r from-sky-400/20 via-white/5 to-sky-400/20 px-3 py-2 text-xs text-slate-100 shadow-[0_0_18px_rgba(56,189,248,0.22)] transition-transform duration-150 ease-out hover:border-sky-300/50 hover:text-white hover:shadow-[0_0_24px_rgba(56,189,248,0.35)] active:scale-95 active:shadow-[0_0_14px_rgba(56,189,248,0.25)] md:hidden">
@@ -1008,15 +1008,15 @@ export default function EditMenuPage() {
                               disabled={editLocked}
                             />
                             <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-sky-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                            <span className="relative text-slate-100">Tomar foto</span>
+                            <span className="relative text-slate-100">Scatta foto</span>
                           </label>
                           {uploadingDish[dish.id] && (
-                            <span className="text-xs text-emerald-300">Subiendo...</span>
+                            <span className="text-xs text-emerald-300">Caricamento...</span>
                           )}
                           {dish.foto_url && (
                             <img
                               src={dish.foto_url}
-                              alt={dish.nombre || "Foto del plato"}
+                              alt={dish.nombre || "Foto del piatto"}
                               className="h-16 w-16 rounded-xl border border-white/10 object-cover"
                             />
                           )}
@@ -1045,9 +1045,9 @@ export default function EditMenuPage() {
         <motion.section variants={card} className="rounded-[26px] border border-white/10 bg-white/5 p-6 text-white">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h3 className="text-xl font-semibold text-white">Guardar menú</h3>
+              <h3 className="text-xl font-semibold text-white">Salva menu</h3>
               <p className="text-sm text-slate-400">
-                Guarda los cambios para que se reflejen en tu menú.
+                Salva le modifiche per applicarle al tuo menu.
               </p>
             </div>
             <motion.button
@@ -1058,7 +1058,7 @@ export default function EditMenuPage() {
               disabled={isSaving || editLocked || menuLoading || !!menuError}
               className="rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-400/30 disabled:opacity-50"
             >
-              {isSaving ? "Guardando..." : menuId ? "Guardar cambios" : "Guardar menú"}
+              {isSaving ? "Salvataggio..." : menuId ? "Salva modifiche" : "Salva menu"}
             </motion.button>
           </div>
           {saveError && <p className="mt-3 text-sm text-red-300">{saveError}</p>}
@@ -1087,10 +1087,10 @@ export default function EditMenuPage() {
                   <Trash2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Eliminar plato</h3>
+                  <h3 className="text-lg font-semibold text-white">Elimina piatto</h3>
                   <p className="mt-1 text-sm text-slate-300">
-                    Estás por borrar <span className="font-semibold text-white">{confirmDishDelete.dishName}</span>. Esta
-                    acción no se puede deshacer.
+                    EstÃ¡s por borrar <span className="font-semibold text-white">{confirmDishDelete.dishName}</span>. Esta
+                    acciÃ³n no se puede deshacer.
                   </p>
                 </div>
               </div>
@@ -1101,7 +1101,7 @@ export default function EditMenuPage() {
                   onClick={() => setConfirmDishDelete(null)}
                   className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"
                 >
-                  Cancelar
+                  Annulla
                 </button>
                 <motion.button
                   type="button"
@@ -1111,7 +1111,7 @@ export default function EditMenuPage() {
                   className="group relative inline-flex items-center gap-2 overflow-hidden rounded-2xl border border-red-300/50 bg-gradient-to-r from-red-500/40 via-red-400/20 to-red-500/40 px-4 py-2 text-sm font-semibold text-red-100 shadow-[0_0_22px_rgba(239,68,68,0.55)] transition hover:border-red-300/90 hover:text-white hover:shadow-[0_0_32px_rgba(239,68,68,0.9)]"
                 >
                   <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-red-300/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                  <span className="relative">Eliminar</span>
+                  <span className="relative">Elimina</span>
                 </motion.button>
               </div>
             </motion.div>
@@ -1135,7 +1135,7 @@ export default function EditMenuPage() {
                 <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-emerald-400/10 blur-2xl" />
                 <div className="flex flex-col items-center gap-4">
                   <div className="h-1 w-12 rounded-full bg-white/20" />
-                  <div className="text-sm font-semibold text-emerald-200">Procesando foto</div>
+                  <div className="text-sm font-semibold text-emerald-200">Elaborazione foto</div>
                   <div className="flex w-full flex-col items-center gap-3">
                     <div className="relative h-72 w-72 overflow-hidden rounded-[26px] border border-white/10 bg-white/5 shadow-[0_25px_60px_rgba(0,0,0,0.45)] sm:h-80 sm:w-80">
                       <div className="pointer-events-none absolute inset-0 rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.16),transparent_55%)]" />
@@ -1149,7 +1149,7 @@ export default function EditMenuPage() {
                       {processedPreview && (
                         <img
                           src={processedPreview}
-                          alt="Vista previa sin fondo"
+                          alt="Anteprima senza sfondo"
                           className="absolute inset-0 h-full w-full object-contain transition-all ease-out"
                           style={{
                             clipPath: showProcessedPreview ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
@@ -1176,12 +1176,12 @@ export default function EditMenuPage() {
                     </div>
                     <div className="mt-2 text-center text-[11px] text-slate-400">
                       {enhancingWithAi
-                        ? "Mejorando con IA..."
+                        ? "Miglioramento con IA..."
                         : processedPreview
                           ? aiEnhanced
-                            ? "Listo"
-                            : "Fondo eliminado"
-                          : "Eliminando fondo..."}
+                            ? "Pronto"
+                            : "Sfondo rimosso"
+                          : "Rimozione dello sfondo..."}
                     </div>
                   </div>
                   {(processedPreview || processingError) && (
@@ -1196,7 +1196,7 @@ export default function EditMenuPage() {
                           <span className="rainbow-orbit pointer-events-none absolute -inset-[2px] rounded-full bg-[conic-gradient(from_180deg,rgba(59,130,246,0.6),rgba(236,72,153,0.6),rgba(250,204,21,0.6),rgba(34,197,94,0.6),rgba(59,130,246,0.6))] opacity-70 blur-[6px] transition-opacity duration-300 group-hover:opacity-100" />
                           <span className="pointer-events-none absolute -inset-px rounded-full border border-white/30 opacity-30" />
                           <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-emerald-300/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                          <span className="relative">{aiEnhanced ? "Mejorada con IA" : "Mejorar con IA"}</span>
+                          <span className="relative">{aiEnhanced ? "Migliorata con IA" : "Migliora con IA"}</span>
                         </button>
                       )}
                       <button
@@ -1204,26 +1204,26 @@ export default function EditMenuPage() {
                         onClick={() => setRemovingBackground({})}
                         className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
                       >
-                        Cerrar
+                        Chiudi
                       </button>
                     </div>
                   )}
                 </div>
                 <p className="text-center text-xs text-slate-300">
                   {enhancingWithAi
-                    ? "Aplicando mejora con IA sobre la imagen sin fondo."
-                    : "Eliminando fondo para dejar la imagen lista para mejorar."}
+                    ? "Applicazione del miglioramento IA sull'immagine senza sfondo."
+                    : "Rimozione dello sfondo per preparare l'immagine al miglioramento."}
                 </p>
 {processingError && (
                   <div className="mt-3 w-full rounded-lg border border-red-400/30 bg-red-500/10 p-2 text-[10px] text-red-200">
-                    <div className="font-semibold text-red-100">Error del worker</div>
+                    <div className="font-semibold text-red-100">Errore del worker</div>
                     <pre className="mt-1 whitespace-pre-wrap text-[10px] leading-snug">{processingError}</pre>
                     <button
                       type="button"
                       onClick={() => navigator.clipboard.writeText(processingError)}
                       className="mt-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold text-white transition hover:bg-white/10"
                     >
-                      Copiar error
+                      Copia errore
                     </button>
                   </div>
                 )}
@@ -1271,10 +1271,10 @@ export default function EditMenuPage() {
                   <Trash2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Eliminar categoría</h3>
+                  <h3 className="text-lg font-semibold text-white">Elimina categoria</h3>
                   <p className="mt-1 text-sm text-slate-300">
-                    Estás por borrar <span className="font-semibold text-white">{confirmCategoryDelete.categoryName}</span> y
-                    todos sus platos. Esta acción no se puede deshacer.
+                    Stai per eliminare <span className="font-semibold text-white">{confirmCategoryDelete.categoryName}</span> e
+                    tutti i suoi piatti. Questa azione non puo essere annullata.
                   </p>
                 </div>
               </div>
@@ -1285,7 +1285,7 @@ export default function EditMenuPage() {
                   onClick={() => setConfirmCategoryDelete(null)}
                   className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"
                 >
-                  Cancelar
+                  Annulla
                 </button>
                 <motion.button
                   type="button"
@@ -1295,7 +1295,7 @@ export default function EditMenuPage() {
                   className="group relative inline-flex items-center gap-2 overflow-hidden rounded-2xl border border-red-300/50 bg-gradient-to-r from-red-500/40 via-red-400/20 to-red-500/40 px-4 py-2 text-sm font-semibold text-red-100 shadow-[0_0_22px_rgba(239,68,68,0.55)] transition hover:border-red-300/90 hover:text-white hover:shadow-[0_0_32px_rgba(239,68,68,0.9)]"
                 >
                   <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-red-300/40 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                  <span className="relative">Eliminar</span>
+                  <span className="relative">Elimina</span>
                 </motion.button>
               </div>
             </motion.div>
@@ -1305,6 +1305,7 @@ export default function EditMenuPage() {
     </div>
   )
 }
+
 
 
 
