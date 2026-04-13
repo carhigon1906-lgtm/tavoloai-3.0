@@ -147,14 +147,6 @@ export default function DashboardPage() {
     }
   }, [router])
 
-  if (checkingAdminRedirect) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center rounded-[28px] border border-white/10 bg-black/20 text-slate-200">
-        Sto preparando il pannello...
-      </div>
-    )
-  }
-
   useEffect(() => {
     const scrollContainer = statsScrollRef.current
     if (!scrollContainer) return
@@ -410,6 +402,14 @@ export default function DashboardPage() {
     if (!printWindow) {
       setPdfError("Il browser ha bloccato la finestra popup. Abilita i popup e riprova.")
     }
+  }
+
+  if (checkingAdminRedirect) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center rounded-[28px] border border-white/10 bg-black/20 text-slate-200">
+        Sto preparando il pannello...
+      </div>
+    )
   }
 
   return (
