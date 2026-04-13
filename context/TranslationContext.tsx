@@ -125,7 +125,7 @@ const nativeItalianDictionary: TranslationDictionary = {
     login: "Accedi",
     signup: "Registrati",
     nav: {
-      features: "Funzionalita",
+      features: "Funzionalità",
       demo: "Demo",
       howItWorks: "Come funziona",
       pricing: "Prezzi",
@@ -143,50 +143,50 @@ const nativeItalianDictionary: TranslationDictionary = {
   },
   hero: {
     tagline: "Demo dal vivo",
-    title: "Il menu digitale che lavora davvero per il tuo ristorante.",
-    description: "Aggiorna il menu in pochi secondi, migliora le foto con l'IA e lancia promozioni pronte da pubblicare.",
-    primaryCta: "Inizia gratis",
-    secondaryCta: "Scopri come funziona",
-    trial: "7 giorni gratis, nessuna carta richiesta, disdici quando vuoi.",
+    title: "Il menu digitale pensato per valorizzare il tuo locale.",
+    description: "Aggiorna il menu in pochi secondi, migliora le foto con l'IA e pubblica contenuti promozionali già pronti.",
+    primaryCta: "Inizia ora",
+    secondaryCta: "Guarda la demo",
+    trial: "7 giorni gratis, nessuna carta richiesta, attivazione immediata.",
     liveBadge: "Demo dal vivo",
   },
   features: {
-    title: "Solo TavoloAI riunisce tutto questo in un unico flusso",
+    title: "Uno strumento elegante per gestire menu, immagini e promozioni",
     items: [
       {
-        title: "Crea il tuo menu QR in pochi minuti",
-        badge: "Attivalo subito",
-        description: "Importa il menu da foto o PDF e pubblica in pochi minuti un QR pronto da usare al tavolo.",
+        title: "Menu QR pronto in pochi minuti",
+        badge: "Subito online",
+        description: "Importa il menu da foto o PDF e pubblica un QR curato, pronto da usare in sala.",
       },
       {
-        title: "Foto valorizzate con l'IA",
-        badge: "Piu conversioni",
-        description: "Carica le immagini dal telefono e trasformale in visual piu curati, coerenti e appetitosi.",
+        title: "Immagini più curate con l'IA",
+        badge: "Più appeal",
+        description: "Carica le immagini dal telefono e rendile più coerenti, pulite e invitanti.",
       },
       {
-        title: "Modifiche immediate",
-        badge: "Risparmia tempo",
-        description: "Aggiorna prezzi, ordine dei piatti e disponibilita in pochi secondi, senza dipendere da nessuno.",
+        title: "Aggiornamenti senza attese",
+        badge: "Massima rapidità",
+        description: "Modifica prezzi, ordine dei piatti e disponibilità in pochi secondi.",
       },
       {
-        title: "Promozioni pronte per i social",
-        badge: "Pronte in 5 s",
-        description: "Genera contenuti per Instagram, WhatsApp e schermi interni con copy e visual gia pronti.",
+        title: "Promozioni pronte da pubblicare",
+        badge: "Subito condivisibili",
+        description: "Crea contenuti per Instagram, WhatsApp e schermi interni con testi e visual già pronti.",
       },
       {
-        title: "Piatti nascosti in tempo reale",
+        title: "Disponibilità aggiornata in tempo reale",
         badge: "Meno errori",
-        description: "Togli subito dalla vista i piatti esauriti e mantieni il menu sempre allineato al servizio.",
+        description: "Nascondi subito i piatti esauriti e mantieni il menu sempre allineato al servizio.",
       },
       {
-        title: "Filtri intelligenti",
+        title: "Filtri chiari per ogni esigenza",
         badge: "Esperienza migliore",
-        description: "Metti in evidenza opzioni senza glutine, vegetariane o vegane con filtri automatici e chiari.",
+        description: "Metti in evidenza opzioni senza glutine, vegetariane o vegane con filtri semplici e immediati.",
       },
       {
-        title: "Multilingua automatico",
-        badge: "Nessun attrito",
-        description: "Rendi il menu disponibile in italiano, inglese e spagnolo senza rifare ogni testo a mano.",
+        title: "Multilingua senza attriti",
+        badge: "Più accessibile",
+        description: "Rendi il menu disponibile in italiano, inglese e spagnolo senza riscrivere ogni testo.",
       },
     ],
     prevLabel: "Precedente",
@@ -194,7 +194,7 @@ const nativeItalianDictionary: TranslationDictionary = {
     dotAria: "Vai alla slide {{index}}",
   },
   howItWorks: {
-    title: "Dalle foto alle vendite in 3 passaggi",
+    title: "Tutto pronto in 3 passaggi",
     steps: [
       {
         title: "Crea il menu",
@@ -211,44 +211,44 @@ const nativeItalianDictionary: TranslationDictionary = {
     ],
     sideNoteTitle: "Un menu curato, senza complicazioni",
     sideNote:
-      "Trasforma i tuoi piatti in un menu digitale ordinato, moderno e convincente in pochi minuti.",
-    sideNote2Title: "Ogni piatto appare piu desiderabile",
+      "Trasforma i tuoi piatti in un menu digitale ordinato, moderno e semplice da aggiornare.",
+    sideNote2Title: "Foto e testi all'altezza del locale",
     sideNote2:
-      "L'IA migliora immagini e descrizioni per dare al menu un aspetto piu professionale e piu vendibile.",
-    sideNote3Title: "Pubblica, osserva, ottimizza",
+      "L'IA migliora immagini e descrizioni per dare al menu una presenza più professionale.",
+    sideNote3Title: "Pubblica, osserva, affina",
     sideNote3:
-      "Condividi il menu con un clic, porta il QR in sala e leggi in tempo reale quali piatti attirano di piu.",
+      "Condividi il menu con un clic, porta il QR in sala e leggi in tempo reale cosa attira di più.",
   },
   beforeAfter: {
-    title: "L'effetto dell'IA sul tuo menu",
+    title: "Il risultato si vede subito",
     beforeLabel: "Prima",
     afterLabel: "Dopo · +23% clic",
     sliderAria: "Confronta prima e dopo",
   },
   cases: {
-    title: "Ristoranti che stanno gia vendendo di piu",
+    title: "Locali che hanno scelto un menu più curato",
     carouselRole: "Carosello di storie di successo",
     cards: [
       {
         name: "Trattoria Roma",
         result: "+18% sulle vendite del piatto in evidenza in 2 settimane",
-        quote: "Da quando mettiamo in risalto il piatto del giorno, gira molto meglio.",
+        quote: "Con un menu più ordinato e il piatto del giorno ben evidenziato, il servizio è più fluido e il risultato si vede.",
       },
       {
         name: "Bar Costa",
         result: "+40% di interazioni sulle promo del weekend",
-        quote: "I contenuti pronti per WhatsApp ci hanno semplificato il venerdi sera.",
+        quote: "Le promo pronte per WhatsApp ci aiutano a comunicare meglio, soprattutto nei momenti più intensi.",
       },
       {
         name: "La Esquina",
         result: "+22% di ordini medi per tavolo in un mese",
-        quote: "Con un menu piu chiaro e sempre aggiornato, anche il servizio scorre meglio.",
+        quote: "Con un menu chiaro e sempre aggiornato, anche il lavoro in sala diventa più lineare.",
       },
     ],
   },
   pricing: {
-    title: "Un solo piano, tutto incluso",
-    subtitle: "Nessun vincolo. Puoi interrompere quando vuoi.",
+    title: "Un solo piano, pensato per lavorare bene",
+    subtitle: "Tutto incluso, senza vincoli inutili.",
     billingMonthlyLabel: "Piano mensile",
     billingYearlyLabel: "Piano annuale",
     priceLabel: "29 EUR",
@@ -264,13 +264,13 @@ const nativeItalianDictionary: TranslationDictionary = {
       "QR avanzato",
       "Condivisione sui social",
     ],
-    cta: "Inizia gratis",
-    compareTitle: "TavoloAI rispetto alle alternative tradizionali",
+    cta: "Prova gratis",
+    compareTitle: "Perché TavoloAI",
     comparePoints: [
-      "Piu vendite rispetto a carta stampata o PDF statici",
-      "Aggiornamenti in pochi secondi senza passare da grafici esterni",
-      "Materiali gia pronti per WhatsApp e Instagram",
-      "Statistiche e controllo operativo in tempo reale",
+      "Aggiorni menu e prezzi in pochi secondi",
+      "Gestisci immagini, promo e QR da un solo pannello",
+      "Condividi materiali già pronti su WhatsApp e Instagram",
+      "Controlli visite e utilizzo in tempo reale",
     ],
     freePlan: {
       title: "Piano Free",
@@ -285,8 +285,8 @@ const nativeItalianDictionary: TranslationDictionary = {
     },
   },
   demo: {
-    title: "Provalo come farebbe un cliente",
-    description: "Scansiona il QR oppure usa la simulazione per provare le azioni principali.",
+    title: "Guarda l'esperienza dal punto di vista del cliente",
+    description: "Scansiona il QR oppure usa la simulazione per vedere le azioni principali.",
     tasks: [
       { id: "lang", label: "Cambiare lingua" },
       { id: "gluten", label: "Attivare il filtro senza glutine" },
@@ -301,21 +301,21 @@ const nativeItalianDictionary: TranslationDictionary = {
     progressLabel: "{{value}}% completato",
   },
   faq: {
-    title: "Domande frequenti",
+    title: "Le domande più frequenti",
     items: [
       { question: "Serve un'app?", answer: "No. Funziona come web app accessibile via QR, senza download." },
-      { question: "Funziona anche offline?", answer: "Si, puoi contare anche su una versione PDF stampabile." },
-      { question: "Posso disdire quando voglio?", answer: "Si, puoi gestire tutto direttamente dal tuo pannello." },
-      { question: "E conforme al GDPR?", answer: "Si, i dati sono protetti e gestiti con attenzione alla conformita europea." },
+      { question: "Funziona anche offline?", answer: "Sì, puoi contare anche su una versione PDF stampabile." },
+      { question: "Posso disdire quando voglio?", answer: "Sì, puoi gestire tutto direttamente dal tuo pannello." },
+      { question: "È conforme al GDPR?", answer: "Sì, i dati sono protetti e gestiti nel rispetto della normativa europea." },
       { question: "Mi serve un fotografo?", answer: "No, puoi partire dalle tue foto e migliorarle con l'IA." },
-      { question: "Posso personalizzare il design?", answer: "Si, puoi adattare colori, logo e stile al tuo locale." },
+      { question: "Posso personalizzare il design?", answer: "Sì, puoi adattare colori, logo e stile al tuo locale." },
     ],
   },
   finalCta: {
-    title: "Inizia gratis oggi",
-    description: "Passa al piano Premium quando vuoi, senza blocchi e senza attriti.",
-    cta: "Prova gratis",
-    badge: "Puoi interrompere quando vuoi, senza vincoli",
+    title: "Porta il tuo menu a un livello più alto",
+    description: "Inizia gratis, pubblica il tuo menu digitale e passa al Premium solo quando vuoi.",
+    cta: "Inizia ora",
+    badge: "Attivazione immediata, nessun vincolo",
   },
   sectionActions: {
     infoLabel: "Altre info",
@@ -339,7 +339,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
         faq: "Ayuda",
       },
       languages: {
-        es: "Espanol",
+        es: "Español",
         en: "Ingles",
         it: "Italiano",
       },
@@ -717,169 +717,7 @@ const dictionaries: Record<LanguageCode, TranslationDictionary> = {
       primaryCta: "Try free",
     },
   },
-  it: {
-    header: {
-      languageButton: "Lingua",
-      login: "Accedi",
-      signup: "Registrati",
-      nav: {
-        features: "Funzioni",
-        demo: "Demo",
-        howItWorks: "Passi",
-        pricing: "Piano",
-        cases: "Casi",
-        faq: "Aiuto",
-      },
-      languages: {
-        es: "Spagnolo",
-        en: "Inglese",
-        it: "Italiano",
-      },
-    },
-    floatingCta: {
-      label: "Prova gratis",
-    },
-    hero: {
-      tagline: "Demo live",
-      title: "Il tuo menu piu intelligente che mai.",
-      description: "Modifica in pochi secondi, migliora le foto e condividi promozioni con l'IA.",
-      primaryCta: "Inizia gratis",
-      secondaryCta: "Guarda come funziona",
-      trial: "7 giorni gratis, nessuna carta, annulla quando vuoi.",
-      liveBadge: "Demo live",
-    },
-    features: {
-      title: "Cosa puo fare solo TavoloAI",
-      items: [
-        {
-          title: "Crea il tuo menu QR in pochi minuti",
-          badge: "Subito live",
-          description: "Digitalizza il menu da foto o PDF e ottieni subito un QR pronto da scansionare.",
-        },
-        {
-          title: "Foto con IA",
-          badge: "Piu vendite",
-          description:
-            "Carica le foto dal telefono e rendile piu professionali con l'Intelligenza Artificiale.",
-        },
-      ],
-      prevLabel: "Precedente",
-      nextLabel: "Successivo",
-      dotAria: "Vai alla diapositiva {{index}}",
-    },
-    howItWorks: {
-      title: "Dalle foto alle vendite in 3 passaggi",
-      steps: [
-        {
-          title: "Crea il tuo menu",
-          description: "Carica foto e prezzi.",
-        },
-        {
-          title: "Migliora con l'IA",
-          description: "Immagini e testi ottimizzati automaticamente.",
-        },
-        {
-          title: "Condividi e misura",
-          description: "QR sul tavolo, banner pronti e statistiche in tempo reale.",
-        },
-      ],
-      sideNoteTitle: "Il tuo menu pronto in pochi minuti",
-      sideNote:
-        "Trasforma i tuoi piatti in un menu digitale invitante in pochi minuti, senza designer.",
-      sideNote2Title: "Rendi irresistibile ogni piatto",
-      sideNote2:
-        "L'IA rifinisce foto e descrizioni cosi ogni piatto sembra professionale e invitante.",
-      sideNote3Title: "Lancia, osserva e vendi di piu",
-      sideNote3:
-        "Condividi il menu con un clic, metti i QR sui tavoli e analizza in tempo reale cosa funziona meglio.",
-    },
-    beforeAfter: {
-      title: "La potenza dell'IA nel tuo menu",
-      beforeLabel: "Prima",
-      afterLabel: "Dopo · +23% clic",
-      sliderAria: "Confronta prima e dopo",
-    },
-    cases: {
-      title: "Ristoranti che vendono gia di piu",
-      carouselRole: "Carosello di casi di successo",
-      cards: [
-        {
-          name: "Trattoria Roma",
-          result: "+18% vendite del piatto di punta (2 settimane)",
-          quote: "Il piatto del giorno va a ruba.",
-        },
-      ],
-    },
-    pricing: {
-      title: "Un solo piano, tutto incluso.",
-      subtitle: "Senza contratti. Puoi annullare quando vuoi.",
-      billingMonthlyLabel: "Piano mensile",
-      billingYearlyLabel: "Piano annuale",
-      priceLabel: "29 Ã¢â€šÂ¬",
-      priceSuffix: "/mese",
-      features: [
-        "Menu illimitati",
-        "IA per testi e immagini",
-        "Nascondi piatti",
-        "Download PDF",
-        "Multilingua",
-        "Promozioni e poster",
-        "Statistiche",
-        "QR avanzato",
-        "Condividi sui social",
-      ],
-      cta: "Inizia gratis",
-      compareTitle: "TavoloAI vs alternative",
-        comparePoints: [
-          "Piu vendite rispetto a carta o PDF statico",
-          "Modifiche in pochi secondi vs grafici esterni",
-          "Banner pronti per WhatsApp/Instagram",
-          "Statistiche e controllo in tempo reale",
-        ],
-        freePlan: {
-          title: "Piano Free",
-          subtitle: "Inizia gratis e crea il tuo primo menu digitale.",
-          features: [
-            "1 menu preimpostato",
-            "QR di base",
-            "Modifica semplice dei piatti",
-            "Accesso alla dashboard TavoloAI",
-          ],
-          cta: "Inizia gratis",
-        },
-      },
-    demo: {
-      title: "Vivilo come cliente",
-      description: "Scansiona il QR o usa la simulazione per provare le azioni principali.",
-      tasks: [
-        { id: "lang", label: "Cambiare lingua" },
-        { id: "gluten", label: "Attivare filtro senza glutine" },
-      ],
-      glutenButton: "Senza glutine",
-      dishHighlight: "Piatto del giorno: Ravioli al limone",
-      shareButton: "Condividi evento su WhatsApp",
-      simulationBadge: "Simulazione interattiva",
-      qrAlt: "QR per demo interattiva",
-      progressLabel: "{{value}}% completato",
-    },
-    faq: {
-      title: "Risposte rapide",
-      items: [
-        { question: "Serve un'app?", answer: "No, funziona come web app QR senza download." },
-      ],
-    },
-    finalCta: {
-      title: "Inizia gratis oggi",
-      description: "30 giorni gratis. Carica il tuo menu in 2 minuti e provalo senza carta.",
-      cta: "Prova gratis",
-      badge: "Promozione disponibile solo questo mese",
-    },
-    sectionActions: {
-      infoLabel: "Altre info",
-      hideLabel: "Nascondi info",
-      primaryCta: "Prova gratis",
-    },
-  },
+  it: nativeItalianDictionary,
 }
 
 type TranslationContextValue = {
@@ -960,7 +798,7 @@ export function useTranslation() {
 export const SUPPORTED_LANGUAGES: Array<{ code: LanguageCode; label: string }> = [
   { code: "it", label: "Italiano" },
   { code: "en", label: "English" },
-  { code: "es", label: "Espanol" },
+  { code: "es", label: "Español" },
 ]
 
 

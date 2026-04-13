@@ -69,7 +69,7 @@ export default function LocalPage() {
       setLogoPreview(logoUrl)
       setLogoName("")
       setLogoFile(null)
-      setLogoError("El logo debe ser un archivo PNG.")
+      setLogoError("Il logo deve essere un file PNG.")
       return
     }
 
@@ -85,11 +85,11 @@ export default function LocalPage() {
 
   const saveBusinessDetails = async () => {
     if (!businessName.trim()) {
-      setNameError("El nombre del restaurante es obligatorio.")
+      setNameError("Il nome del locale è obbligatorio.")
       return
     }
     if (!userId) {
-      setNameError("Debes iniciar sesión para guardar.")
+      setNameError("Devi accedere per salvare.")
       return
     }
 
@@ -115,7 +115,7 @@ export default function LocalPage() {
       setBusinessPhoneSaved(businessPhone.trim())
       setBusinessSloganSaved(businessSlogan.trim())
       setBusinessHoursSaved(businessHours.trim())
-      setNameSuccess("Datos actualizados.")
+      setNameSuccess("Dati aggiornati.")
 
       const { error: menusError } = await supabase
         .from("menus")
@@ -123,7 +123,7 @@ export default function LocalPage() {
         .eq("user_id", userId)
 
       if (menusError) {
-        setNameError("No se pudo actualizar el nombre en los menús públicos.")
+        setNameError("Non è stato possibile aggiornare il nome nei menu pubblici.")
       }
     }
 
@@ -133,7 +133,7 @@ export default function LocalPage() {
   const uploadLogo = async () => {
     if (!logoFile) return
     if (!userId) {
-      setLogoError("Debes iniciar sesión para subir el logo.")
+      setLogoError("Devi accedere per caricare il logo.")
       return
     }
 
@@ -154,13 +154,13 @@ export default function LocalPage() {
       })
 
       if (!response.ok) {
-        setLogoError("No se pudo subir el logo. Revisa el bucket en Supabase.")
+        setLogoError("Non è stato possibile caricare il logo. Controlla il bucket in Supabase.")
         return
       }
 
       const result = await response.json()
       if (!result?.publicUrl) {
-        setLogoError("No se pudo obtener la URL del logo.")
+        setLogoError("Non è stato possibile ottenere l'URL del logo.")
         return
       }
 
@@ -181,7 +181,7 @@ export default function LocalPage() {
         .eq("user_id", userId)
 
       if (menusError) {
-        setLogoError("No se pudo actualizar el logo en los menús públicos.")
+        setLogoError("Non è stato possibile aggiornare il logo nei menu pubblici.")
         return
       }
 
@@ -248,7 +248,7 @@ export default function LocalPage() {
             <Store className="h-8 w-8 text-emerald-200" />
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-white">Mi local</h1>
-          <p className="text-lg font-medium text-slate-300">Nombre del restaurante y logo principal</p>
+          <p className="text-lg font-medium text-slate-300">Nome del locale e logo principale</p>
         </motion.div>
 
         <motion.section
@@ -258,7 +258,7 @@ export default function LocalPage() {
           <div className="space-y-3">
             <label className="flex items-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-200">
               <Store className="h-4 w-4 text-slate-400" />
-              Nombre del restaurante
+              Nome del locale
             </label>
             <input
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 transition-all shadow-sm hover:bg-white/10 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
@@ -268,12 +268,12 @@ export default function LocalPage() {
                 setNameError("")
                 setNameSuccess("")
               }}
-              placeholder="Ingresa el nombre de tu restaurante"
+              placeholder="Inserisci il nome del tuo locale"
             />
             <div className="space-y-3">
               <label className="flex items-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-200">
                 <MapPin className="h-4 w-4 text-slate-400" />
-                Dirección
+                Indirizzo
               </label>
               <input
                 className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 transition-all shadow-sm hover:bg-white/10 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
@@ -283,14 +283,14 @@ export default function LocalPage() {
                   setNameError("")
                   setNameSuccess("")
                 }}
-                placeholder="Dirección completa del restaurante"
+                placeholder="Indirizzo completo del locale"
               />
             </div>
 
             <div className="space-y-3">
               <label className="flex items-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-200">
                 <Phone className="h-4 w-4 text-slate-400" />
-                Teléfono
+                Telefono
               </label>
               <input
                 className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 transition-all shadow-sm hover:bg-white/10 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
@@ -300,7 +300,7 @@ export default function LocalPage() {
                   setNameError("")
                   setNameSuccess("")
                 }}
-                placeholder="Número de contacto"
+                placeholder="Numero di contatto"
               />
             </div>
 
@@ -317,14 +317,14 @@ export default function LocalPage() {
                   setNameError("")
                   setNameSuccess("")
                 }}
-                placeholder="Ej: Sabores que cuentan historias"
+                placeholder="Es: Sapori che raccontano una storia"
               />
             </div>
 
             <div className="space-y-3">
               <label className="flex items-center gap-3 text-sm font-semibold uppercase tracking-wide text-slate-200">
                 <Clock className="h-4 w-4 text-slate-400" />
-                Horario de atención
+                Orari di apertura
               </label>
               <input
                 className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 transition-all shadow-sm hover:bg-white/10 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
@@ -334,7 +334,7 @@ export default function LocalPage() {
                   setNameError("")
                   setNameSuccess("")
                 }}
-                placeholder="Ej: Lun a Sáb 12:00 - 23:00"
+                placeholder="Es: Lun-Sab 12:00 - 23:00"
               />
             </div>
 
@@ -354,7 +354,7 @@ export default function LocalPage() {
               className="flex w-full items-center justify-center gap-3 rounded-2xl border border-emerald-300/30 bg-emerald-400/20 px-5 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-400/30 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Save className="h-4 w-4" />
-              {isSavingName ? "Guardando..." : "Guardar datos"}
+              {isSavingName ? "Salvataggio..." : "Salva dati"}
             </motion.button>
             {nameError && <p className="text-sm font-medium text-rose-300">{nameError}</p>}
             {nameSuccess && <p className="text-sm font-medium text-emerald-300">{nameSuccess}</p>}

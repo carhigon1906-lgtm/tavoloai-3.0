@@ -454,7 +454,7 @@ export default function MenusPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-white">Elimina menu</h3>
                   <p className="mt-1 text-sm text-slate-300">
-                    Stai per eliminare <span className="font-semibold text-white">{menuToDelete.nombre}</span>. Questa azione non puo essere annullata.
+                    Stai per eliminare <span className="font-semibold text-white">{menuToDelete.nombre}</span>. Questa azione non può essere annullata.
                   </p>
                 </div>
               </div>

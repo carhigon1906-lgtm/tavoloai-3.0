@@ -160,9 +160,9 @@ function scoreTone(value: number) {
 }
 
 function scoreLabel(value: number) {
-  if (value >= 75) return "Fuerte"
-  if (value >= 55) return "Estable"
-  return "Debil"
+  if (value >= 75) return "Forte"
+  if (value >= 55) return "Stabile"
+  return "Debole"
 }
 
 export default function AdminDashboardPage() {
@@ -183,7 +183,7 @@ export default function AdminDashboardPage() {
 
       if (!session?.access_token) {
         if (active) {
-          setError("No se pudo validar la sesion.")
+          setError("Non è stato possibile verificare la sessione.")
           setLoading(false)
         }
         return
@@ -199,7 +199,7 @@ export default function AdminDashboardPage() {
 
       if (!response.ok) {
         if (active) {
-          setError(payload?.error || "No se pudo cargar el panel admin.")
+          setError(payload?.error || "Non è stato possibile caricare il pannello admin.")
           setLoading(false)
         }
         return

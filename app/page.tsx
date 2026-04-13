@@ -24,10 +24,10 @@ const softwareSchema = {
     priceCurrency: "EUR",
   },
   description:
-    "Piattaforma web per ristoranti e attivita di hospitality con menu digitale, miglioramento immagini con IA, promozioni e poster.",
+    "Piattaforma web per ristoranti e attività di hospitality con menu digitale, miglioramento immagini con IA, promozioni e poster.",
   audience: {
     "@type": "Audience",
-    audienceType: "Ristoranti, bar e attivita di hospitality",
+    audienceType: "Ristoranti, bar e attività di hospitality",
   },
 }
 

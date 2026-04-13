@@ -11,7 +11,7 @@ export default function ReportsPage() {
     { label: "Visite oggi", value: "0", delta: "Nessun traffico", icon: Eye },
     { label: "Scansioni QR", value: "0", delta: "Nessuna scansione", icon: QrCode },
     { label: "Menu attivi", value: "0", delta: "Nessun menu attivo", icon: UtensilsCrossed },
-    { label: "Piatto piu visto", value: "Nessun dato", delta: "Nessuna classifica", icon: TrendingUp },
+    { label: "Piatto più visto", value: "Nessun dato", delta: "Nessuna classifica", icon: TrendingUp },
   ])
   const [topDishes, setTopDishes] = useState<Array<{ name: string; views: number; trend: string }>>([])
   const [weekly, setWeekly] = useState([
@@ -75,7 +75,7 @@ export default function ReportsPage() {
           delta: Number(summary.activeMenus || 0) > 0 ? "Pubblicati ora" : "Nessuna pubblicazione attiva",
           icon: UtensilsCrossed,
         },
-        { label: "Piatto piu visto", value: topDish, delta: "Classifica mensile", icon: TrendingUp },
+        { label: "Piatto più visto", value: topDish, delta: "Classifica mensile", icon: TrendingUp },
       ])
 
       setTopDishes(
@@ -166,7 +166,7 @@ export default function ReportsPage() {
               </div>
               <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white md:text-4xl">Statistiche</h1>
               <p className="mt-2 text-sm text-slate-300 md:text-base">
-                Controlla l'andamento del menu, le visite e i piatti piu visualizzati.
+                Controlla l'andamento del menu, le visite e i piatti più visualizzati.
               </p>
             </div>
             <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs uppercase tracking-widest text-slate-300">
@@ -232,7 +232,7 @@ export default function ReportsPage() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-white">Piatti piu visualizzati</h2>
+                <h2 className="text-lg font-semibold text-white">Piatti più visualizzati</h2>
                 <p className="mt-1 text-sm text-slate-400">Top 4 del mese</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
@@ -273,13 +273,13 @@ export default function ReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-white">Contesto delle performance</h2>
-                <p className="mt-1 text-sm text-slate-400">Menu piu visto, fascia migliore e confronto tra periodi</p>
+                <p className="mt-1 text-sm text-slate-400">Menu più visto, fascia migliore e confronto tra periodi</p>
               </div>
             </div>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-white/10 bg-[#0a1220] p-4">
-                <p className="text-xs uppercase tracking-widest text-slate-400">Menu piu visto</p>
+                <p className="text-xs uppercase tracking-widest text-slate-400">Menu più visto</p>
                 <p className="mt-3 text-lg font-semibold text-white">{analyticsContext.topMenu?.menuName || "Nessun dato"}</p>
                 <p className="mt-1 text-sm text-slate-400">
                   {analyticsContext.topMenu
@@ -289,7 +289,7 @@ export default function ReportsPage() {
               </div>
 
               <div className="rounded-2xl border border-white/10 bg-[#0a1220] p-4">
-                <p className="text-xs uppercase tracking-widest text-slate-400">Fascia con piu scansioni</p>
+                <p className="text-xs uppercase tracking-widest text-slate-400">Fascia con più scansioni</p>
                 <p className="mt-3 text-lg font-semibold text-white">{analyticsContext.peakHour?.label || "Nessun dato"}</p>
                 <p className="mt-1 text-sm text-slate-400">
                   {analyticsContext.peakHour
@@ -308,7 +308,7 @@ export default function ReportsPage() {
                 <p className="mt-1 text-sm text-slate-400">
                   {analyticsContext.comparison
                     ? "Scansioni uniche in 7 giorni rispetto a 30 giorni"
-                    : "In attesa di attivita per confrontare i periodi"}
+                    : "In attesa di attività per confrontare i periodi"}
                 </p>
               </div>
 
@@ -367,7 +367,7 @@ export default function ReportsPage() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-white">Piatto piu visto per menu</h2>
+              <h2 className="text-lg font-semibold text-white">Piatto più visto per menu</h2>
               <p className="mt-1 text-sm text-slate-400">Quale piatto guida l'interesse all'interno di ogni menu</p>
             </div>
           </div>

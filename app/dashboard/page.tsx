@@ -29,16 +29,16 @@ const dashboardLinks = [
     key: "new-menu",
     name: "Creazione menu",
     title: "CREAZIONE MENU",
-    desc: "Crea il tuo menu da zero con sezioni e piatti suggeriti.",
+    desc: "Crea e pubblica il menu del tuo locale in pochi passaggi.",
     icon: BookOpen,
     href: "/dashboard/menu/new",
     color: "from-emerald-400 to-lime-600",
   },
   {
     key: "panic",
-    name: "Pulsante rapido",
-    title: "PULSANTE RAPIDO",
-    desc: "Nascondi in tempo reale i piatti esauriti.",
+    name: "Piatti esauriti",
+    title: "PIATTI ESAURITI",
+    desc: "Nascondi in tempo reale i piatti non disponibili.",
     icon: AlertTriangle,
     href: "/dashboard/panic",
     color: "from-amber-400 to-red-600",
@@ -47,16 +47,16 @@ const dashboardLinks = [
     key: "studio",
     name: "Studio fotografico IA",
     title: "STUDIO FOTOGRAFICO IA",
-    desc: "Foto professionali con ottimizzazione automatica.",
+    desc: "Migliora le foto del menu con un flusso semplice e veloce.",
     icon: Image,
     href: "/dashboard/media",
     color: "from-violet-500 to-fuchsia-600",
   },
   {
     key: "posters",
-    name: "Creatore poster IA",
+    name: "Poster IA",
     title: "CREATORE DI POSTER IA",
-    desc: "Poster pronti per social, sala e menu.",
+    desc: "Crea promo e visual pronti per social, sala e menu.",
     icon: LayoutTemplate,
     href: "/dashboard/posters",
     color: "from-cyan-500 to-blue-600",
@@ -65,7 +65,7 @@ const dashboardLinks = [
     key: "writer",
     name: "Promozioni IA",
     title: "PROMOZIONI IA",
-    desc: "Visual promozionali pronti da pubblicare.",
+    desc: "Prepara testi e promo da pubblicare in pochi minuti.",
     icon: PenLine,
     href: "/dashboard/writer",
     color: "from-amber-400 to-fuchsia-600",
@@ -74,7 +74,7 @@ const dashboardLinks = [
     key: "stats",
     name: "Statistiche",
     title: "STATISTICHE",
-    desc: "Andamento del menu QR intelligente in tempo reale.",
+    desc: "Controlla visite, scansioni e interesse per i piatti.",
     icon: BarChart3,
     href: "/dashboard/reports",
     color: "from-sky-400 to-emerald-500",
@@ -105,9 +105,9 @@ export default function DashboardPage() {
   const [selectedMenu, setSelectedMenu] = useState<MenuRow | null>(null)
   const [pdfError, setPdfError] = useState("")
   const [dashboardStats, setDashboardStats] = useState([
-    { title: "Scans QR", value: 0, trend: "Nessuna attivita recente" },
+    { title: "Scansioni QR", value: 0, trend: "Nessuna attività recente" },
     { title: "Menu attivi", value: 0, trend: "Nessun menu attivo" },
-    { title: "Piatto piu visto", value: "Nessun dato", trend: "Nessuna visualizzazione" },
+    { title: "Piatto più visto", value: "Nessun dato", trend: "Nessuna visualizzazione" },
   ])
   const [weeklyQrScans, setWeeklyQrScans] = useState([
     { day: "Lun", value: 0 },
@@ -150,7 +150,7 @@ export default function DashboardPage() {
   if (checkingAdminRedirect) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center rounded-[28px] border border-white/10 bg-black/20 text-slate-200">
-        Verifica del pannello in corso...
+        Sto preparando il pannello...
       </div>
     )
   }
@@ -319,19 +319,19 @@ export default function DashboardPage() {
 
       setDashboardStats([
         {
-          title: "Scans QR",
+          title: "Scansioni QR",
           value: Number(summary.qrScans || 0),
           trend: `${Number(summary.visitsToday || 0)} visite oggi`,
         },
         {
           title: "Menu attivi",
           value: Number(summary.activeMenus || 0),
-          trend: Number(summary.activeMenus || 0) > 0 ? "Attivita disponibile" : "Attiva il tuo primo menu",
+          trend: Number(summary.activeMenus || 0) > 0 ? "Menu online e disponibile" : "Pubblica il tuo primo menu",
         },
         {
-          title: "Piatto piu visto",
+          title: "Piatto più visto",
           value: topDish,
-          trend: topDish === "Nessun dato" ? "Ancora nessuna visualizzazione" : "Il piu consultato del mese",
+          trend: topDish === "Nessun dato" ? "Ancora nessuna visualizzazione" : "Il più consultato del mese",
         },
       ])
       setWeeklyQrScans(

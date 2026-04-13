@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -785,7 +785,7 @@ export default function NewMenuPage() {
                 >
                   {CATEGORY_ICON_OPTIONS.map((option) => (
                     <option key={option} value={option}>
-                      {option} Icono
+                      {option} Icona
                     </option>
                   ))}
                 </select>
@@ -812,7 +812,7 @@ export default function NewMenuPage() {
 
             <div className="mt-6 space-y-3 text-sm text-slate-300">
               <p className="rounded-2xl border border-white/10 bg-[#0d1424] px-4 py-3">
-                Ricorda: ogni categoria puo includere piatti con ingredienti e prezzi.
+                Ricorda: ogni categoria può includere piatti con ingredienti e prezzi.
               </p>
             </div>
           </motion.section>
@@ -876,7 +876,7 @@ export default function NewMenuPage() {
                         className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-red-400/15 px-4 py-3 text-sm font-semibold text-red-200 hover:bg-red-400/25 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <Trash2 className="h-4 w-4" />
-                        Eliminar
+                        Elimina
                       </motion.button>
                     </div>
                   </div>
@@ -912,7 +912,7 @@ export default function NewMenuPage() {
                         <input
                           value={dish.descripcion ?? ""}
                           onChange={(e) => updateDish(category.id, dish.id, "descripcion", e.target.value)}
-                          placeholder="Descripción (ej: Hamburguesa con salsa BBQ)"
+                          placeholder="Descrizione (es: Hamburger con salsa BBQ)"
                           disabled={creationLocked}
                           className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 disabled:cursor-not-allowed disabled:opacity-60"
                         />
@@ -928,7 +928,7 @@ export default function NewMenuPage() {
                                   type="button"
                                   onClick={() => removeIngredient(category.id, dish.id, parseIngredients(dish.ingredientes), idx)}
                                   className="text-emerald-200/80 transition hover:text-white"
-                                  aria-label="Quitar ingrediente"
+                                  aria-label="Rimuovi ingrediente"
                                   disabled={creationLocked}
                                 >
                                   ×
@@ -1282,7 +1282,7 @@ export default function NewMenuPage() {
                   <h3 className="text-lg font-semibold text-white">Elimina piatto</h3>
                   <p className="mt-1 text-sm text-slate-300">
                     Stai per eliminare <span className="font-semibold text-white">{confirmDishDelete.dishName}</span>. Questa
-                    azione non puo essere annullata.
+                    azione non può essere annullata.
                   </p>
                 </div>
               </div>
@@ -1331,7 +1331,7 @@ export default function NewMenuPage() {
                   <h3 className="text-lg font-semibold text-white">Elimina categoria</h3>
                   <p className="mt-1 text-sm text-slate-300">
                     Stai per eliminare <span className="font-semibold text-white">{confirmCategoryDelete.categoryName}</span> e
-                    tutti i suoi piatti. Questa azione non puo essere annullata.
+                    tutti i suoi piatti. Questa azione non può essere annullata.
                   </p>
                 </div>
               </div>

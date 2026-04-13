@@ -69,7 +69,7 @@ export default function Sidebar() {
           {!isCollapsed && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="min-w-0">
               <h2 className="truncate text-[15px] font-semibold tracking-[-0.02em] text-white">TavoloAI</h2>
-              <p className="text-xs font-medium text-slate-400">{showAdmin ? "Amministrazione" : "Ristorante"}</p>
+              <p className="text-xs font-medium text-slate-400">{showAdmin ? "Controllo piattaforma" : "Pannello locale"}</p>
             </motion.div>
           )}
         </div>

@@ -8,14 +8,14 @@ import { CalendarDays, Sparkles } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 
 const sectionTitles = [
-  { match: /^\/dashboard$/, title: "Dashboard", subtitle: "Panoramica generale del locale" },
-  { match: /^\/dashboard\/menus/, title: "Menu", subtitle: "Gestisci menu, sezioni e categorie" },
-  { match: /^\/dashboard\/media/, title: "Laboratorio IA", subtitle: "Migliora immagini di piatti e bevande" },
-  { match: /^\/dashboard\/reports/, title: "Statistiche", subtitle: "Lettura commerciale delle performance" },
-  { match: /^\/dashboard\/posters/, title: "Poster IA", subtitle: "Promozioni pronte da pubblicare" },
-  { match: /^\/dashboard\/local/, title: "Il tuo locale", subtitle: "Informazioni visibili ai clienti" },
-  { match: /^\/dashboard\/admin/, title: "Amministrazione", subtitle: "Controllo operativo globale di TavoloAI" },
-  { match: /^\/dashboard\/settings/, title: "Impostazioni", subtitle: "Preferenze e dati dell'account" },
+  { match: /^\/dashboard$/, title: "Dashboard", subtitle: "Panoramica del tuo locale" },
+  { match: /^\/dashboard\/menus/, title: "Menu", subtitle: "Gestisci menu, sezioni e piatti" },
+  { match: /^\/dashboard\/media/, title: "Laboratorio IA", subtitle: "Migliora le immagini del menu" },
+  { match: /^\/dashboard\/reports/, title: "Statistiche", subtitle: "Controlla visite, scansioni e piatti più visti" },
+  { match: /^\/dashboard\/posters/, title: "Poster IA", subtitle: "Crea promo pronte da pubblicare" },
+  { match: /^\/dashboard\/local/, title: "Il tuo locale", subtitle: "Aggiorna le informazioni visibili ai clienti" },
+  { match: /^\/dashboard\/admin/, title: "Amministrazione", subtitle: "Controllo operativo della piattaforma" },
+  { match: /^\/dashboard\/settings/, title: "Impostazioni", subtitle: "Gestisci preferenze e dati dell'account" },
 ]
 
 export default function DashboardNavbar() {
@@ -47,7 +47,7 @@ export default function DashboardNavbar() {
     }
   }, [])
 
-  const targetText = userLabel ? `Benvenuto, ${userLabel}` : "Benvenuto"
+  const targetText = userLabel ? `Bentornato, ${userLabel}` : "Bentornato"
 
   useEffect(() => {
     let index = 0

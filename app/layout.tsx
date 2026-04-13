@@ -11,10 +11,10 @@ const bingVerification = process.env["BING_SITE_VERIFICATION"]
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.tavoloai.it"),
-  title: "TavoloAI - Il menu intelligente che vende di piu",
+  title: "TavoloAI - Il menu intelligente che aiuta a vendere di più",
   description:
-    "Aggiorna prezzi, migliora le foto e lancia promozioni in pochi secondi con l'IA. Il menu digitale che lavora per te 24 ore su 24.",
-  keywords: ["menu digitale", "ristorante", "IA", "intelligenza artificiale", "ospitalita"],
+    "Aggiorna prezzi, migliora le foto e pubblica promozioni in pochi secondi con l'IA. Il menu digitale che lavora per il tuo locale ogni giorno.",
+  keywords: ["menu digitale", "ristorante", "IA", "intelligenza artificiale", "ospitalità"],
   applicationName: "TavoloAI",
   category: "restaurant software",
   robots: {
@@ -32,15 +32,15 @@ export const metadata: Metadata = {
     icon: "/logoblanco.png",
   },
   openGraph: {
-    title: "TavoloAI - Il menu intelligente che vende di piu",
-    description: "Aggiorna prezzi, migliora le foto e lancia promozioni in pochi secondi con l'IA",
+    title: "TavoloAI - Il menu intelligente che aiuta a vendere di più",
+    description: "Aggiorna prezzi, migliora le foto e pubblica promozioni in pochi secondi con l'IA",
     images: ["/og-image.png"],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "TavoloAI - Il menu intelligente che vende di piu",
-    description: "Aggiorna prezzi, migliora le foto e lancia promozioni in pochi secondi con l'IA",
+    title: "TavoloAI - Il menu intelligente che aiuta a vendere di più",
+    description: "Aggiorna prezzi, migliora le foto e pubblica promozioni in pochi secondi con l'IA",
     images: ["/og-image.png"],
   },
   alternates: { canonical: "/" },

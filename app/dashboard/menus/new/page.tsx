@@ -27,14 +27,14 @@ export default function NewMenuPage() {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!nombre.trim()) {
-      alert("El nombre del menú es obligatorio.")
+      alert("Il nome del menu è obbligatorio.")
       return
     }
     if (!slug.trim()) {
-      alert("El slug del menú es obligatorio.")
+      alert("Lo slug del menu è obbligatorio.")
       return
     }
-    alert("Menú creado (demo).")
+    alert("Menu creato (demo).")
   }
 
   const containerVariants = {
@@ -69,9 +69,9 @@ export default function NewMenuPage() {
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 shadow-lg border border-white/10">
             <Layers className="h-7 w-7 text-white" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Crear menú nuevo</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Crea un nuovo menu</h1>
           <p className="mt-2 text-lg font-medium text-slate-300">
-            Define el nombre, el slug público y una breve descripción para tu menú.
+            Definisci il nome, lo slug pubblico e una breve descrizione del tuo menu.
           </p>
         </motion.section>
 
@@ -81,34 +81,34 @@ export default function NewMenuPage() {
         >
           <form onSubmit={onSubmit} className="space-y-6">
             <div className="space-y-3">
-              <label className="text-sm font-semibold text-slate-200 uppercase tracking-wide">Nombre del menú</label>
+              <label className="text-sm font-semibold text-slate-200 uppercase tracking-wide">Nome del menu</label>
               <input
                 className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-transparent transition-all shadow-sm hover:bg-white/10"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                placeholder="Ej. Carta principal"
+                placeholder="Es. Carta principale"
               />
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-semibold text-slate-200 uppercase tracking-wide">Slug público</label>
+              <label className="text-sm font-semibold text-slate-200 uppercase tracking-wide">Slug pubblico</label>
               <input
                 className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-transparent transition-all shadow-sm hover:bg-white/10"
                 value={slug}
                 onChange={(e) => setSlug(slugify(e.target.value))}
                 placeholder="carta-principal"
               />
-              <p className="text-xs text-slate-400">Este slug se usará en la URL pública del menú.</p>
+              <p className="text-xs text-slate-400">Questo slug verrà usato nell'URL pubblica del menu.</p>
             </div>
 
             <div className="space-y-3">
-              <label className="text-sm font-semibold text-slate-200 uppercase tracking-wide">Descripción</label>
+              <label className="text-sm font-semibold text-slate-200 uppercase tracking-wide">Descrizione</label>
               <textarea
                 rows={4}
                 className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-transparent transition-all shadow-sm hover:bg-white/10"
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
-                placeholder="Describe qué incluye este menú."
+                placeholder="Descrivi cosa include questo menu."
               />
             </div>
 
@@ -119,7 +119,7 @@ export default function NewMenuPage() {
               className="w-full bg-gradient-to-r from-emerald-400/80 to-cyan-400/80 text-white font-semibold py-4 px-6 rounded-2xl transition-all shadow-lg backdrop-blur-sm border border-white/10 flex items-center justify-center gap-3 text-lg"
             >
               <Save className="w-5 h-5" />
-              Crear menú
+              Crea menu
             </motion.button>
           </form>
         </motion.section>
