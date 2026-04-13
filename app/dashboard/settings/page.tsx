@@ -2,6 +2,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import type React from "react"
+import Link from "next/link"
 
 import { motion } from "framer-motion"
 import { Settings, MapPin, Phone, Store, Save } from "lucide-react"
@@ -11,6 +12,7 @@ export default function SettingsPage() {
     const [nombre, setNombre] = useState("")
     const [direccion, setDireccion] = useState("")
     const [telefono, setTelefono] = useState("")
+    const [plan, setPlan] = useState<"free" | "premium">("free")
     const [isSaving, setIsSaving] = useState(false)
     const [saveError, setSaveError] = useState<string | null>(null)
     const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
@@ -24,6 +26,7 @@ export default function SettingsPage() {
             setNombre(metadata.business ?? "")
             setDireccion(metadata.business_address ?? "")
             setTelefono(metadata.business_phone ?? "")
+            setPlan(metadata.plan === "premium" ? "premium" : "free")
         })
 
         return () => {
@@ -42,6 +45,7 @@ export default function SettingsPage() {
                 business: nombre,
                 business_address: direccion,
                 business_phone: telefono,
+                plan,
             },
         })
 
@@ -141,6 +145,27 @@ export default function SettingsPage() {
                                 onChange={(e) => setTelefono(e.target.value)}
                                 placeholder="Numero di contatto"
                             />
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="flex items-center gap-3 text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                                <Settings className="w-4 h-4 text-slate-400" />
+                                Tipo de cuenta
+                            </label>
+                            <select
+                                className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent transition-all shadow-sm hover:bg-white/10"
+                                value={plan}
+                                onChange={(e) => setPlan(e.target.value === "premium" ? "premium" : "free")}
+                            >
+                                <option value="free" className="bg-slate-900 text-white">Free</option>
+                                <option value="premium" className="bg-slate-900 text-white">Premium</option>
+                            </select>
+                            <p className="text-sm text-slate-400">
+                                Free mantiene casi todas las funciones, pero con limite de intentos en la IA. Premium elimina ese cap.
+                            </p>
+                            <Link href="/pago" className="inline-flex text-sm font-medium text-cyan-300 hover:text-cyan-200">
+                                Ir a la pagina de upgrade
+                            </Link>
                         </div>
                     </div>
 

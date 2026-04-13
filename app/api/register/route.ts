@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       email,
       password,
       email_confirm: true,
-      user_metadata: { name, business },
+      user_metadata: { name, business, plan: "free" },
     })
 
     if (error) {

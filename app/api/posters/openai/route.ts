@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { randomUUID } from "node:crypto"
 import sharp from "sharp"
+import { getPlanFromMetadata, UPGRADE_URL } from "@/lib/accountPlan"
+import { consumePosterGeneration, getPosterUsageForUser } from "@/lib/posterUsage"
+import { supabaseAdmin } from "@/lib/supabaseAdmin"
 
 export const runtime = "nodejs"
 
@@ -960,6 +963,10 @@ async function composePosterImage(base64Image: string, body: PosterRequest): Pro
   const overlayBuffer = Buffer.from(buildPosterOverlay(body, dimensions))
   const cropPosition  = getCropPosition(body)
 
+  if (!baseBuffer.length) {
+    throw new Error("OpenAI returned empty image bytes.")
+  }
+
   // Comprimir el PNG de salida para reducir el tamaño de la respuesta
   return sharp(baseBuffer)
     .resize(dimensions.width, dimensions.height, {
@@ -975,6 +982,10 @@ async function composePosterImage(base64Image: string, body: PosterRequest): Pro
 
 async function validateReferenceImage(file: File): Promise<string | null> {
   const buffer = Buffer.from(await file.arrayBuffer())
+
+  if (!buffer.length) {
+    return "La imagen de referencia esta vacia. Sube un PNG, JPG o WEBP valido."
+  }
 
   try {
     const meta = await sharp(buffer).metadata()
@@ -1006,6 +1017,54 @@ export async function POST(request: Request) {
   const apiKey = process.env["OPENAI_API_KEY"]
   if (!apiKey) {
     return NextResponse.json({ error: "OPENAI_API_KEY no configurado." }, { status: 500 })
+  }
+
+  if (!supabaseAdmin) {
+    return NextResponse.json({ error: "Supabase admin no configurado." }, { status: 500 })
+  }
+
+  const bearer = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || ""
+  if (!bearer) {
+    return NextResponse.json({ error: "No autenticado.", errorCode: "not_authenticated" }, { status: 401 })
+  }
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabaseAdmin.auth.getUser(bearer)
+
+  if (userError || !user) {
+    return NextResponse.json({ error: "Sesion invalida.", errorCode: "invalid_session" }, { status: 401 })
+  }
+
+  const plan = getPlanFromMetadata(user.user_metadata as Record<string, unknown> | undefined)
+
+  let posterUsage
+  try {
+    posterUsage = await getPosterUsageForUser(user.id, plan)
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "No se pudo validar el limite del plan.",
+        errorCode: "plan_usage_unavailable",
+      },
+      { status: 500 },
+    )
+  }
+
+  if (posterUsage.hasReachedLimit) {
+    return NextResponse.json(
+      {
+        error: `Tu cuenta Free alcanzo el limite de posters de ${posterUsage.limit} ${posterUsage.usageWindowLabel}. Pasate a Premium para seguir generando sin corte.`,
+        errorCode: "free_plan_limit_reached",
+        upgradeUrl: UPGRADE_URL,
+        account: {
+          plan,
+          posterUsage,
+        },
+      },
+      { status: 403 },
+    )
   }
 
   const formData = await request.formData().catch(() => null)
@@ -1040,6 +1099,14 @@ export async function POST(request: Request) {
   }
 
   const referenceImage    = formData.get("referenceImage")
+
+  if (referenceImage instanceof File && referenceImage.size <= 0) {
+    return NextResponse.json(
+      { error: "La imagen de referencia esta vacia.", errorCode: "empty_reference_image" },
+      { status: 400 },
+    )
+  }
+
   const hasReferenceImage = referenceImage instanceof File && referenceImage.size > 0
 
   if (hasReferenceImage) {
@@ -1131,7 +1198,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const imageBase64 = payload?.data?.[0]?.b64_json
+    const imageBase64 = payload?.data?.[0]?.b64_json?.trim()
     if (!imageBase64) {
       return NextResponse.json(
         {
@@ -1147,11 +1214,30 @@ export async function POST(request: Request) {
 
     const finalPosterBuffer = await composePosterImage(imageBase64, body)
 
+    if (!finalPosterBuffer.length) {
+      return NextResponse.json(
+        {
+          error:      "La imagen final del poster quedo vacia.",
+          errorCode:  "empty_poster_image",
+          requestId,
+          processingMs,
+          usedReferenceImage: hasReferenceImage,
+        },
+        { status: 502 },
+      )
+    }
+
+    const updatedPosterUsage = await consumePosterGeneration(user.id, plan)
+
     return NextResponse.json({
       imageUrl:           `data:image/png;base64,${finalPosterBuffer.toString("base64")}`,
       requestId,
       processingMs,
       usedReferenceImage: hasReferenceImage,
+      account: {
+        plan,
+        posterUsage: updatedPosterUsage,
+      },
     })
   } catch (error) {
     const errorMessage = getErrorMessage(error)
