@@ -120,29 +120,33 @@ export default function PostersPage() {
     let cancelled = false
 
     async function loadAccount() {
-      const { data, error } = await supabase.auth.getSession()
-      const token = data.session?.access_token
+      try {
+        const { data, error } = await supabase.auth.getSession()
+        const token = data.session?.access_token
 
-      if (error || !token) {
+        if (error || !token) {
+          if (!cancelled) setAccountError("No se pudo cargar el plan actual.")
+          return
+        }
+
+        const response = await fetch("/api/account/plan", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        const payload = await response.json().catch(() => null)
+
+        if (!response.ok) {
+          if (!cancelled) setAccountError(payload?.error || "No se pudo validar el plan.")
+          return
+        }
+
+        if (!cancelled && payload?.account) {
+          setAccount(payload.account)
+        }
+      } catch {
         if (!cancelled) setAccountError("No se pudo cargar el plan actual.")
-        return
-      }
-
-      const response = await fetch("/api/account/plan", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      const payload = await response.json().catch(() => null)
-
-      if (!response.ok) {
-        if (!cancelled) setAccountError(payload?.error || "No se pudo validar el plan.")
-        return
-      }
-
-      if (!cancelled && payload?.account) {
-        setAccount(payload.account)
       }
     }
 

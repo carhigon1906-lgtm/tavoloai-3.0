@@ -20,14 +20,19 @@ export default function SettingsPage() {
     useEffect(() => {
         let mounted = true
 
-        supabase.auth.getSession().then(({ data }) => {
-            if (!mounted) return
-            const metadata = data.session?.user?.user_metadata ?? {}
-            setNombre(metadata.business ?? "")
-            setDireccion(metadata.business_address ?? "")
-            setTelefono(metadata.business_phone ?? "")
-            setPlan(metadata.plan === "premium" ? "premium" : "free")
-        })
+        supabase.auth.getSession()
+            .then(({ data }) => {
+                if (!mounted) return
+                const metadata = data.session?.user?.user_metadata ?? {}
+                setNombre(metadata.business ?? "")
+                setDireccion(metadata.business_address ?? "")
+                setTelefono(metadata.business_phone ?? "")
+                setPlan(metadata.plan === "premium" ? "premium" : "free")
+            })
+            .catch(() => {
+                if (!mounted) return
+                setSaveError("No se pudo cargar la sesion actual.")
+            })
 
         return () => {
             mounted = false
