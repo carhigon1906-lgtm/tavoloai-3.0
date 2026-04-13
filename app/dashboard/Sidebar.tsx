@@ -4,12 +4,22 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Home, LogOut, ChefHat, Menu, Shield } from "lucide-react"
+import { Home, LogOut, ChefHat, Menu, Shield, Image, BarChart3, Settings, AlertTriangle, LayoutTemplate, PenLine } from "lucide-react"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { isPublicAdminEmail } from "@/lib/adminAccess"
 
-const menuItems = [{ icon: Home, label: "Dashboard", href: "/dashboard" }]
+const menuItems = [
+  { icon: Home, label: "Dashboard", href: "/dashboard" },
+  { icon: Menu, label: "Mis menus", href: "/dashboard/menus" },
+  { icon: Menu, label: "Crear menu", href: "/dashboard/menu/new" },
+  { icon: AlertTriangle, label: "Piatti esauriti", href: "/dashboard/panic" },
+  { icon: Image, label: "Studio IA", href: "/dashboard/media" },
+  { icon: LayoutTemplate, label: "Poster IA", href: "/dashboard/posters" },
+  { icon: PenLine, label: "Promozioni IA", href: "/dashboard/writer" },
+  { icon: BarChart3, label: "Statistiche", href: "/dashboard/reports" },
+  { icon: Settings, label: "Impostazioni", href: "/dashboard/settings" },
+]
 const adminItems = [{ icon: Shield, label: "Admin", href: "/dashboard/admin" }]
 
 const MotionLink = motion(Link)
